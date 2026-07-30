@@ -1,0 +1,16 @@
+{
+  "name": "analizbot",
+  "version": "1.0.0",
+  "description": "GolAnaliz AI - Futbol Analiz ve Tahmin Uygulaması",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "keywords": ["futbol", "analiz", "istatistik", "tahmin"],
+  "author": "GOLANALIZ AI",
+  "license": "ISC"
+}

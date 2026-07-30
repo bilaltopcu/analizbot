@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GOLANALIZ AI | Yeni Nesil İddaa & Futbol Analiz Platformu</title>
+  
+  <!-- Meta Descriptions for SEO -->
+  <meta name="description" content="football-data.co.uk altyapısı ve luukhopman logosu ile son 5 maç şut, korner, sarı kart, kırmızı kart ve gol verilerini analiz eden yapay zeka futbol tahmin uygulaması.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- html2canvas for Screenshot / Share -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Decorative Light Orbs -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <div class="app-container">
+    
+    <!-- Navbar / Header -->
+    <header class="app-header">
+      <div class="logo-brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-brain-circuit"></i>
+        </div>
+        <div class="brand-text">
+          <h1>GOLANALIZ <span class="accent-text">AI</span></h1>
+          <span class="brand-subtext">PRO STATS & MATCH PREDICTOR</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 21 Ülke Verisi</span>
+        <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
+      </div>
+    </header>
+
+    <!-- Main Hero / Selection Card -->
+    <section class="selection-card glass-panel">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-earth-americas step-icon"></i> 1. Ülke Seçiniz</h2>
+        <p class="section-desc">Analiz yapmak istediğiniz ülkeyi belirleyin.</p>
+      </div>
+
+      <!-- Country Selection Grid -->
+      <div class="country-grid" id="countryGrid">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Teams Selector Box (Revealed after country selected) -->
+      <div class="teams-selection-wrapper hidden" id="teamsSelectionWrapper">
+        <div class="divider-line"><span><i class="fa-solid fa-shield-halved"></i> 2. Takımları Orijinal Logolarıyla Seçin</span></div>
+
+        <div class="team-selectors-container">
+          
+          <!-- Home Team Custom Logo Dropdown Selector -->
+          <div class="team-select-box glass-card home-box">
+            <div class="box-tag home-tag"><i class="fa-solid fa-house"></i> EV SAHİBİ TAKIM</div>
+            
+            <div class="custom-dropdown" id="homeDropdown">
+              <button type="button" class="dropdown-trigger" id="homeDropdownTrigger">
+                <div class="selected-team-info">
+                  <div class="logo-circle" id="homeTriggerLogo">
+                    <i class="fa-solid fa-shield-halved fallback-icon"></i>
+                  </div>
+                  <span class="team-label" id="homeTriggerLabel">Ev Sahibi Takımı Seçin...</span>
+                </div>
+                <i class="fa-solid fa-chevron-down caret-icon"></i>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div class="dropdown-menu hidden" id="homeDropdownMenu">
+                <div class="search-box-wrapper">
+                  <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                  <input type="text" class="dropdown-search-input" id="homeSearchInput" placeholder="Takım ara...">
+                </div>
+                <div class="dropdown-options-list" id="homeOptionsList">
+                  <!-- Custom Option Items with Logos populated via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VS Badge -->
+          <div class="vs-badge">
+            <span>VS</span>
+          </div>
+
+          <!-- Away Team Custom Logo Dropdown Selector -->
+          <div class="team-select-box glass-card away-box">
+            <div class="box-tag away-tag"><i class="fa-solid fa-plane-departure"></i> DEPLASMAN TAKIMI</div>
+            
+            <div class="custom-dropdown" id="awayDropdown">
+              <button type="button" class="dropdown-trigger" id="awayDropdownTrigger">
+                <div class="selected-team-info">
+                  <div class="logo-circle" id="awayTriggerLogo">
+                    <i class="fa-solid fa-shield-halved fallback-icon"></i>
+                  </div>
+                  <span class="team-label" id="awayTriggerLabel">Deplasman Takımını Seçin...</span>
+                </div>
+                <i class="fa-solid fa-chevron-down caret-icon"></i>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div class="dropdown-menu hidden" id="awayDropdownMenu">
+                <div class="search-box-wrapper">
+                  <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                  <input type="text" class="dropdown-search-input" id="awaySearchInput" placeholder="Takım ara...">
+                </div>
+                <div class="dropdown-options-list" id="awayOptionsList">
+                  <!-- Custom Option Items with Logos populated via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Compare Button -->
+        <div class="action-btn-wrapper">
+          <button id="compareBtn" class="btn-primary-glow" disabled>
+            <i class="fa-solid fa-chart-simple"></i> KARŞILAŞTIR VE ANALİZ ET
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Container (Hidden until Compare Clicked) -->
+    <div id="resultsSection" class="results-container hidden">
+
+      <!-- Match Banner Header -->
+      <div class="match-banner glass-panel" id="analysisBannerCard">
+        <div class="banner-team home">
+          <img id="bannerHomeLogo" src="" alt="Home Logo" class="banner-logo">
+          <h3 id="bannerHomeName">Ev Sahibi</h3>
+          <div class="form-strip" id="homeFormStrip"></div>
+        </div>
+
+        <div class="banner-center">
+          <div class="league-tag" id="bannerLeagueName">TÜRKİYE</div>
+          <div class="vs-text">SON 5 MAÇ ANALİZİ</div>
+          <div class="sample-tag"><i class="fa-solid fa-chart-pie"></i> Toplam 5 Maç İstatistiği</div>
+        </div>
+
+        <div class="banner-team away">
+          <img id="bannerAwayLogo" src="" alt="Away Logo" class="banner-logo">
+          <h3 id="bannerAwayName">Deplasman</h3>
+          <div class="form-strip" id="awayFormStrip"></div>
+        </div>
+      </div>
+
+      <!-- H2H + Ev/Deplasman Split Stats Card -->
+      <section class="h2h-split-section glass-panel" id="h2hSection">
+        <!-- H2H Overview -->
+        <div class="h2h-header">
+          <div class="section-title-box">
+            <h3><i class="fa-solid fa-arrows-left-right-to-line"></i> Aralarındaki Son 5 Karşılaşma (H2H)</h3>
+            <p>İki takımın birbirine karşı son 5 resmi maçı</p>
+          </div>
+        </div>
+
+        <div class="h2h-matches-list" id="h2hMatchesList">
+          <!-- populated by JS -->
+        </div>
+
+        <div class="h2h-stats-row" id="h2hStatsRow">
+          <!-- populated by JS -->
+        </div>
+
+        <!-- Divider -->
+        <div class="divider-line" style="margin: 28px 0 20px 0;"><span><i class="fa-solid fa-house-chimney"></i> Ev / Deplasman Performansı</span></div>
+
+        <!-- Home / Away Split Stats -->
+        <div class="split-stats-grid" id="splitStatsGrid">
+          <!-- populated by JS -->
+        </div>
+      </section>
+
+      <!-- Stats Comparison Grid -->
+      <section class="stats-analysis-section glass-panel">
+        <div class="section-title-box">
+          <h3><i class="fa-solid fa-sliders"></i> Son 5 Maç Ayrıntılı İstatistik Karşılaştırması</h3>
+          <p>Her iki takımın son 5 resmi maçındaki ortalama ve yüzdelik verileri</p>
+        </div>
+
+        <div class="stats-list" id="statsList">
+          <!-- Dynamically populated stat rows -->
+        </div>
+      </section>
+
+      <!-- AI Prediction Banner & Trigger -->
+      <section class="ai-prediction-section glass-panel">
+        <div class="ai-trigger-header">
+          <div class="ai-info">
+            <div class="ai-badge"><i class="fa-solid fa-microchip"></i> DEEP ANALYTICS</div>
+            <h3>Karşılaşma İçin Yapay Zeka (AI) Tahmini</h3>
+            <p>Son 5 maçın şut, korner, kart ve gol verilerini simüle eden algoritma çıktısı.</p>
+          </div>
+          <button id="aiPredictBtn" class="btn-ai-glow">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI TAHMİNİ AL
+          </button>
+        </div>
+
+        <!-- AI Result Box (Expands on Click) -->
+        <div id="aiResultCard" class="ai-result-card hidden">
+          <div class="ai-card-glow-bg"></div>
+          <div class="ai-card-content" id="aiCardShareArea">
+            <div class="top-row">
+              <span class="best-pick-pill"><i class="fa-solid fa-star"></i> GÜNÜN EN UYGUN BAHSİ</span>
+              <div class="confidence-meter">
+                <span>Güven Oranı:</span>
+                <strong id="aiConfidenceValue">%88</strong>
+              </div>
+            </div>
+
+            <div class="main-prediction-display">
+              <div class="bet-headline" id="aiBetTitle">KG VAR & 2.5 GOL ÜSTÜ</div>
+              <div class="score-prediction">
+                <span>Tahmini Skor:</span>
+                <strong id="aiScorePrediction">2 - 1</strong>
+              </div>
+            </div>
+
+            <div class="ai-explanation-box">
+              <h4><i class="fa-solid fa-lightbulb"></i> AI Analiz Raporu & Gerekçesi</h4>
+              <p id="aiExplanationText">Yükleniyor...</p>
+            </div>
+          </div>
+
+          <!-- Share / Download Button -->
+          <div class="ai-share-row">
+            <button id="downloadAnalysisBtn" class="btn-share-download">
+              <i class="fa-solid fa-share-nodes"></i> Analiz Kartını İndir / Paylaş
+            </button>
+          </div>
+        </div>
+
+        <!-- Poisson Score Matrix -->
+        <div id="poissonSection" class="poisson-section hidden">
+          <div class="poisson-header">
+            <div class="ai-badge"><i class="fa-solid fa-calculator"></i> POISSON SKOR MATRİSİ</div>
+            <h4>Olası Skor Dağılımı <span class="poisson-subtitle">(Poisson Dağılımı Algoritması)</span></h4>
+            <p>Beklenen gol değerlerine göre hesaplanan en olası skorlar ve ihtimalleri</p>
+          </div>
+          <div class="poisson-grid" id="poissonGrid">
+            <!-- populated by JS -->
+          </div>
+          <div class="poisson-likely-row" id="poissonLikelyRow">
+            <!-- top 3 scoreline pills -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Possible Bets Grid (Olası Bahisler) -->
+      <section class="possible-bets-section glass-panel">
+        <div class="section-title-box flex-between">
+          <div>
+            <h3><i class="fa-solid fa-list-check"></i> Karşılaşma İçin Olası Bahisler ve Analiz Yüzdeleri</h3>
+            <p>Gerçek 5 maçlık veri analizine göre her seçeneğe özel hesaplanan olasılıklar</p>
+          </div>
+
+          <!-- Market Filter Tabs -->
+          <div class="market-tabs" id="marketTabs">
+            <button class="tab-btn active" data-filter="all">Tümü</button>
+            <button class="tab-btn" data-filter="gol">Gol</button>
+            <button class="tab-btn" data-filter="kart">Kart</button>
+            <button class="tab-btn" data-filter="korner">Korner</button>
+            <button class="tab-btn" data-filter="taraf">Maç Sonucu</button>
+          </div>
+        </div>
+
+        <div class="bets-grid" id="betsGrid">
+          <!-- Dynamically populated bet options -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 GOLANALIZ AI | Veriler <strong>football-data.co.uk</strong> ve <strong>luukhopman/football-logos</strong> açık kaynak veritabanından sağlanmaktadır.</p>
+    </footer>
+
+  </div>
+
+  <!-- Floating Coupon Panel -->
+  <div id="couponPanel" class="coupon-panel hidden">
+    <div class="coupon-header">
+      <div class="coupon-title">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Kuponum</span>
+        <span class="coupon-count-badge" id="couponCountBadge">0</span>
+      </div>
+      <div class="coupon-header-actions">
+        <button class="coupon-toggle-body" id="couponToggleBody" title="Küçült/Genişlet">
+          <i class="fa-solid fa-chevron-up" id="couponChevron"></i>
+        </button>
+        <button class="coupon-close-btn" id="couponCloseBtn" title="Kapat">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    <div class="coupon-body" id="couponBody">
+      <div class="coupon-items" id="couponItems">
+        <!-- populated by JS -->
+      </div>
+      <div class="coupon-summary" id="couponSummary">
+        <!-- populated by JS -->
+      </div>
+      <button class="coupon-clear-btn" id="couponClearBtn">
+        <i class="fa-solid fa-trash-can"></i> Kuponu Temizle
+      </button>
+    </div>
+  </div>
+
+  <!-- Coupon Floating Toggle Button (when panel is closed) -->
+  <button id="couponFloatBtn" class="coupon-float-btn hidden">
+    <i class="fa-solid fa-receipt"></i>
+    <span class="coupon-float-count" id="couponFloatCount">0</span>
+  </button>
+
+
+  <!-- Scripts -->
+  <script src="local_logo_map.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
