@@ -52,9 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const marketTabs = document.getElementById("marketTabs");
 
   // New feature elements
-  const h2hMatchesList = document.getElementById("h2hMatchesList");
-  const h2hStatsRow = document.getElementById("h2hStatsRow");
-  const splitStatsGrid = document.getElementById("splitStatsGrid");
   const poissonSection = document.getElementById("poissonSection");
   const poissonGrid = document.getElementById("poissonGrid");
   const poissonLikelyRow = document.getElementById("poissonLikelyRow");
@@ -70,10 +67,288 @@ document.addEventListener("DOMContentLoaded", () => {
   const couponFloatBtn = document.getElementById("couponFloatBtn");
   const couponFloatCount = document.getElementById("couponFloatCount");
 
+  // H2H 2026-2027 Elements
+  const h2hSection = document.getElementById("h2hSection");
+  const h2hMatchesList = document.getElementById("h2hMatchesList");
+  const h2hStatsRow = document.getElementById("h2hStatsRow");
+  const h2hSubtitle = document.getElementById("h2hSubtitle");
+
   // Coupon State
   let couponItems_data = [];
   let h2hProfile = null;
   let couponBodyOpen = true;
+
+  // =============================================
+  // Auth UI Management
+  // =============================================
+  const authModal = document.getElementById('authModal');
+  const authModalClose = document.getElementById('authModalClose');
+  const headerLoginBtn = document.getElementById('headerLoginBtn');
+  const authLoggedOut = document.getElementById('authLoggedOut');
+  const authLoggedIn = document.getElementById('authLoggedIn');
+  const headerUserEmail = document.getElementById('headerUserEmail');
+  const headerLogoutBtn = document.getElementById('headerLogoutBtn');
+  const headerFavoritesBtn = document.getElementById('headerFavoritesBtn');
+  const headerMyBetsBtn = document.getElementById('headerMyBetsBtn');
+  const myBetsCountBadge = document.getElementById('myBetsCountBadge');
+
+  const authTabLogin = document.getElementById('authTabLogin');
+  const authTabRegister = document.getElementById('authTabRegister');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const loginMessage = document.getElementById('loginMessage');
+  const registerMessage = document.getElementById('registerMessage');
+
+  const favoritesModal = document.getElementById('favoritesModal');
+  const favoritesModalClose = document.getElementById('favoritesModalClose');
+  const favoritesList = document.getElementById('favoritesList');
+  const favoritesEmpty = document.getElementById('favoritesEmpty');
+
+  const myBetsOverlay = document.getElementById('myBetsOverlay');
+  const myBetsModalClose = document.getElementById('myBetsModalClose');
+  const myBetsGroups = document.getElementById('myBetsGroups');
+  const myBetsEmpty = document.getElementById('myBetsEmpty');
+  const clearAllMyBets = document.getElementById('clearAllMyBets');
+
+  // Show auth message
+  function showAuthMessage(el, msg, isError) {
+    el.textContent = msg;
+    el.className = `auth-message ${isError ? 'error' : 'success'}`;
+    el.classList.remove('hidden');
+    setTimeout(() => { if (!isError) el.classList.add('hidden'); }, 4000);
+  }
+
+  // Update header based on auth state
+  function updateAuthUI() {
+    if (AuthManager.isLoggedIn()) {
+      authLoggedOut.classList.add('hidden');
+      authLoggedIn.classList.remove('hidden');
+      headerUserEmail.textContent = AuthManager.getCurrentUser();
+      updateMyBetsCount();
+    } else {
+      authLoggedOut.classList.remove('hidden');
+      authLoggedIn.classList.add('hidden');
+    }
+  }
+
+  function updateMyBetsCount() {
+    const count = AuthManager.getMyBets().length;
+    myBetsCountBadge.textContent = count;
+    if (count > 0) {
+      myBetsCountBadge.classList.remove('hidden');
+    } else {
+      myBetsCountBadge.classList.add('hidden');
+    }
+  }
+
+  // Open auth modal
+  headerLoginBtn.addEventListener('click', () => {
+    authModal.classList.remove('hidden');
+    loginMessage.classList.add('hidden');
+    registerMessage.classList.add('hidden');
+  });
+
+  // Close auth modal
+  authModalClose.addEventListener('click', () => authModal.classList.add('hidden'));
+  authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
+
+  // Auth tab switching
+  authTabLogin.addEventListener('click', () => {
+    authTabLogin.classList.add('active');
+    authTabRegister.classList.remove('active');
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+  });
+  authTabRegister.addEventListener('click', () => {
+    authTabRegister.classList.add('active');
+    authTabLogin.classList.remove('active');
+    registerForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+  });
+
+  // Login submit
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const result = AuthManager.login(email, password);
+    if (result.success) {
+      showAuthMessage(loginMessage, result.message, false);
+      setTimeout(() => {
+        authModal.classList.add('hidden');
+        updateAuthUI();
+        refreshFavoriteStars();
+      }, 800);
+    } else {
+      showAuthMessage(loginMessage, result.message, true);
+    }
+  });
+
+  // Register submit
+  registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('registerPasswordConfirm').value;
+    const result = AuthManager.register(email, password, confirm);
+    if (result.success) {
+      showAuthMessage(registerMessage, result.message, false);
+      setTimeout(() => {
+        authModal.classList.add('hidden');
+        updateAuthUI();
+        refreshFavoriteStars();
+      }, 800);
+    } else {
+      showAuthMessage(registerMessage, result.message, true);
+    }
+  });
+
+  // Logout
+  headerLogoutBtn.addEventListener('click', () => {
+    AuthManager.logout();
+    updateAuthUI();
+    refreshFavoriteStars();
+  });
+
+  // Favorites modal
+  headerFavoritesBtn.addEventListener('click', () => {
+    renderFavoritesModal();
+    favoritesModal.classList.remove('hidden');
+  });
+  favoritesModalClose.addEventListener('click', () => favoritesModal.classList.add('hidden'));
+  favoritesModal.addEventListener('click', (e) => { if (e.target === favoritesModal) favoritesModal.classList.add('hidden'); });
+
+  // My Bets modal
+  headerMyBetsBtn.addEventListener('click', () => {
+    renderMyBetsModal();
+    myBetsOverlay.classList.remove('hidden');
+  });
+  myBetsModalClose.addEventListener('click', () => myBetsOverlay.classList.add('hidden'));
+  myBetsOverlay.addEventListener('click', (e) => { if (e.target === myBetsOverlay) myBetsOverlay.classList.add('hidden'); });
+
+  // Clear all my bets
+  clearAllMyBets.addEventListener('click', () => {
+    AuthManager.clearAllBets();
+    renderMyBetsModal();
+    updateMyBetsCount();
+  });
+
+  // =============================================
+  // Favorites Modal Renderer
+  // =============================================
+  function renderFavoritesModal() {
+    const favs = AuthManager.getFavorites();
+    favoritesList.innerHTML = '';
+
+    if (favs.length === 0) {
+      favoritesEmpty.classList.remove('hidden');
+      return;
+    }
+    favoritesEmpty.classList.add('hidden');
+
+    favs.forEach(fav => {
+      const logoUrl = getTeamLogoUrl(fav.name, fav.countryCode);
+      const fallbackUrl = createFallbackSvgDataUrl(fav.name);
+      const item = document.createElement('div');
+      item.className = 'favorite-item';
+      item.innerHTML = `
+        <div class="favorite-item-info">
+          <img src="${logoUrl}" alt="${fav.name}" class="favorite-logo" onerror="this.onerror=null; this.src='${fallbackUrl}';">
+          <div>
+            <span class="favorite-team-name">${fav.name}</span>
+            <span class="favorite-country">${fav.countryName || ''}</span>
+          </div>
+        </div>
+        <button class="favorite-remove-btn" title="Favorilerden Kaldır">
+          <i class="fa-solid fa-star"></i>
+        </button>
+      `;
+      item.querySelector('.favorite-remove-btn').addEventListener('click', () => {
+        AuthManager.removeFavorite(fav.name);
+        renderFavoritesModal();
+        refreshFavoriteStars();
+      });
+      favoritesList.appendChild(item);
+    });
+  }
+
+  // =============================================
+  // My Bets Modal Renderer
+  // =============================================
+  function renderMyBetsModal() {
+    const grouped = AuthManager.getMyBetsGrouped();
+    const keys = Object.keys(grouped);
+    myBetsGroups.innerHTML = '';
+
+    if (keys.length === 0) {
+      myBetsEmpty.classList.remove('hidden');
+      clearAllMyBets.classList.add('hidden');
+      return;
+    }
+    myBetsEmpty.classList.add('hidden');
+    clearAllMyBets.classList.remove('hidden');
+
+    keys.forEach(matchKey => {
+      const group = grouped[matchKey];
+      const homeLogoUrl = getTeamLogoUrl(group.homeTeam, '');
+      const awayLogoUrl = getTeamLogoUrl(group.awayTeam, '');
+      const homeFallback = createFallbackSvgDataUrl(group.homeTeam);
+      const awayFallback = createFallbackSvgDataUrl(group.awayTeam);
+
+      const groupEl = document.createElement('div');
+      groupEl.className = 'mybets-match-group';
+      groupEl.innerHTML = `
+        <div class="mybets-match-header">
+          <div class="mybets-match-teams">
+            <img src="${homeLogoUrl}" alt="${group.homeTeam}" class="mybets-team-logo" onerror="this.onerror=null; this.src='${homeFallback}';">
+            <span class="mybets-team-name">${group.homeTeam}</span>
+            <span class="mybets-vs">VS</span>
+            <span class="mybets-team-name">${group.awayTeam}</span>
+            <img src="${awayLogoUrl}" alt="${group.awayTeam}" class="mybets-team-logo" onerror="this.onerror=null; this.src='${awayFallback}';">
+          </div>
+          <span class="mybets-match-country">${group.country || ''}</span>
+        </div>
+        <div class="mybets-bet-items"></div>
+      `;
+
+      const itemsContainer = groupEl.querySelector('.mybets-bet-items');
+      group.bets.forEach(bet => {
+        const betEl = document.createElement('div');
+        betEl.className = 'mybets-bet-item';
+        betEl.innerHTML = `
+          <div class="mybets-bet-info">
+            <span class="bet-category cat-${bet.category}">${bet.category}</span>
+            <span class="mybets-bet-name">${bet.betName}</span>
+          </div>
+          <div class="mybets-bet-right">
+            <span class="mybets-bet-pct">%${bet.pct}</span>
+            <button class="mybets-remove-btn" title="Kaldır"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        `;
+        betEl.querySelector('.mybets-remove-btn').addEventListener('click', () => {
+          AuthManager.removeBet(bet.betId);
+          renderMyBetsModal();
+          updateMyBetsCount();
+        });
+        itemsContainer.appendChild(betEl);
+      });
+
+      myBetsGroups.appendChild(groupEl);
+    });
+  }
+
+  // Refresh all favorite stars in dropdown (called after login/logout/toggle)
+  function refreshFavoriteStars() {
+    document.querySelectorAll('.fav-star-btn').forEach(btn => {
+      const team = btn.dataset.team;
+      const isFav = AuthManager.isLoggedIn() && AuthManager.isFavorite(team);
+      btn.innerHTML = isFav
+        ? '<i class="fa-solid fa-star"></i>'
+        : '<i class="fa-regular fa-star"></i>';
+      btn.classList.toggle('is-favorite', isFav);
+    });
+  }
+
 
   // Helper to generate SVG badge data URL for teams without physical png
   function createFallbackSvgDataUrl(teamName) {
@@ -162,14 +437,33 @@ document.addEventListener("DOMContentLoaded", () => {
       const logoUrl = getTeamLogoUrl(teamName, country.code);
       const fallbackUrl = createFallbackSvgDataUrl(teamName);
 
+      const isFav = AuthManager.isLoggedIn() && AuthManager.isFavorite(teamName);
+
       item.innerHTML = `
         <img src="${logoUrl}" alt="${teamName}" class="option-logo" onerror="this.onerror=null; this.src='${fallbackUrl}';">
         <span class="option-name">${teamName}</span>
+        <button class="fav-star-btn ${isFav ? 'is-favorite' : ''}" data-team="${teamName}" data-country-code="${country.code}" data-country-name="${country.name}" title="Favorilere Ekle/Çıkar">
+          <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+        </button>
       `;
 
+      // Team selection click (excluding star button)
       item.addEventListener("click", (e) => {
+        if (e.target.closest('.fav-star-btn')) return;
         e.stopPropagation();
         selectTeamOption(type, teamName, logoUrl);
+      });
+
+      // Star button click
+      const starBtn = item.querySelector('.fav-star-btn');
+      starBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!AuthManager.isLoggedIn()) {
+          authModal.classList.remove('hidden');
+          return;
+        }
+        AuthManager.toggleFavorite(teamName, country.code, country.name);
+        refreshFavoriteStars();
       });
 
       list.appendChild(item);
@@ -285,11 +579,11 @@ document.addEventListener("DOMContentLoaded", () => {
     renderFormStrip(homeFormStrip, homeProfile.matches);
     renderFormStrip(awayFormStrip, awayProfile.matches);
 
-    // H2H Card
-    renderH2HCard();
-
     // Detailed Stats Rows
     renderStatsList();
+
+    // H2H Section
+    renderH2HSection();
 
     // Generate Possible Bets
     generatePossibleBets();
@@ -297,13 +591,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderFormStrip(container, matches) {
     container.innerHTML = "";
+    if (!matches || matches.length === 0) {
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);">2026-2027 maç kaydı yok</span>`;
+      return;
+    }
     matches.forEach(m => {
       const badge = document.createElement("span");
       badge.className = `form-badge ${m.result}`;
       badge.textContent = m.result;
-      badge.title = `${m.isHome ? 'Ev' : 'Dep'}: ${m.score} vs ${m.opponent}`;
+      badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || '2026/27'}): ${m.score} vs ${m.opponent}`;
       container.appendChild(badge);
     });
+  }
+
+  // Render 2026-2027 H2H Section
+  function renderH2HSection() {
+    if (!h2hProfile || !h2hMatchesList || !h2hStatsRow) return;
+
+    if (!h2hProfile.hasH2HIn2627 || h2hProfile.matches.length === 0) {
+      if (h2hSubtitle) h2hSubtitle.textContent = "2026-2027 sezonunda bu iki takım henüz birbiriyle karşılaşmadı.";
+      h2hMatchesList.innerHTML = `
+        <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-glass); border-radius: 8px;">
+          <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan); margin-right: 6px;"></i>
+          2026-2027 Sezonunda doğrudan H2H müsabakası henüz oynanmamıştır.
+        </div>
+      `;
+      h2hStatsRow.innerHTML = "";
+      return;
+    }
+
+    if (h2hSubtitle) h2hSubtitle.textContent = `2026-2027 Sezonunda Toplam ${h2hProfile.matches.length} Müsabaka Oynandı`;
+
+    h2hMatchesList.innerHTML = "";
+    h2hProfile.matches.forEach(m => {
+      const row = document.createElement("div");
+      row.className = "h2h-match-row";
+      
+      let resText = "Berabere";
+      let resClass = "h2h-draw";
+      if (m.result === 'H') { resText = `${homeProfile.teamName} Kazandı`; resClass = "h2h-home-win"; }
+      else if (m.result === 'A') { resText = `${awayProfile.teamName} Kazandı`; resClass = "h2h-away-win"; }
+
+      row.innerHTML = `
+        <div class="h2h-season">${m.date || '26/27'}</div>
+        <div class="h2h-home-label">${homeProfile.teamName}</div>
+        <div class="h2h-score-bubble ${resClass}">${m.score}</div>
+        <div class="h2h-away-label">${awayProfile.teamName}</div>
+        <div class="h2h-result-pill ${resClass}">${resText}</div>
+      `;
+      h2hMatchesList.appendChild(row);
+    });
+
+    h2hStatsRow.innerHTML = `
+      <div class="h2h-stat-item">
+        <div class="h2h-stat-val" style="color: var(--accent-cyan);">${h2hProfile.homeWins}</div>
+        <div class="h2h-stat-lbl">${homeProfile.teamName} Galibiyet</div>
+      </div>
+      <div class="h2h-stat-item">
+        <div class="h2h-stat-val" style="color: var(--accent-amber);">${h2hProfile.draws}</div>
+        <div class="h2h-stat-lbl">Beraberlik</div>
+      </div>
+      <div class="h2h-stat-item">
+        <div class="h2h-stat-val" style="color: var(--accent-crimson);">${h2hProfile.awayWins}</div>
+        <div class="h2h-stat-lbl">${awayProfile.teamName} Galibiyet</div>
+      </div>
+      <div class="h2h-stat-item">
+        <div class="h2h-stat-val">${h2hProfile.avgTotalGoals}</div>
+        <div class="h2h-stat-lbl">Ortalama Gol</div>
+      </div>
+      <div class="h2h-stat-item">
+        <div class="h2h-stat-val">%${h2hProfile.bttsPct}</div>
+        <div class="h2h-stat-lbl">2026/27 H2H KG Var</div>
+      </div>
+      <div class="h2h-stat-item">
+        <div class="h2h-stat-val">%${h2hProfile.over25Pct}</div>
+        <div class="h2h-stat-lbl">2026/27 H2H 2.5 Üst</div>
+      </div>
+    `;
   }
 
   // Render Line-by-Line Stats
@@ -313,19 +677,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const metrics = [
       {
-        title: "Son 5 Maç Atılan Gol Ortalaması",
+        title: "2026-2027 Sezonu Atılan Gol Ortalaması",
         homeVal: hStats.avgGoalsScored,
         awayVal: aStats.avgGoalsScored,
         unit: " Gol/Maç"
       },
       {
-        title: "Son 5 Maç Yenilen Gol Ortalaması",
+        title: "2026-2027 Sezonu Yenilen Gol Ortalaması",
         homeVal: hStats.avgGoalsConceded,
         awayVal: aStats.avgGoalsConceded,
         unit: " Gol/Maç"
       },
       {
-        title: "Toplam Şut Ortalaması",
+        title: "2026-2027 Toplam Şut Ortalaması",
         homeVal: hStats.avgShots,
         awayVal: aStats.avgShots,
         unit: " Şut"
@@ -338,19 +702,19 @@ document.addEventListener("DOMContentLoaded", () => {
         rawAway: parseFloat(aStats.avgShotsOnTarget)
       },
       {
-        title: "Toplam Korner Ortalaması",
+        title: "2026-2027 Toplam Korner Ortalaması",
         homeVal: hStats.avgCorners,
         awayVal: aStats.avgCorners,
         unit: " Korner"
       },
       {
-        title: "Toplam Sarı Kart Ortalaması",
+        title: "2026-2027 Toplam Sarı Kart Ortalaması",
         homeVal: hStats.avgYellowCards,
         awayVal: aStats.avgYellowCards,
         unit: " Kart/Maç"
       },
       {
-        title: "Son 5 Maçtaki Kırmızı Kart Sayısı",
+        title: "2026-2027 Sezonundaki Kırmızı Kart Sayısı",
         homeVal: hStats.totalRedCardsIn5,
         awayVal: aStats.totalRedCardsIn5,
         unit: " Adet"
@@ -404,122 +768,6 @@ document.addEventListener("DOMContentLoaded", () => {
     poissonSection.classList.remove("hidden");
     aiResultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
-
-  // =============================================
-  // H2H Card Renderer
-  // =============================================
-  function renderH2HCard() {
-    if (!h2hProfile) return;
-    const h = h2hProfile;
-
-    // Render match rows
-    h2hMatchesList.innerHTML = '';
-    h.matches.forEach(m => {
-      const resultClass = m.result === 'H' ? 'h2h-home-win' : (m.result === 'D' ? 'h2h-draw' : 'h2h-away-win');
-      const resultLabel = m.result === 'H' ? homeProfile.teamName.split(' ')[0] : (m.result === 'D' ? 'Beraberlik' : awayProfile.teamName.split(' ')[0]);
-      const row = document.createElement('div');
-      row.className = 'h2h-match-row';
-      row.innerHTML = `
-        <span class="h2h-season">${m.season}</span>
-        <span class="h2h-home-label">${homeProfile.teamName}</span>
-        <span class="h2h-score-bubble ${resultClass}">${m.score}</span>
-        <span class="h2h-away-label">${awayProfile.teamName}</span>
-        <span class="h2h-result-pill ${resultClass}">${resultLabel}</span>
-      `;
-      h2hMatchesList.appendChild(row);
-    });
-
-    // Render H2H summary stats
-    h2hStatsRow.innerHTML = `
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-icon home-win-icon"><i class="fa-solid fa-house"></i></div>
-        <div class="h2h-stat-val">${h.homeWins}</div>
-        <div class="h2h-stat-lbl">${homeProfile.teamName} Galibiyeti</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-icon draw-icon"><i class="fa-solid fa-equals"></i></div>
-        <div class="h2h-stat-val">${h.draws}</div>
-        <div class="h2h-stat-lbl">Beraberlik</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-icon away-win-icon"><i class="fa-solid fa-plane"></i></div>
-        <div class="h2h-stat-val">${h.awayWins}</div>
-        <div class="h2h-stat-lbl">${awayProfile.teamName} Galibiyeti</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-icon goal-icon"><i class="fa-solid fa-futbol"></i></div>
-        <div class="h2h-stat-val">${h.avgTotalGoals}</div>
-        <div class="h2h-stat-lbl">Ort. Toplam Gol</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-icon btts-icon"><i class="fa-solid fa-chart-line"></i></div>
-        <div class="h2h-stat-val">%${h.bttsPct}</div>
-        <div class="h2h-stat-lbl">KG Var</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-icon over-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
-        <div class="h2h-stat-val">%${h.over25Pct}</div>
-        <div class="h2h-stat-lbl">2.5 Üst</div>
-      </div>
-    `;
-
-    // Render Home/Away Split Stats
-    renderSplitStatsCard();
-  }
-
-  function renderSplitStatsCard() {
-    const hHS = homeProfile.homeStats; // home team's home record
-    const aAS = awayProfile.awayStats; // away team's away record
-
-    splitStatsGrid.innerHTML = '';
-
-    function splitCard(title, tag, tagClass, stats, colorClass) {
-      if (!stats) return '';
-      return `
-        <div class="split-card ${colorClass}">
-          <div class="split-card-header">
-            <span class="split-tag ${tagClass}">${tag}</span>
-            <span class="split-team-name">${title}</span>
-          </div>
-          <div class="split-record">
-            <span class="split-wdl w">${stats.wins}G</span>
-            <span class="split-wdl d">${stats.draws}B</span>
-            <span class="split-wdl l">${stats.losses}M</span>
-          </div>
-          <div class="split-metrics">
-            <div class="split-metric">
-              <span class="split-metric-val">${stats.avgGoalsScored}</span>
-              <span class="split-metric-lbl">Ort. Gol</span>
-            </div>
-            <div class="split-metric">
-              <span class="split-metric-val">${stats.avgGoalsConceded}</span>
-              <span class="split-metric-lbl">Yenilen</span>
-            </div>
-            <div class="split-metric">
-              <span class="split-metric-val">${stats.avgShots}</span>
-              <span class="split-metric-lbl">Şut</span>
-            </div>
-            <div class="split-metric">
-              <span class="split-metric-val">${stats.avgCorners}</span>
-              <span class="split-metric-lbl">Korner</span>
-            </div>
-            <div class="split-metric">
-              <span class="split-metric-val">%${stats.bttsPct}</span>
-              <span class="split-metric-lbl">KG Var</span>
-            </div>
-            <div class="split-metric">
-              <span class="split-metric-val">%${stats.over25Pct}</span>
-              <span class="split-metric-lbl">2.5 Üst</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    splitStatsGrid.innerHTML = 
-      splitCard(homeProfile.teamName, '🏠 İÇ SAHA', 'home-split-tag', hHS, 'split-home-card') +
-      splitCard(awayProfile.teamName, '✈️ DIŞ SAHA', 'away-split-tag', aAS, 'split-away-card');
-  }
 
   // =============================================
   // Poisson Distribution Score Matrix
@@ -607,27 +855,27 @@ document.addEventListener("DOMContentLoaded", () => {
       bestBet = "KG VAR & 2.5 GOL ÜSTÜ";
       confidence = Math.min(94, Math.round(avgBtts * 1.05));
       scorePred = `${Math.max(1, Math.round(expHomeGoals))} - ${Math.max(1, Math.round(expAwayGoals))}`;
-      explanation = `Ev sahibi ${homeProfile.teamName} (Son 5 maç gol ort.: ${h.avgGoalsScored}) ve Deplasman ${awayProfile.teamName} (Son 5 maç gol ort.: ${a.avgGoalsScored}) son derece üretken bir hücum grafiği çiziyor. Her iki takımın da son 5 maçlık KG Var oranı %${avgBtts.toFixed(0)} seviyesindedir. Tempolu ve karşılıklı gollerin olacağı 2.5 Üst bir müsabaka beklenmektedir.`;
+      explanation = `2026-2027 Sezonunda ev sahibi ${homeProfile.teamName} (Maç başı gol ort.: ${h.avgGoalsScored}) ve Deplasman ${awayProfile.teamName} (Maç başı gol ort.: ${a.avgGoalsScored}) yüksek bir hücum performansı sergilemektedir. İki takımın 2026-2027 sezonu KG Var oranı %${avgBtts.toFixed(0)} seviyesindedir. Tempolu ve karşılıklı gollerin olacağı 2.5 Üst bir müsabaka beklenmektedir.`;
     } else if (expCards >= 4.6) {
       bestBet = "ÜST 4.5 SARI KART";
       confidence = Math.min(92, Math.round(expCards * 16));
       scorePred = expHomeGoals > expAwayGoals ? "2 - 1" : "1 - 1";
-      explanation = `Her iki takımın son 5 maç istatistiklerinde kart ortalaması oldukça yüksektir. Ev sahibi maç başına ortalama ${h.avgYellowCards}, deplasman ise ${a.avgYellowCards} sarı kart görmektedir. Toplam beklenen kart sayısı ${expCards.toFixed(1)} olup yüksek tempolu ve sert bir karşılaşma öngörülmektedir.`;
+      explanation = `2026-2027 Sezonu verilerine göre her iki takımın kart ortalaması oldukça yüksektir. Ev sahibi maç başına ortalama ${h.avgYellowCards}, deplasman ise ${a.avgYellowCards} sarı kart görmektedir. Toplam beklenen kart sayısı ${expCards.toFixed(1)} olup yüksek tempolu ve sert bir karşılaşma öngörülmektedir.`;
     } else if (h.winPct >= 60 && parseFloat(h.avgGoalsScored) > 1.8) {
       bestBet = `MAÇ SONUCU 1 (${homeProfile.teamName.toUpperCase()} KAZANIR)`;
       confidence = Math.min(90, h.winPct + 15);
       scorePred = "2 - 0";
-      explanation = `${homeProfile.teamName} kendi sahasında son 5 maçta %${h.winPct} galibiyet oranına ve maç başına ${h.avgShotsOnTarget} isabetli şut ortalamasına sahip. Deplasman ekibinin savunma açıkları düşünüldüğünde ev sahibinin galibiyeti öne çıkmaktadır.`;
+      explanation = `2026-2027 Sezonunda ${homeProfile.teamName} kendi sahasında %${h.winPct} galibiyet oranına ve maç başına ${h.avgShotsOnTarget} isabetli şut ortalamasına sahip. Deplasman ekibinin savunma zaafları göz önüne alındığında ev sahibi galibiyeti öne çıkmaktadır.`;
     } else if (expCorners >= 9.8) {
       bestBet = "ÜST 9.5 KORNER";
       confidence = Math.min(91, Math.round(expCorners * 8.8));
       scorePred = "2 - 1";
-      explanation = `İki takımın kanat organizasyonları ve şut sayıları incelendiğinde ev sahibi ortalama ${h.avgCorners}, deplasman ise ${a.avgCorners} korner kullanmaktadır. Toplam ${expCorners.toFixed(1)} korner beklentisi ile korner bahsi en yüksek olasılıktır.`;
+      explanation = `2026-2027 Sezonu verilerinde ev sahibi ortalama ${h.avgCorners}, deplasman ise ${a.avgCorners} korner kullanmaktadır. Toplam ${expCorners.toFixed(1)} korner beklentisi ile korner bahsi en yüksek olasılıktır.`;
     } else {
       bestBet = "TOPLAM GOL 2.5 ALT";
       confidence = 82;
       scorePred = "1 - 0";
-      explanation = `İki takımın da son maçlarındaki gol yolları üretkenliği düşük seyretmektedir (Ev ort.: ${h.avgGoalsScored}, Dep ort.: ${a.avgGoalsScored}). Katı savunma ve dengeli orta saha mücadelesi sebebiyle 2.5 Alt bahsi ön plana çıkmaktadır.`;
+      explanation = `2026-2027 Sezonundaki maç performanslarına göre iki takımın da gol ortalaması düşük seyretmektedir (Ev ort.: ${h.avgGoalsScored}, Dep ort.: ${a.avgGoalsScored}). Katı savunma ve dengeli mücadele nedeniyle 2.5 Alt bahsi öne çıkmaktadır.`;
     }
 
     aiBetTitle.textContent = bestBet;
@@ -743,6 +991,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const isInCoupon = couponItems_data.some(c => c.name === bet.name);
 
+      // Check if already saved in MyBets
+      const betId = `${homeTeamName}_${awayTeamName}_${bet.name}`;
+      const isSaved = AuthManager.isLoggedIn() && AuthManager.getMyBets().some(b => b.betId === betId);
+
       card.innerHTML = `
         <div>
           <div class="bet-card-top">
@@ -757,10 +1009,16 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="probability-bar-fill ${fillClass}" style="width: ${bet.pct}%"></div>
           </div>
           <div class="bet-reason">${bet.reason}</div>
-          <button class="btn-add-coupon ${isInCoupon ? 'in-coupon' : ''}" data-betname="${encodeURIComponent(bet.name)}" data-pct="${bet.pct}" data-cat="${bet.category}">
-            <i class="fa-solid ${isInCoupon ? 'fa-check' : 'fa-plus'}"></i>
-            ${isInCoupon ? 'Kuponda' : 'Kupona Ekle'}
-          </button>
+          <div class="bet-card-actions">
+            <button class="btn-add-coupon ${isInCoupon ? 'in-coupon' : ''}" data-betname="${encodeURIComponent(bet.name)}" data-pct="${bet.pct}" data-cat="${bet.category}">
+              <i class="fa-solid ${isInCoupon ? 'fa-check' : 'fa-plus'}"></i>
+              ${isInCoupon ? 'Kuponda' : 'Kupona Ekle'}
+            </button>
+            <button class="btn-save-mybet ${isSaved ? 'is-saved' : ''}" data-betname="${encodeURIComponent(bet.name)}" data-pct="${bet.pct}" data-cat="${bet.category}">
+              <i class="fa-solid ${isSaved ? 'fa-bookmark' : 'fa-bookmark'}"></i>
+              ${isSaved ? 'Kaydedildi' : 'Bahislerime Kaydet'}
+            </button>
+          </div>
         </div>
       `;
 
@@ -772,6 +1030,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const pct = parseInt(addBtn.dataset.pct);
         const cat = addBtn.dataset.cat;
         toggleCouponItem({ name, pct, category: cat });
+      });
+
+      // My Bets save button
+      const saveBtn = card.querySelector('.btn-save-mybet');
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!AuthManager.isLoggedIn()) {
+          authModal.classList.remove('hidden');
+          return;
+        }
+        const name = decodeURIComponent(saveBtn.dataset.betname);
+        const pct = parseInt(saveBtn.dataset.pct);
+        const cat = saveBtn.dataset.cat;
+        const result = AuthManager.addBet({
+          homeTeam: homeTeamName,
+          awayTeam: awayTeamName,
+          country: selectedCountry ? selectedCountry.name : '',
+          betName: name,
+          pct: pct,
+          category: cat
+        });
+        if (result.success) {
+          saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Kaydedildi';
+          saveBtn.classList.add('is-saved');
+          updateMyBetsCount();
+        }
       });
 
       betsGrid.appendChild(card);
@@ -918,4 +1202,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize
   initCountryGrid();
+  updateAuthUI();
 });

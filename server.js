@@ -51,6 +51,18 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ status: 'UP', timestamp: new Date().toISOString() }));
   }
 
+  if (pathname === '/api/sync-2026-2027') {
+    const { exec } = require('child_process');
+    exec('python update_2026_2027_data.py', (error, stdout, stderr) => {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+      if (error) {
+        return res.end(JSON.stringify({ status: 'ERROR', message: error.message }));
+      }
+      return res.end(JSON.stringify({ status: 'SUCCESS', message: '2026-2027 sezonu verileri football-data.co.uk üzerinden güncellendi!' }));
+    });
+    return;
+  }
+
   // Safe file path resolution
   let relativePath = pathname === '/' ? 'index.html' : pathname;
   let filePath = path.join(__dirname, relativePath);

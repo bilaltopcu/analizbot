@@ -42,9 +42,39 @@
           <span class="brand-subtext">PRO STATS & MATCH PREDICTOR</span>
         </div>
       </div>
-      <div class="header-badges">
-        <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 21 Ülke Verisi</span>
-        <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
+      <div class="header-right-area">
+        <div class="header-badges">
+          <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 21 Ülke Verisi</span>
+          <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
+        </div>
+        <!-- Auth Area: Login/Register OR User Info -->
+        <div class="header-auth-area" id="headerAuthArea">
+          <!-- Logged out state -->
+          <div class="auth-logged-out" id="authLoggedOut">
+            <button class="btn-auth-login" id="headerLoginBtn">
+              <i class="fa-solid fa-right-to-bracket"></i> Giriş / Kayıt
+            </button>
+          </div>
+          <!-- Logged in state -->
+          <div class="auth-logged-in hidden" id="authLoggedIn">
+            <button class="btn-user-action" id="headerFavoritesBtn" title="Favori Takımlarım">
+              <i class="fa-solid fa-star"></i>
+              <span class="user-action-label">Favorilerim</span>
+            </button>
+            <button class="btn-user-action" id="headerMyBetsBtn" title="Bahislerim">
+              <i class="fa-solid fa-bookmark"></i>
+              <span class="user-action-label">Bahislerim</span>
+              <span class="mybets-count-badge hidden" id="myBetsCountBadge">0</span>
+            </button>
+            <div class="user-profile-pill" id="userProfilePill">
+              <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+              <span class="user-email" id="headerUserEmail">user@mail.com</span>
+              <button class="btn-logout" id="headerLogoutBtn" title="Çıkış Yap">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -151,8 +181,8 @@
 
         <div class="banner-center">
           <div class="league-tag" id="bannerLeagueName">TÜRKİYE</div>
-          <div class="vs-text">SON 5 MAÇ ANALİZİ</div>
-          <div class="sample-tag"><i class="fa-solid fa-chart-pie"></i> Toplam 5 Maç İstatistiği</div>
+          <div class="vs-text">2026-2027 SEZONU ANALİZİ</div>
+          <div class="sample-tag"><i class="fa-solid fa-database"></i> 2026-2027 Sezonu Güncel Verileri</div>
         </div>
 
         <div class="banner-team away">
@@ -162,42 +192,31 @@
         </div>
       </div>
 
-      <!-- H2H + Ev/Deplasman Split Stats Card -->
-      <section class="h2h-split-section glass-panel" id="h2hSection">
-        <!-- H2H Overview -->
-        <div class="h2h-header">
-          <div class="section-title-box">
-            <h3><i class="fa-solid fa-arrows-left-right-to-line"></i> Aralarındaki Son 5 Karşılaşma (H2H)</h3>
-            <p>İki takımın birbirine karşı son 5 resmi maçı</p>
-          </div>
-        </div>
-
-        <div class="h2h-matches-list" id="h2hMatchesList">
-          <!-- populated by JS -->
-        </div>
-
-        <div class="h2h-stats-row" id="h2hStatsRow">
-          <!-- populated by JS -->
-        </div>
-
-        <!-- Divider -->
-        <div class="divider-line" style="margin: 28px 0 20px 0;"><span><i class="fa-solid fa-house-chimney"></i> Ev / Deplasman Performansı</span></div>
-
-        <!-- Home / Away Split Stats -->
-        <div class="split-stats-grid" id="splitStatsGrid">
-          <!-- populated by JS -->
-        </div>
-      </section>
-
       <!-- Stats Comparison Grid -->
       <section class="stats-analysis-section glass-panel">
         <div class="section-title-box">
-          <h3><i class="fa-solid fa-sliders"></i> Son 5 Maç Ayrıntılı İstatistik Karşılaştırması</h3>
-          <p>Her iki takımın son 5 resmi maçındaki ortalama ve yüzdelik verileri</p>
+          <h3><i class="fa-solid fa-sliders"></i> 2026-2027 Sezonu Ayrıntılı İstatistik Karşılaştırması</h3>
+          <p>Her iki takımın 2026-2027 sezonundaki resmi maçlarındaki ortalama ve yüzdelik verileri (football-data.co.uk)</p>
         </div>
 
         <div class="stats-list" id="statsList">
           <!-- Dynamically populated stat rows -->
+        </div>
+      </section>
+
+      <!-- Head to Head (H2H) 2026-2027 Section -->
+      <section class="h2h-split-section glass-panel" id="h2hSection">
+        <div class="section-title-box">
+          <h3><i class="fa-solid fa-people-arrows"></i> 2026-2027 Sezonu Head-to-Head (H2H) Karşılaşmaları</h3>
+          <p id="h2hSubtitle">İki takımın 2026-2027 sezonundaki doğrudan müsabaka geçmişi</p>
+        </div>
+
+        <div class="h2h-matches-list" id="h2hMatchesList">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="h2h-stats-row" id="h2hStatsRow">
+          <!-- Populated by JS -->
         </div>
       </section>
 
@@ -333,9 +352,108 @@
   </button>
 
 
+  <!-- Auth Modal Overlay -->
+  <div id="authModal" class="modal-overlay hidden">
+    <div class="modal-container auth-modal glass-panel">
+      <button class="modal-close-btn" id="authModalClose"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="auth-modal-header">
+        <div class="auth-brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h2>GOLANALIZ <span class="accent-text">AI</span></h2>
+        <p>Hesabınıza giriş yapın veya yeni kayıt oluşturun</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" id="authTabLogin">Giriş Yap</button>
+        <button class="auth-tab" data-tab="register" id="authTabRegister">Kayıt Ol</button>
+      </div>
+
+      <!-- Login Form -->
+      <form class="auth-form" id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail"><i class="fa-solid fa-envelope"></i> E-posta</label>
+          <input type="email" id="loginEmail" placeholder="ornek@mail.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword"><i class="fa-solid fa-lock"></i> Şifre</label>
+          <input type="password" id="loginPassword" placeholder="Şifrenizi girin" autocomplete="current-password" required>
+        </div>
+        <div class="auth-message hidden" id="loginMessage"></div>
+        <button type="submit" class="btn-auth-submit">
+          <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form class="auth-form hidden" id="registerForm">
+        <div class="form-group">
+          <label for="registerEmail"><i class="fa-solid fa-envelope"></i> E-posta</label>
+          <input type="email" id="registerEmail" placeholder="ornek@mail.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="registerPassword"><i class="fa-solid fa-lock"></i> Şifre</label>
+          <input type="password" id="registerPassword" placeholder="En az 6 karakter" autocomplete="new-password" required>
+        </div>
+        <div class="form-group">
+          <label for="registerPasswordConfirm"><i class="fa-solid fa-lock"></i> Şifre Tekrar</label>
+          <input type="password" id="registerPasswordConfirm" placeholder="Şifrenizi tekrar girin" autocomplete="new-password" required>
+        </div>
+        <div class="auth-message hidden" id="registerMessage"></div>
+        <button type="submit" class="btn-auth-submit">
+          <i class="fa-solid fa-user-plus"></i> Kayıt Ol
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Favorites Modal Overlay -->
+  <div id="favoritesModal" class="modal-overlay hidden">
+    <div class="modal-container favorites-modal glass-panel">
+      <button class="modal-close-btn" id="favoritesModalClose"><i class="fa-solid fa-xmark"></i></button>
+      <div class="favorites-modal-header">
+        <h2><i class="fa-solid fa-star"></i> Favori Takımlarım</h2>
+        <p>Yıldızladığınız takımlar burada listelenir</p>
+      </div>
+      <div class="favorites-list" id="favoritesList">
+        <!-- Populated by JS -->
+      </div>
+      <div class="favorites-empty hidden" id="favoritesEmpty">
+        <i class="fa-regular fa-star"></i>
+        <p>Henüz favori takım eklemediniz.</p>
+        <span>Takım dropdown'larındaki ★ ikonuna tıklayarak favori ekleyebilirsiniz.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Bets Overlay Panel -->
+  <div id="myBetsOverlay" class="modal-overlay hidden">
+    <div class="modal-container mybets-modal glass-panel">
+      <button class="modal-close-btn" id="myBetsModalClose"><i class="fa-solid fa-xmark"></i></button>
+      <div class="mybets-modal-header">
+        <div>
+          <h2><i class="fa-solid fa-bookmark"></i> Bahislerim</h2>
+          <p>Kaydettiğiniz tüm bahisler maç bazlı görüntülenir</p>
+        </div>
+        <button class="btn-clear-all-bets hidden" id="clearAllMyBets">
+          <i class="fa-solid fa-trash-can"></i> Tümünü Temizle
+        </button>
+      </div>
+      <div class="mybets-groups" id="myBetsGroups">
+        <!-- Populated by JS -->
+      </div>
+      <div class="mybets-empty hidden" id="myBetsEmpty">
+        <i class="fa-solid fa-bookmark"></i>
+        <p>Henüz kaydedilmiş bahisiniz yok.</p>
+        <span>Maç analizi yaptıktan sonra bahis kartlarındaki <strong>"Bahislerime Kaydet"</strong> butonunu kullanarak bahis ekleyebilirsiniz.</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="local_logo_map.js"></script>
   <script src="data.js"></script>
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
