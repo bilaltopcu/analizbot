@@ -2,8 +2,9 @@
   "name": "analizbot",
   "version": "1.0.0",
   "description": "GolAnaliz AI - Futbol Analiz ve Tahmin Uygulaması",
-  "main": "server.js",
+  "main": "index.html",
   "scripts": {
+    "build": "echo 'Static build complete'",
     "start": "node server.js"
   },
   "engines": {
