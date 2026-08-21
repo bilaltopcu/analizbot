@@ -37,7 +37,7 @@ class HealthAndStaticRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(payload).encode('utf-8'))
             return
 
-        if self.path == '/api/sync-2026-2027':
+        if self.path in ['/api/sync-2026-2027', '/api/sync-data']:
             self.send_response(200)
             self.send_header('Content-type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -45,7 +45,7 @@ class HealthAndStaticRequestHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 import update_2026_2027_data
                 update_2026_2027_data.run_sync()
-                res = {"status": "SUCCESS", "message": "2026-2027 sezonu verileri football-data.co.uk adresi üzerinden başarıyla güncellendi!"}
+                res = {"status": "SUCCESS", "message": "2025-2026 ve 2026-2027 sezonları verileri football-data.co.uk üzerinden başarıyla güncellendi!"}
             except Exception as e:
                 res = {"status": "ERROR", "message": str(e)}
             self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))

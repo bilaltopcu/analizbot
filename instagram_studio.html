@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GOLANALIZ AI | Instagram Kupon & Story Paylaşım Stüdyosu</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: rgba(18, 24, 38, 0.85);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-green: #00ff88;
+      --accent-gold: #ffb800;
+      --accent-blue: #00b4d8;
+      --accent-red: #ff3860;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #151d30 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(11, 15, 25, 0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #00ff88, #00b4d8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #0b0f19;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title span {
+      color: var(--accent-green);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-link {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .btn-link:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Main Workspace */
+    .studio-container {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      flex: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .studio-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Controls Sidebar */
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      height: fit-content;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+
+    .panel-section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Upload Zone */
+    .upload-box {
+      border: 2px dashed rgba(0, 255, 136, 0.4);
+      background: rgba(0, 255, 136, 0.03);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s all;
+      position: relative;
+    }
+
+    .upload-box:hover, .upload-box.dragover {
+      border-color: var(--accent-green);
+      background: rgba(0, 255, 136, 0.08);
+    }
+
+    .upload-icon {
+      font-size: 32px;
+      color: var(--accent-green);
+      margin-bottom: 8px;
+    }
+
+    .upload-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .upload-box input {
+      display: none;
+    }
+
+    /* Background Selectors */
+    .bg-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .bg-card-option {
+      border: 2px solid transparent;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #111;
+      position: relative;
+      aspect-ratio: 9/16;
+      max-height: 120px;
+      transition: 0.2s;
+    }
+
+    .bg-card-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .bg-card-option.active {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 14px rgba(0, 255, 136, 0.4);
+    }
+
+    .bg-card-option .bg-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.75);
+      font-size: 11px;
+      padding: 3px 6px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Input Fields */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .input-field, select.input-field {
+      background: #0f1624;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+
+    /* Sliders */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .slider-row input[type=range] {
+      flex: 1;
+      accent-color: var(--accent-green);
+    }
+
+    .slider-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-green);
+      width: 42px;
+      text-align: right;
+    }
+
+    /* Stamp / Badge Selector */
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: 600;
+    }
+
+    .badge-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .badge-btn.active {
+      background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,180,216,0.2));
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* Right Preview Area */
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+      background: rgba(18, 24, 38, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .preview-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .preview-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .format-switch {
+      display: flex;
+      background: #0f1624;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+    }
+
+    .format-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .format-btn.active {
+      background: var(--accent-green);
+      color: #0b0f19;
+    }
+
+    /* Canvas Frame Box */
+    .canvas-container-outer {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      border-radius: 18px;
+      overflow: hidden;
+      max-height: 720px;
+      background: #000;
+    }
+
+    #previewCanvas {
+      max-height: 700px;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+
+    /* Download Bar */
+    .download-bar {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .btn-download {
+      flex: 1;
+      background: linear-gradient(135deg, #00ff88, #00b4d8);
+      border: none;
+      color: #0b0f19;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 14px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 255, 136, 0.35);
+      transition: 0.2s all;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 255, 136, 0.5);
+    }
+
+    .btn-download:active {
+      transform: translateY(0);
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 14px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Tip box */
+    .tip-box {
+      background: rgba(0, 180, 216, 0.08);
+      border: 1px solid rgba(0, 180, 216, 0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .tip-box i {
+      color: var(--accent-blue);
+      margin-top: 2px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <a href="index.html" class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-brain-circuit"></i>
+      </div>
+      <div class="brand-title">GOLANALIZ <span>STÜDYO</span></div>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-link">
+        <i class="fa-solid fa-arrow-left"></i> Analiz Paneline Dön
+      </a>
+    </div>
+  </header>
+
+  <!-- Studio Container -->
+  <main class="studio-container">
+    
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+      
+      <!-- 1. Ekran Görüntüsü Yükleme -->
+      <div>
+        <div class="panel-section-title">
+          <i class="fa-solid fa-cloud-arrow-up"></i> 1. Nesine Ekran Görüntüsü
+        </div>
+        <div class="upload-box" id="uploadDropZone" onclick="document.getElementById('couponFileInput').click()">
+          <i class="fa-solid fa-file-arrow-up upload-icon"></i>
+          <div style="font-weight: 600; font-size: 14px;">Görseli Buraya Sürükle veya Tıkla</div>
+          <div class="upload-hint">Telefondan aldığın Nesine kupon görselini seç (veya Ctrl+V ile yapıştır)</div>
+          <input type="file" id="couponFileInput" accept="image/*">
+        </div>
+      </div>
+
+      <!-- 2. Arka Plan Seçimi -->
+      <div>
+        <div class="panel-section-title">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> 2. Arka Plan Teması
+        </div>
+        <div class="bg-grid">
+          <div class="bg-card-option active" data-bg="bg_emerald_ai.jpg">
+            <img src="instagram_templates/bg_emerald_ai.jpg" alt="Emerald AI Stadium">
+            <div class="bg-label">Emerald Stadium</div>
+          </div>
+          <div class="bg-card-option" data-bg="bg_gold_vip.jpg">
+            <img src="instagram_templates/bg_gold_vip.jpg" alt="Gold VIP Winner">
+            <div class="bg-label">Gold VIP</div>
+          </div>
+          <div class="bg-card-option" data-bg="bg_neon_stadium.jpg">
+            <img src="instagram_templates/bg_neon_stadium.jpg" alt="Blue Tech Arena">
+            <div class="bg-label">Blue Neon</div>
+          </div>
+          <div class="bg-card-option" data-bg="bg_fire_winner.jpg">
+            <img src="instagram_templates/bg_fire_winner.jpg" alt="Champions Fire">
+            <div class="bg-label">Şampiyon Gece</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Kupon Pozisyonu & Boyut -->
+      <div>
+        <div class="panel-section-title">
+          <i class="fa-solid fa-crop-simple"></i> 3. Görsel Boyutu & Konumu
+        </div>
+        
+        <div class="input-group" style="margin-bottom: 12px;">
+          <div class="slider-row">
+            <label>Yakınlaştır (Boyut):</label>
+            <span class="slider-value" id="scaleVal">100%</span>
+          </div>
+          <input type="range" id="scaleSlider" min="50" max="180" value="100">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 12px;">
+          <div class="slider-row">
+            <label>Yukarı / Aşağı Kaydır:</label>
+            <span class="slider-value" id="posYVal">0px</span>
+          </div>
+          <input type="range" id="posYSlider" min="-400" max="400" value="0">
+        </div>
+
+        <div class="input-group">
+          <div class="slider-row">
+            <label>Köşe Yuvarlaklığı:</label>
+            <span class="slider-value" id="radiusVal">24px</span>
+          </div>
+          <input type="range" id="radiusSlider" min="0" max="40" value="24">
+        </div>
+      </div>
+
+      <!-- 4. Başlık ve Rozet Ayarları -->
+      <div>
+        <div class="panel-section-title">
+          <i class="fa-solid fa-pen-nib"></i> 4. Başlık & Rozetler
+        </div>
+        
+        <div class="input-group" style="margin-bottom: 12px;">
+          <label>Üst Başlık:</label>
+          <input type="text" id="headerTextInput" class="input-field" value="🔥 GÜNÜN KAZANDIRAN KUPONU">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 12px;">
+          <label>Instagram Kullanıcı Adı (Filigran):</label>
+          <input type="text" id="igHandleInput" class="input-field" value="@golanaliz.ai">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 12px;">
+          <label>Kupon Durum Rozeti:</label>
+          <div class="badges-row">
+            <button class="badge-btn active" data-badge="KAZANDI ✅">KAZANDI ✅</button>
+            <button class="badge-btn" data-badge="BANKO ⚡">BANKO ⚡</button>
+            <button class="badge-btn" data-badge="YÜKSEK ORAN 💰">YÜKSEK ORAN 💰</button>
+            <button class="badge-btn" data-badge="GÜVEN %95 🛡️">GÜVEN %95 🛡️</button>
+            <button class="badge-btn" data-badge="NONE">Yok</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- İpucu -->
+      <div class="tip-box">
+        <i class="fa-solid fa-lightbulb"></i>
+        <div>
+          <strong>Hızlı İpucu:</strong> Ekran alıntısı aracından (Snipping Tool) kopyaladığın kuponu doğrudan bu sayfadayken <code>Ctrl + V</code> tuşlarına basarak anında yapıştırabilirsin!
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Preview & Export Area -->
+    <div class="preview-panel">
+      
+      <div class="preview-header">
+        <div class="preview-title">
+          <i class="fa-solid fa-eye"></i> Canlı Önizleme
+        </div>
+
+        <div class="format-switch">
+          <button class="format-btn active" data-format="story">
+            <i class="fa-brands fa-instagram"></i> Story (9:16)
+          </button>
+          <button class="format-btn" data-format="post">
+            <i class="fa-regular fa-square"></i> Post (1:1)
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas Area -->
+      <div class="canvas-container-outer">
+        <canvas id="previewCanvas" width="1080" height="1920"></canvas>
+      </div>
+
+      <!-- Download Actions -->
+      <div class="download-bar">
+        <button class="btn-download" id="downloadBtn">
+          <i class="fa-solid fa-download"></i> HD Görseli İndir (1080x1920)
+        </button>
+        <button class="btn-copy" id="copyClipboardBtn" title="Panoya Kopyala">
+          <i class="fa-solid fa-copy"></i> Kopyala
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // State
+    const state = {
+      format: 'story', // 'story' (1080x1920) or 'post' (1080x1080)
+      bgFile: 'bg_emerald_ai.jpg',
+      userImage: null,
+      scale: 100,
+      posY: 0,
+      radius: 24,
+      headerText: '🔥 GÜNÜN KAZANDIRAN KUPONU',
+      igHandle: '@golanaliz.ai',
+      badge: 'KAZANDI ✅'
+    };
+
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Preload background images
+    const loadedBgImages = {};
+
+    function preloadBackgrounds() {
+      const bgs = ['bg_emerald_ai.jpg', 'bg_gold_vip.jpg', 'bg_neon_stadium.jpg', 'bg_fire_winner.jpg'];
+      bgs.forEach(filename => {
+        const img = new Image();
+        img.src = 'instagram_templates/' + filename;
+        img.onload = () => {
+          loadedBgImages[filename] = img;
+          if (filename === state.bgFile) {
+            render();
+          }
+        };
+      });
+    }
+
+    // Set default sample image if no user image
+    function createSampleCouponImage() {
+      const sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = 750;
+      sampleCanvas.height = 1100;
+      const sctx = sampleCanvas.getContext('2d');
+
+      // Gradient Nesine ticket look
+      const grad = sctx.createLinearGradient(0, 0, 0, 1100);
+      grad.addColorStop(0, '#1a2233');
+      grad.addColorStop(1, '#0e131d');
+      sctx.fillStyle = grad;
+      sctx.roundRect(0, 0, 750, 1100, 20);
+      sctx.fill();
+
+      // Top bar
+      sctx.fillStyle = '#ffcc00';
+      sctx.roundRect(30, 30, 690, 70, 12);
+      sctx.fill();
+
+      sctx.fillStyle = '#000';
+      sctx.font = 'bold 30px "Outfit", sans-serif';
+      sctx.fillText('NESİNE KUPON DETAYI', 50, 76);
+
+      // Match 1
+      drawSampleMatch(sctx, 130, 'Real Madrid - Barcelona', 'MS 1 & 2.5 ÜST', '2.45', '✅ KAZANDI');
+      // Match 2
+      drawSampleMatch(sctx, 330, 'Manchester City - Arsenal', 'Karşılıklı Gol Var', '1.82', '✅ KAZANDI');
+      // Match 3
+      drawSampleMatch(sctx, 530, 'Bayern Münih - Dortmund', 'Toplam Gol 3.5 ÜST', '2.10', '✅ KAZANDI');
+      // Match 4
+      drawSampleMatch(sctx, 730, 'Inter - Juventus', 'MS 1', '1.75', '✅ KAZANDI');
+
+      // Total odds
+      sctx.fillStyle = 'rgba(0, 255, 136, 0.15)';
+      sctx.roundRect(30, 930, 690, 130, 16);
+      sctx.fill();
+      sctx.strokeStyle = '#00ff88';
+      sctx.lineWidth = 2;
+      sctx.stroke();
+
+      sctx.fillStyle = '#94a3b8';
+      sctx.font = '22px Inter, sans-serif';
+      sctx.fillText('TOPLAM ORAN:', 60, 980);
+      sctx.fillText('KAZANÇ TUTARI:', 60, 1025);
+
+      sctx.fillStyle = '#00ff88';
+      sctx.font = 'bold 34px "Outfit", sans-serif';
+      sctx.fillText('16.38', 490, 982);
+      sctx.fillText('₺32.760,00', 490, 1028);
+
+      const sampleImg = new Image();
+      sampleImg.src = sampleCanvas.toDataURL();
+      sampleImg.onload = () => {
+        state.userImage = sampleImg;
+        render();
+      };
+    }
+
+    function drawSampleMatch(sctx, y, teams, bet, odd, status) {
+      sctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      sctx.roundRect(30, y, 690, 170, 12);
+      sctx.fill();
+
+      sctx.fillStyle = '#ffffff';
+      sctx.font = 'bold 26px "Inter", sans-serif';
+      sctx.fillText(teams, 50, y + 45);
+
+      sctx.fillStyle = '#00ff88';
+      sctx.font = '600 24px "Inter", sans-serif';
+      sctx.fillText('Tahmin: ' + bet, 50, y + 95);
+
+      sctx.fillStyle = '#ffcc00';
+      sctx.font = 'bold 24px "Outfit", sans-serif';
+      sctx.fillText('Oran: ' + odd, 50, y + 140);
+
+      sctx.fillStyle = '#00ff88';
+      sctx.font = 'bold 22px "Inter", sans-serif';
+      sctx.fillText(status, 540, y + 140);
+    }
+
+    // Main Render Function
+    function render() {
+      const isStory = state.format === 'story';
+      const targetW = 1080;
+      const targetH = isStory ? 1920 : 1080;
+
+      canvas.width = targetW;
+      canvas.height = targetH;
+
+      // 1. Draw Background
+      const bgImg = loadedBgImages[state.bgFile];
+      if (bgImg && bgImg.complete) {
+        // Draw background cover
+        drawImageCover(ctx, bgImg, 0, 0, targetW, targetH);
+      } else {
+        // Fallback gradient
+        const bgGrad = ctx.createRadialGradient(targetW/2, targetH/2, 100, targetW/2, targetH/2, targetW);
+        bgGrad.addColorStop(0, '#1a2436');
+        bgGrad.addColorStop(1, '#080c14');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, targetW, targetH);
+      }
+
+      // Dark Overlay vignette for better contrast
+      const vig = ctx.createRadialGradient(targetW/2, targetH/2, 300, targetW/2, targetH/2, targetW*0.9);
+      vig.addColorStop(0, 'rgba(0,0,0,0)');
+      vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, targetW, targetH);
+
+      // 2. Draw User Coupon Image inside Phone / Glass Frame
+      if (state.userImage) {
+        ctx.save();
+
+        // Target phone frame dimensions in center
+        let frameW = isStory ? 680 : 540;
+        let frameH = isStory ? 1200 : 700;
+        let frameX = (targetW - frameW) / 2;
+        let frameY = (targetH - frameH) / 2 + (isStory ? 20 : 20);
+
+        // Apply scale & Y offset
+        const scaleFactor = state.scale / 100;
+        const currentRadius = state.radius;
+
+        // Glass Mockup Container Shadow & Outer Glow
+        ctx.shadowColor = 'rgba(0, 255, 136, 0.35)';
+        ctx.shadowBlur = 40;
+        ctx.shadowOffsetY = 15;
+
+        // Draw Frame Background
+        ctx.fillStyle = 'rgba(15, 20, 30, 0.9)';
+        ctx.beginPath();
+        ctx.roundRect(frameX, frameY, frameW, frameH, currentRadius);
+        ctx.fill();
+
+        // Reset shadow for clipping
+        ctx.shadowColor = 'transparent';
+
+        // Clip to rounded rect
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(frameX, frameY, frameW, frameH, currentRadius);
+        ctx.clip();
+
+        // Compute scaled image placement
+        const imgAspect = state.userImage.width / state.userImage.height;
+        let drawW = frameW * scaleFactor;
+        let drawH = drawW / imgAspect;
+
+        let drawX = frameX + (frameW - drawW) / 2;
+        let drawY = frameY + (frameH - drawH) / 2 + (state.posY * 1.5);
+
+        ctx.drawImage(state.userImage, drawX, drawY, drawW, drawH);
+
+        // Glass subtle light reflection over coupon
+        const glassGrad = ctx.createLinearGradient(frameX, frameY, frameX + frameW, frameY + frameH);
+        glassGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+        glassGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.03)');
+        glassGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.0)');
+        glassGrad.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
+        ctx.fillStyle = glassGrad;
+        ctx.fillRect(frameX, frameY, frameW, frameH);
+
+        ctx.restore();
+
+        // Glass Border
+        ctx.lineWidth = 4;
+        const borderGrad = ctx.createLinearGradient(frameX, frameY, frameX + frameW, frameY + frameH);
+        borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+        borderGrad.addColorStop(0.5, 'rgba(0, 255, 136, 0.4)');
+        borderGrad.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
+        ctx.strokeStyle = borderGrad;
+        ctx.beginPath();
+        ctx.roundRect(frameX, frameY, frameW, frameH, currentRadius);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // 3. Draw Header Text (if Story or Post)
+      if (state.headerText && state.headerText.trim() !== '') {
+        ctx.save();
+        ctx.textAlign = 'center';
+        
+        const headerY = isStory ? 200 : 110;
+
+        // Background pill for header
+        ctx.font = 'bold 36px "Outfit", sans-serif';
+        const textMetrics = ctx.measureText(state.headerText);
+        const pillW = textMetrics.width + 60;
+        const pillH = 68;
+        const pillX = (targetW - pillW) / 2;
+        const pillY = headerY - 48;
+
+        ctx.fillStyle = 'rgba(11, 15, 25, 0.85)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 34);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(0, 255, 136, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Header Text
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(state.headerText, targetW / 2, headerY);
+        ctx.restore();
+      }
+
+      // 4. Draw Watermark / Instagram Handle
+      if (state.igHandle && state.igHandle.trim() !== '') {
+        ctx.save();
+        ctx.textAlign = 'center';
+        const footerY = isStory ? 1780 : 1010;
+
+        ctx.font = 'bold 28px "Outfit", sans-serif';
+        const handleMetrics = ctx.measureText(state.igHandle);
+        const hPillW = handleMetrics.width + 50;
+        const hPillH = 50;
+        const hPillX = (targetW - hPillW) / 2;
+        const hPillY = footerY - 36;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.beginPath();
+        ctx.roundRect(hPillX, hPillY, hPillW, hPillH, 25);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#00ff88';
+        ctx.fillText(state.igHandle, targetW / 2, footerY);
+        ctx.restore();
+      }
+
+      // 5. Draw Badge / Stamp (if selected)
+      if (state.badge && state.badge !== 'NONE') {
+        ctx.save();
+        const badgeX = isStory ? 730 : 680;
+        const badgeY = isStory ? 340 : 190;
+
+        ctx.translate(badgeX, badgeY);
+        ctx.rotate((12 * Math.PI) / 180); // 12 deg tilt
+
+        // Badge pill
+        ctx.font = '900 24px "Montserrat", sans-serif';
+        const bMetrics = ctx.measureText(state.badge);
+        const bW = bMetrics.width + 40;
+        const bH = 54;
+
+        ctx.shadowColor = 'rgba(0, 255, 136, 0.7)';
+        ctx.shadowBlur = 25;
+        
+        ctx.fillStyle = 'linear-gradient(135deg, #00ff88, #00b4d8)';
+        const badgeGrad = ctx.createLinearGradient(-bW/2, -bH/2, bW/2, bH/2);
+        badgeGrad.addColorStop(0, '#00ff88');
+        badgeGrad.addColorStop(1, '#00b4d8');
+        ctx.fillStyle = badgeGrad;
+
+        ctx.beginPath();
+        ctx.roundRect(-bW/2, -bH/2, bW, bH, 27);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = '#0b0f19';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(state.badge, 0, 2);
+
+        ctx.restore();
+      }
+    }
+
+    // Helper: Draw image with cover fit
+    function drawImageCover(ctx, img, x, y, w, h) {
+      const imgRatio = img.width / img.height;
+      const targetRatio = w / h;
+      let sX, sY, sW, sH;
+
+      if (imgRatio > targetRatio) {
+        sH = img.height;
+        sW = img.height * targetRatio;
+        sX = (img.width - sW) / 2;
+        sY = 0;
+      } else {
+        sW = img.width;
+        sH = img.width / targetRatio;
+        sX = 0;
+        sY = (img.height - sH) / 2;
+      }
+
+      ctx.drawImage(img, sX, sY, sW, sH, x, y, w, h);
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      preloadBackgrounds();
+      createSampleCouponImage();
+
+      // File input
+      const fileInput = document.getElementById('couponFileInput');
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      // Drag & Drop
+      const dropZone = document.getElementById('uploadDropZone');
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      // Paste from clipboard (Ctrl+V)
+      window.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let item of items) {
+          if (item.type.indexOf('image') === 0) {
+            const blob = item.getAsFile();
+            handleFile(blob);
+            break;
+          }
+        }
+      });
+
+      // Background selection
+      document.querySelectorAll('.bg-card-option').forEach(el => {
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.bg-card-option').forEach(b => b.classList.remove('active'));
+          el.classList.add('active');
+          state.bgFile = el.getAttribute('data-bg');
+          render();
+        });
+      });
+
+      // Sliders
+      const scaleSlider = document.getElementById('scaleSlider');
+      scaleSlider.addEventListener('input', (e) => {
+        state.scale = parseInt(e.target.value);
+        document.getElementById('scaleVal').innerText = state.scale + '%';
+        render();
+      });
+
+      const posYSlider = document.getElementById('posYSlider');
+      posYSlider.addEventListener('input', (e) => {
+        state.posY = parseInt(e.target.value);
+        document.getElementById('posYVal').innerText = state.posY + 'px';
+        render();
+      });
+
+      const radiusSlider = document.getElementById('radiusSlider');
+      radiusSlider.addEventListener('input', (e) => {
+        state.radius = parseInt(e.target.value);
+        document.getElementById('radiusVal').innerText = state.radius + 'px';
+        render();
+      });
+
+      // Text inputs
+      document.getElementById('headerTextInput').addEventListener('input', (e) => {
+        state.headerText = e.target.value;
+        render();
+      });
+
+      document.getElementById('igHandleInput').addEventListener('input', (e) => {
+        state.igHandle = e.target.value;
+        render();
+      });
+
+      // Badges
+      document.querySelectorAll('.badge-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.badge-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.badge = btn.getAttribute('data-badge');
+          render();
+        });
+      });
+
+      // Format Switch (Story vs Post)
+      document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.format = btn.getAttribute('data-format');
+          
+          const dlBtn = document.getElementById('downloadBtn');
+          if (state.format === 'story') {
+            dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> HD Görseli İndir (1080x1920)';
+          } else {
+            dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> HD Görseli İndir (1080x1080)';
+          }
+          render();
+        });
+      });
+
+      // Download button
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = `nesine_kupon_${state.format}_${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      });
+
+      // Copy to Clipboard button
+      document.getElementById('copyClipboardBtn').addEventListener('click', () => {
+        canvas.toBlob((blob) => {
+          if (blob && navigator.clipboard && navigator.clipboard.write) {
+            const item = new ClipboardItem({ 'image/png': blob });
+            navigator.clipboard.write([item]).then(() => {
+              const copyBtn = document.getElementById('copyClipboardBtn');
+              const originalHTML = copyBtn.innerHTML;
+              copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color:#00ff88"></i> Kopyalandı!';
+              setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+              }, 2000);
+            }).catch(err => {
+              alert('Panoya kopyalama tarayıcı güvenliği nedeniyle engellendi. Lütfen Görseli İndir butonunu kullanın.');
+            });
+          }
+        }, 'image/png');
+      });
+    });
+
+    function handleFile(file) {
+      if (!file || !file.type.match('image.*')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          state.userImage = img;
+          render();
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>

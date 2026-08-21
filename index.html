@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GOLANALIZ AI | Yeni Nesil İddaa & Futbol Analiz Platformu</title>
   
+  <!-- PWA & Mobile App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GOLANALIZ AI">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
   <!-- Meta Descriptions for SEO -->
   <meta name="description" content="football-data.co.uk altyapısı ve luukhopman logosu ile son 5 maç şut, korner, sarı kart, kırmızı kart ve gol verilerini analiz eden yapay zeka futbol tahmin uygulaması.">
   
@@ -20,7 +31,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.0.2">
 </head>
 <body>
 
@@ -39,13 +50,14 @@
         </div>
         <div class="brand-text">
           <h1>GOLANALIZ <span class="accent-text">AI</span></h1>
-          <span class="brand-subtext">PRO STATS & MATCH PREDICTOR</span>
+          <span class="brand-subtext">PROFESYONEL İSTATİSTİK & YAPAY ZEKA TAHMİNİ</span>
         </div>
       </div>
       <div class="header-right-area">
         <div class="header-badges">
-          <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 21 Ülke Verisi</span>
+          <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
           <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
+          <a href="instagram_studio.html" class="insta-badge" target="_blank"><i class="fa-brands fa-instagram"></i> Instagram Story Stüdyosu</a>
         </div>
         <!-- Auth Area: Login/Register OR User Info -->
         <div class="header-auth-area" id="headerAuthArea">
@@ -80,14 +92,65 @@
 
     <!-- Main Hero / Selection Card -->
     <section class="selection-card glass-panel">
-      <div class="card-header">
-        <h2><i class="fa-solid fa-earth-americas step-icon"></i> 1. Ülke Seçiniz</h2>
-        <p class="section-desc">Analiz yapmak istediğiniz ülkeyi belirleyin.</p>
+      <!-- Match Mode Selector (Lig vs Kupa) -->
+      <div class="match-mode-container">
+        <div class="match-mode-label"><i class="fa-solid fa-trophy"></i> MAÇ TÜRÜ / MODU:</div>
+        <div class="match-mode-buttons">
+          <button type="button" class="match-type-btn active" id="btnModeLeague" data-mode="league">
+            <i class="fa-solid fa-futbol"></i> ⚽ Lig Maçı
+          </button>
+          <button type="button" class="match-type-btn" id="btnModeCup" data-mode="cup">
+            <i class="fa-solid fa-trophy"></i> 🏆 Kupa Maçı / Eleme Usulü
+          </button>
+        </div>
       </div>
 
-      <!-- Country Selection Grid -->
-      <div class="country-grid" id="countryGrid">
-        <!-- Rendered via JS -->
+      <!-- Cup Format Options (Revealed when Cup mode selected) -->
+      <div class="cup-format-wrapper hidden" id="cupFormatWrapper">
+        <div class="cup-format-label"><i class="fa-solid fa-diagram-project"></i> KUPA FORMATI:</div>
+        <div class="cup-format-buttons">
+          <button type="button" class="cup-pill-btn active" data-format="single">
+            <i class="fa-solid fa-stopwatch"></i> Tek Maç Eleme (Nakavt)
+          </button>
+          <button type="button" class="cup-pill-btn" data-format="two_legged">
+            <i class="fa-solid fa-repeat"></i> Çift Maçlı Eleme (Rövanşlı)
+          </button>
+          <button type="button" class="cup-pill-btn" data-format="final">
+            <i class="fa-solid fa-crown"></i> Kupa Finali (Nötr Saha)
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 1: Country Dropdown (Hidden in Cup Mode) -->
+      <div id="countryStepWrapper">
+        <div class="step-pill-container text-center">
+          <span class="step-pill green-pill"><i class="fa-solid fa-earth-americas"></i> 1. ÜLKE / LİG SEÇİMİ</span>
+        </div>
+
+        <div class="country-selector-wrapper">
+          <div class="custom-dropdown" id="countryDropdown">
+            <button type="button" class="dropdown-trigger" id="countryDropdownTrigger">
+              <div class="selected-team-info">
+                <div class="logo-circle" id="countryTriggerLogo">
+                  <i class="fa-solid fa-earth-americas fallback-icon"></i>
+                </div>
+                <span class="team-label" id="countryTriggerLabel">Ülke Seçin...</span>
+              </div>
+              <i class="fa-solid fa-chevron-down caret-icon"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu hidden" id="countryDropdownMenu">
+              <div class="search-box-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" class="dropdown-search-input" id="countrySearchInput" placeholder="Ülke ara...">
+              </div>
+              <div class="dropdown-options-list" id="countryOptionsList">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Teams Selector Box (Revealed after country selected) -->
@@ -181,8 +244,8 @@
 
         <div class="banner-center">
           <div class="league-tag" id="bannerLeagueName">TÜRKİYE</div>
-          <div class="vs-text">2026-2027 SEZONU ANALİZİ</div>
-          <div class="sample-tag"><i class="fa-solid fa-database"></i> 2026-2027 Sezonu Güncel Verileri</div>
+          <div class="vs-text">SON 5 KARŞILAŞMA ANALİZİ</div>
+          <div class="sample-tag"><i class="fa-solid fa-database"></i> Son 5 Karşılaşma Güncel Verileri</div>
         </div>
 
         <div class="banner-team away">
@@ -195,8 +258,8 @@
       <!-- Stats Comparison Grid -->
       <section class="stats-analysis-section glass-panel">
         <div class="section-title-box">
-          <h3><i class="fa-solid fa-sliders"></i> 2026-2027 Sezonu Ayrıntılı İstatistik Karşılaştırması</h3>
-          <p>Her iki takımın 2026-2027 sezonundaki resmi maçlarındaki ortalama ve yüzdelik verileri (football-data.co.uk)</p>
+          <h3><i class="fa-solid fa-sliders"></i> Son 5 Karşılaşma Ayrıntılı İstatistik Karşılaştırması</h3>
+          <p>Her iki takımın son 5 resmi maçındaki ortalama ve yüzdelik verileri</p>
         </div>
 
         <div class="stats-list" id="statsList">
@@ -204,11 +267,11 @@
         </div>
       </section>
 
-      <!-- Head to Head (H2H) 2026-2027 Section -->
+      <!-- Head to Head (H2H) Section -->
       <section class="h2h-split-section glass-panel" id="h2hSection">
         <div class="section-title-box">
-          <h3><i class="fa-solid fa-people-arrows"></i> 2026-2027 Sezonu Head-to-Head (H2H) Karşılaşmaları</h3>
-          <p id="h2hSubtitle">İki takımın 2026-2027 sezonundaki doğrudan müsabaka geçmişi</p>
+          <h3><i class="fa-solid fa-people-arrows"></i> İki Takımın Son Karşılaşmaları (H2H)</h3>
+          <p id="h2hSubtitle">İki takım arasındaki doğrudan müsabaka geçmişi</p>
         </div>
 
         <div class="h2h-matches-list" id="h2hMatchesList">
@@ -217,6 +280,18 @@
 
         <div class="h2h-stats-row" id="h2hStatsRow">
           <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Dedicated Cup Analysis Section (Shown when Cup Mode active) -->
+      <section class="cup-analysis-section glass-panel hidden" id="cupAnalysisSection">
+        <div class="section-title-box">
+          <h3><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i> Kupa Eleme ve Tur Atlama Dinamikleri Panosu</h3>
+          <p id="cupSubtitle">Eleme usulü müsabakaya özel tur atlama, uzatma/penaltı riski ve sürpriz indeksi</p>
+        </div>
+
+        <div class="cup-dashboard-grid" id="cupDashboardGrid">
+          <!-- Populated dynamically via JS -->
         </div>
       </section>
 
@@ -239,6 +314,7 @@
           <div class="ai-card-content" id="aiCardShareArea">
             <div class="top-row">
               <span class="best-pick-pill"><i class="fa-solid fa-star"></i> GÜNÜN EN UYGUN BAHSİ</span>
+              <span id="aiValueBadge" class="value-bet-badge hidden"><i class="fa-solid fa-bolt"></i> Değerli Bahis (+8% EV)</span>
               <div class="confidence-meter">
                 <span>Güven Oranı:</span>
                 <strong id="aiConfidenceValue">%88</strong>
@@ -247,14 +323,24 @@
 
             <div class="main-prediction-display">
               <div class="bet-headline" id="aiBetTitle">KG VAR & 2.5 GOL ÜSTÜ</div>
-              <div class="score-prediction">
-                <span>Tahmini Skor:</span>
-                <strong id="aiScorePrediction">2 - 1</strong>
+              <div class="prediction-stats-row">
+                <div class="score-prediction">
+                  <span>Tahmini Skor:</span>
+                  <strong id="aiScorePrediction">2 - 1</strong>
+                </div>
+                <div class="score-prediction">
+                  <span>Tahmini Oran:</span>
+                  <strong id="aiOddsValue">1.85</strong>
+                </div>
+                <div class="score-prediction">
+                  <span>Adil Oran:</span>
+                  <strong id="aiFairOddsValue">1.72</strong>
+                </div>
               </div>
             </div>
 
             <div class="ai-explanation-box">
-              <h4><i class="fa-solid fa-lightbulb"></i> AI Analiz Raporu & Gerekçesi</h4>
+              <h4><i class="fa-solid fa-lightbulb"></i> Engine 5.0 AI Analiz Raporu & Gerekçesi</h4>
               <p id="aiExplanationText">Yükleniyor...</p>
             </div>
           </div>
@@ -270,9 +356,9 @@
         <!-- Poisson Score Matrix -->
         <div id="poissonSection" class="poisson-section hidden">
           <div class="poisson-header">
-            <div class="ai-badge"><i class="fa-solid fa-calculator"></i> POISSON SKOR MATRİSİ</div>
-            <h4>Olası Skor Dağılımı <span class="poisson-subtitle">(Poisson Dağılımı Algoritması)</span></h4>
-            <p>Beklenen gol değerlerine göre hesaplanan en olası skorlar ve ihtimalleri</p>
+            <div class="ai-badge"><i class="fa-solid fa-calculator"></i> DIXON-COLES SKOR MATRİSİ</div>
+            <h4>Olası Skor Dağılımı <span class="poisson-subtitle">(Dixon-Coles Poisson Algoritması)</span></h4>
+            <p>Beklenen gol ve zamansal form değerlerine göre hesaplanan en olası 6x6 skor matrisi</p>
           </div>
           <div class="poisson-grid" id="poissonGrid">
             <!-- populated by JS -->
@@ -288,7 +374,7 @@
         <div class="section-title-box flex-between">
           <div>
             <h3><i class="fa-solid fa-list-check"></i> Karşılaşma İçin Olası Bahisler ve Analiz Yüzdeleri</h3>
-            <p>Gerçek 5 maçlık veri analizine göre her seçeneğe özel hesaplanan olasılıklar</p>
+            <p>Dixon-Coles ve zaman ağırlıklı xG veri analizine göre her seçeneğe özel hesaplanan olasılıklar ve EV değerleri</p>
           </div>
 
           <!-- Market Filter Tabs -->
@@ -298,6 +384,7 @@
             <button class="tab-btn" data-filter="kart">Kart</button>
             <button class="tab-btn" data-filter="korner">Korner</button>
             <button class="tab-btn" data-filter="taraf">Maç Sonucu</button>
+            <button class="tab-btn" data-filter="iyms">İlk Yarı / İY</button>
           </div>
         </div>
 
@@ -455,5 +542,14 @@
   <script src="data.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
