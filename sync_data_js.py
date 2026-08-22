@@ -198,10 +198,8 @@ function generateTeamProfile(teamName, countryCode) {{
     }}
   }}
 
-  const raw2627 = rawList.filter(m => m[0] === '2026/2027');
-  const useOnly2627 = raw2627.length >= 4;
-  const rawMatches = useOnly2627 ? raw2627 : rawList;
-  const dataSeasonLabel = useOnly2627 ? '2026/2027' : '2025-2027';
+  const rawMatches = rawList.slice(-5);
+  const dataSeasonLabel = `Son ${{rawMatches.length}} Maç`;
 
   function formatMatch(m, idx) {{
     const isHome = matchTeamNames(m[2], teamName);
@@ -293,26 +291,40 @@ function generateTeamProfile(teamName, countryCode) {{
     else if (m.result === 'D') formPoints += 1;
   }});
 
+  const played2627Count = formattedMatches.filter(m => (m.season || '').includes('2026') || (m.season || '').includes('2027')).length;
+
+  const advObj = (typeof ADVANCED_TEAM_STATS !== 'undefined') ? (ADVANCED_TEAM_STATS[slug] || ADVANCED_TEAM_STATS[teamName.toLowerCase().replace(/[^a-z0-9]/g, '')]) : null;
+
+  const statsObj = {{
+    avgGoalsScored, avgGoalsConceded, avgTotalGoalsPerMatch,
+    avgShots: (avgShots !== null ? avgShots : (advObj && advObj.overall ? advObj.overall.avgShots : null)),
+    avgShotsOnTarget: (avgShotsOnTarget !== null ? avgShotsOnTarget : (advObj && advObj.overall ? advObj.overall.avgShotsOnTarget : null)),
+    shotAccuracyPct,
+    avgCorners: (avgCorners !== null ? avgCorners : (advObj && advObj.overall ? advObj.overall.avgCorners : null)),
+    avgYellowCards: (avgYellowCards !== null ? avgYellowCards : (advObj && advObj.overall ? advObj.overall.avgYellowCards : null)),
+    totalRedCardsIn5,
+    bttsPct, over25Pct, winPct, formPoints,
+    cornersReliable: cornerMatches.length >= 3 || (advObj && advObj.overall && advObj.overall.cornersReliable),
+    cardsReliable: cardMatches.length >= 3 || (advObj && advObj.overall && advObj.overall.cardsReliable),
+    shotsReliable: shotsMatches.length >= 3 || (advObj && advObj.overall && advObj.overall.shotsReliable),
+    hasEnoughData: n >= 3,
+    xg_per90: advObj ? advObj.xg_per90 : null,
+    xga_per90: advObj ? advObj.xga_per90 : null,
+    weightedAvgGoalsScored: advObj && advObj.overall ? advObj.overall.avgGoalsScored : null,
+    weightedAvgGoalsConceded: advObj && advObj.overall ? advObj.overall.avgGoalsConceded : null
+  }};
+
   return {{
     teamName, countryCode,
     matches: formattedMatches,
-    played2627Count: raw2627.length,
+    played2627Count,
     playedCount: n,
     dataSeasonLabel,
     hasEnoughData: n >= 3,
-    cornersReliable: cornerMatches.length >= 3,
-    cardsReliable: cardMatches.length >= 3,
-    shotsReliable: shotsMatches.length >= 3,
-    stats: {{
-      avgGoalsScored, avgGoalsConceded, avgTotalGoalsPerMatch,
-      avgShots, avgShotsOnTarget, shotAccuracyPct,
-      avgCorners, avgYellowCards, totalRedCardsIn5,
-      bttsPct, over25Pct, winPct, formPoints,
-      cornersReliable: cornerMatches.length >= 3,
-      cardsReliable: cardMatches.length >= 3,
-      shotsReliable: shotsMatches.length >= 3,
-      hasEnoughData: n >= 3
-    }}
+    cornersReliable: statsObj.cornersReliable,
+    cardsReliable: statsObj.cardsReliable,
+    shotsReliable: statsObj.shotsReliable,
+    stats: statsObj
   }};
 }}
 
@@ -359,6 +371,10 @@ function generateH2HProfile(team1, team2) {{
     bttsCount,
     over25Count
   }};
+}}
+
+if (typeof window !== 'undefined') {{
+  window.FOOTBALL_DATA = FOOTBALL_DATA;
 }}
 
 if (typeof module !== 'undefined' && module.exports) {{

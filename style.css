@@ -139,14 +139,23 @@ body {
 .brand-icon {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
-  border-radius: 16px;
+  background: transparent;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25);
+  overflow: hidden;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.brand-icon img,
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
 }
 
 .brand-text h1 {
@@ -1082,6 +1091,375 @@ body {
     left: 16px;
     bottom: 16px;
   }
+
+  .ad-slot-banner.ad-slot-visible {
+    min-height: 60px;
+  }
+
+  .ad-placeholder {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+    padding: 14px 10px;
+  }
+
+  .ad-placeholder i {
+    font-size: 18px;
+  }
+}
+
+/* ==========================================================================
+   Reklam Alanları (Ad Slots)
+   ========================================================================== */
+
+.ad-slot {
+  width: 100%;
+  max-width: 900px;
+  margin: 16px auto;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--border-glass-bright);
+  position: relative;
+  transition: opacity 0.6s ease, transform 0.6s ease, max-height 0.5s ease, margin 0.5s ease, border-color var(--transition-normal), box-shadow var(--transition-normal);
+  /* Başlangıçta gizli */
+  opacity: 0;
+  transform: translateY(20px);
+  max-height: 0;
+  margin: 0 auto;
+  padding: 0;
+  border-width: 0;
+  pointer-events: none;
+}
+
+/* Görünür hale geldiğinde */
+.ad-slot.ad-slot-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 300px;
+  margin: 16px auto;
+  padding: 0;
+  border-width: 1.5px;
+  pointer-events: auto;
+}
+
+.ad-slot:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Banner tipi (728x90 benzeri yatay) */
+.ad-slot-banner.ad-slot-visible {
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Inline tipi (300x250 benzeri kare/responsive) */
+.ad-slot-inline.ad-slot-visible {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Büyük Dikdörtgen (336x280 Large Rectangle) */
+.ad-slot-large-rect.ad-slot-visible {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-glass);
+}
+
+/* Native Esnek Band (728x90 / Native Strip) */
+.ad-slot-native-strip {
+  border-style: solid;
+  border-color: rgba(0, 180, 216, 0.25);
+  background: linear-gradient(135deg, rgba(11, 15, 25, 0.95), rgba(18, 24, 38, 0.9));
+}
+.ad-slot-native-strip.ad-slot-visible {
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* In-Feed Native Reklam Kartı (Bahisler Panosu Öncesi) */
+.ad-slot-native-card {
+  border-style: solid;
+  border-color: rgba(0, 255, 136, 0.2);
+  background: radial-gradient(circle at 50% 0%, rgba(0, 255, 136, 0.05), var(--bg-card));
+}
+.ad-slot-native-card.ad-slot-visible {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sayfa Sonu Billboard (970x90 / 728x90 Leaderboard) */
+.ad-slot-billboard {
+  max-width: 1100px;
+  border-color: rgba(255, 184, 0, 0.25);
+}
+.ad-slot-billboard.ad-slot-visible {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* AI Kartı Sponsor Rozeti */
+.sponsor-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 180, 216, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 180, 216, 0.3);
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.sponsor-badge-pill:hover {
+  background: rgba(0, 180, 216, 0.3);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Uygulama İçi Özgün Reklam / Tanıtım Banners */
+.ad-promo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 16px 24px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, rgba(0, 255, 136, 0.08), rgba(11, 15, 25, 0.95));
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ad-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--accent-green);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.ad-promo-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 2px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ad-promo-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 580px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.ad-promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: none;
+}
+
+.btn-gold-glow {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0b0f19 !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.btn-gold-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+}
+
+.btn-cyan-glow {
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
+}
+
+.btn-cyan-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 180, 216, 0.6);
+}
+
+.btn-green-glow {
+  background: linear-gradient(135deg, #00ff88, #10b981);
+  color: #0b0f19 !important;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+}
+
+.btn-green-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 255, 136, 0.6);
+}
+
+/* Skyscraper özel promosyon düzeni */
+.ad-slot-skyscraper .ad-promo-container {
+  padding: 24px 12px;
+  gap: 16px;
+}
+.ad-slot-skyscraper .ad-promo-title {
+  font-size: 13px;
+  flex-direction: column;
+}
+.ad-slot-skyscraper .ad-promo-desc {
+  font-size: 11px;
+}
+.ad-slot-skyscraper .ad-promo-btn {
+  padding: 8px 12px;
+  font-size: 11px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Skyscraper Dikey Reklamlar (Sol ve Sağ Yan) */
+.ad-slot-skyscraper {
+  position: fixed;
+  top: 100px;
+  width: 140px;
+  height: 600px;
+  z-index: 90;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.ad-slot-skyscraper .ad-placeholder {
+  flex-direction: column;
+  text-align: center;
+  gap: 8px;
+}
+
+.ad-slot-skyscraper .ad-size {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-dark);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ad-skyscraper-left {
+  left: max(8px, calc(50% - 600px - 155px));
+}
+
+.ad-skyscraper-right {
+  right: max(8px, calc(50% - 600px - 155px));
+}
+
+.ad-slot-skyscraper.ad-slot-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 600px;
+  margin: 0;
+  border-width: 1.5px;
+  pointer-events: auto;
+}
+
+@media (min-width: 1520px) {
+  .ad-slot-skyscraper {
+    display: flex;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1519px) {
+  .ad-slot-skyscraper {
+    display: flex;
+    width: 115px;
+    height: 550px;
+    top: 90px;
+  }
+  .ad-skyscraper-left {
+    left: 6px;
+  }
+  .ad-skyscraper-right {
+    right: 6px;
+  }
+}
+
+/* Placeholder görsel (reklam yüklenmeden önce) */
+.ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 16px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  user-select: none;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+.ad-slot:hover .ad-placeholder {
+  opacity: 0.85;
+}
+
+.ad-placeholder i {
+  font-size: 22px;
+  color: var(--accent-cyan);
+  opacity: 0.7;
+}
+
+/* Reklam yüklenince placeholder'ı gizle */
+.ad-slot.ad-loaded .ad-placeholder {
+  display: none;
+}
+
+/* Reklam içeriği için genel container */
+.ad-slot ins,
+.ad-slot iframe,
+.ad-slot img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  border: none;
 }
 
 /* ==========================================================================
@@ -2608,26 +2986,6 @@ body {
 .country-selector-wrapper {
   max-width: 420px;
   margin: 0 auto 24px auto;
-}
-
-.insta-badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #fdf2f8;
-  color: #db2777;
-  border: 1px solid #fbcfe8;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.insta-badge:hover {
-  background: #fce7f3;
-  transform: translateY(-1px);
 }
 
 /* =============================================

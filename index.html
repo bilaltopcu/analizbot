@@ -40,13 +40,27 @@
   <div class="glow-orb orb-2"></div>
   <div class="glow-orb orb-3"></div>
 
+  <aside class="ad-slot ad-slot-skyscraper ad-skyscraper-right" id="adSlotSkyscraperRight">
+    <div class="ad-promo-container">
+      <span class="ad-promo-badge"><i class="fa-solid fa-microchip"></i> ENGINE 5.0</span>
+      <div class="ad-promo-title">
+        <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 26px; color: var(--accent-gold);"></i>
+        <span>AI Tahmin Motoru</span>
+      </div>
+      <p class="ad-promo-desc">Son 5 maçın şut, korner ve gol simülasyonu ile %88'e varan tahmin başarısı!</p>
+      <a href="#" onclick="window.scrollTo({top:300, behavior:'smooth'}); return false;" class="ad-promo-btn btn-gold-glow">
+        Tahmin Al <i class="fa-solid fa-bolt"></i>
+      </a>
+    </div>
+  </aside>
+
   <div class="app-container">
     
     <!-- Navbar / Header -->
     <header class="app-header">
       <div class="logo-brand">
         <div class="brand-icon">
-          <i class="fa-solid fa-brain-circuit"></i>
+          <img src="icons/icon-192.png" alt="GOLANALIZ AI Logo" class="brand-logo-img">
         </div>
         <div class="brand-text">
           <h1>GOLANALIZ <span class="accent-text">AI</span></h1>
@@ -57,7 +71,6 @@
         <div class="header-badges">
           <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
           <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
-          <a href="instagram_studio.html" class="insta-badge" target="_blank"><i class="fa-brands fa-instagram"></i> Instagram Story Stüdyosu</a>
         </div>
         <!-- Auth Area: Login/Register OR User Info -->
         <div class="header-auth-area" id="headerAuthArea">
@@ -89,6 +102,7 @@
         </div>
       </div>
     </header>
+
 
     <!-- Main Hero / Selection Card -->
     <section class="selection-card glass-panel">
@@ -143,7 +157,7 @@
             <div class="dropdown-menu hidden" id="countryDropdownMenu">
               <div class="search-box-wrapper">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" class="dropdown-search-input" id="countrySearchInput" placeholder="Ülke ara...">
+                <input type="text" class="dropdown-search-input" id="countrySearchInput" placeholder="Ülke ara..." autocomplete="off">
               </div>
               <div class="dropdown-options-list" id="countryOptionsList">
                 <!-- Populated via JS -->
@@ -178,7 +192,7 @@
               <div class="dropdown-menu hidden" id="homeDropdownMenu">
                 <div class="search-box-wrapper">
                   <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                  <input type="text" class="dropdown-search-input" id="homeSearchInput" placeholder="Takım ara...">
+                  <input type="text" class="dropdown-search-input" id="homeSearchInput" placeholder="Takım ara..." autocomplete="off">
                 </div>
                 <div class="dropdown-options-list" id="homeOptionsList">
                   <!-- Custom Option Items with Logos populated via JS -->
@@ -211,7 +225,7 @@
               <div class="dropdown-menu hidden" id="awayDropdownMenu">
                 <div class="search-box-wrapper">
                   <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                  <input type="text" class="dropdown-search-input" id="awaySearchInput" placeholder="Takım ara...">
+                  <input type="text" class="dropdown-search-input" id="awaySearchInput" placeholder="Takım ara..." autocomplete="off">
                 </div>
                 <div class="dropdown-options-list" id="awayOptionsList">
                   <!-- Custom Option Items with Logos populated via JS -->
@@ -267,6 +281,18 @@
         </div>
       </section>
 
+      <!-- ═══ REKLAM ALANI 3: İstatistikler ile H2H Arası (Dixon-Coles & +EV Tanıtımı) ═══ -->
+      <div class="ad-slot ad-slot-large-rect" id="adSlotMidStats">
+        <div class="ad-promo-container">
+          <span class="ad-promo-badge"><i class="fa-solid fa-calculator"></i> DIXON-COLES ALGORİTMASI</span>
+          <h4 class="ad-promo-title"><i class="fa-solid fa-chart-pie" style="color: var(--accent-gold);"></i> Dixon-Coles Skor Matrisi & +EV İndeksi</h4>
+          <p class="ad-promo-desc">Son 5 maçın xG ve zamansal form oranlarını simüle edin, piyasa bahis oranlarına karşı değer kazandıran (+EV) fırsatları yakalayın.</p>
+          <a href="#" onclick="document.getElementById('aiPredictBtn').click(); return false;" class="ad-promo-btn btn-gold-glow">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Yapay Zeka Tahminini Çalıştır
+          </a>
+        </div>
+      </div>
+
       <!-- Head to Head (H2H) Section -->
       <section class="h2h-split-section glass-panel" id="h2hSection">
         <div class="section-title-box">
@@ -282,6 +308,22 @@
           <!-- Populated by JS -->
         </div>
       </section>
+
+      <!-- ═══ REKLAM ALANI 4: Native Esnek Sponsor Bandı (Veritabanı Tanıtımı) ═══ -->
+      <div class="ad-slot ad-slot-native-strip" id="adSlotNativeStrip">
+        <div class="ad-promo-container" style="flex-direction: row; flex-wrap: wrap; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 14px; text-align: left;">
+            <i class="fa-solid fa-database" style="font-size: 28px; color: var(--accent-cyan);"></i>
+            <div>
+              <span class="ad-promo-badge"><i class="fa-solid fa-check"></i> ANLIK CANLI VERİ</span>
+              <h4 class="ad-promo-title" style="margin: 0; justify-content: flex-start;">27 Ülke & 2026-2027 Sezonu İstatistik Veritabanı</h4>
+            </div>
+          </div>
+          <a href="#" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;" class="ad-promo-btn btn-cyan-glow">
+            <i class="fa-solid fa-magnifying-glass"></i> Yeni Maç Seç & Analiz Et
+          </a>
+        </div>
+      </div>
 
       <!-- Dedicated Cup Analysis Section (Shown when Cup Mode active) -->
       <section class="cup-analysis-section glass-panel hidden" id="cupAnalysisSection">
@@ -369,6 +411,18 @@
         </div>
       </section>
 
+      <!-- ═══ REKLAM ALANI 5: In-Feed Native Reklam Kartı (Kupon Panosu Tanıtımı) ═══ -->
+      <div class="ad-slot ad-slot-native-card" id="adSlotNativeBetCard">
+        <div class="ad-promo-container">
+          <span class="ad-promo-badge"><i class="fa-solid fa-receipt"></i> KUPON OLUŞTURUCU</span>
+          <h4 class="ad-promo-title"><i class="fa-solid fa-receipt" style="color: var(--accent-green);"></i> Kupon Panosu ile Oranlarınızı Katlayın</h4>
+          <p class="ad-promo-desc">Analiz edilen olası bahisleri tek tıkla kuponunuza ekleyin, toplam oranınızı ve olası kazancınızı anında hesaplayın!</p>
+          <a href="#" onclick="window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); return false;" class="ad-promo-btn btn-green-glow">
+            <i class="fa-solid fa-plus-circle"></i> Kupon Panosunu İncele
+          </a>
+        </div>
+      </div>
+
       <!-- Possible Bets Grid (Olası Bahisler) -->
       <section class="possible-bets-section glass-panel">
         <div class="section-title-box flex-between">
@@ -393,6 +447,22 @@
         </div>
       </section>
 
+    </div>
+
+    <!-- ═══ REKLAM ALANI 6: Sayfa Sonu Leaderboard / Billboard (GOLANALIZ AI Platform Tanıtımı) ═══ -->
+    <div class="ad-slot ad-slot-billboard" id="adSlotFooterBillboard">
+      <div class="ad-promo-container" style="flex-direction: row; flex-wrap: wrap; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 16px; text-align: left;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 32px; color: var(--accent-green);"></i>
+          <div>
+            <span class="ad-promo-badge"><i class="fa-solid fa-crown"></i> GOLANALIZ AI PLATFORM</span>
+            <h4 class="ad-promo-title" style="margin: 0; justify-content: flex-start;">GOLANALIZ AI — Profesyonel Futbol Analiz ve İddaa Tahmin Platformu</h4>
+          </div>
+        </div>
+        <a href="#" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;" class="ad-promo-btn btn-green-glow">
+          <i class="fa-solid fa-arrow-up"></i> Yeni Analiz Başlat
+        </a>
+      </div>
     </div>
 
     <!-- App Footer -->
@@ -539,6 +609,7 @@
 
   <!-- Scripts -->
   <script src="local_logo_map.js"></script>
+  <script src="advanced_stats.js"></script>
   <script src="data.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
@@ -546,10 +617,66 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+          .then(reg => {
+            console.log('Service Worker registered successfully:', reg.scope);
+            reg.update();
+          })
           .catch(err => console.log('Service Worker registration failed:', err));
       });
     }
+  </script>
+
+  <!-- Reklam Alanları Zamanlı Görünürlük Scripti -->
+  <script>
+  (function() {
+    'use strict';
+
+
+    // ═══ 3) Sağ Yan Reklam (Skyscraper): Sayfa açıldıktan 2.5 saniye sonra görünsün ═══
+    var rightAd = document.getElementById('adSlotSkyscraperRight');
+    if (rightAd) {
+      setTimeout(function() {
+        rightAd.classList.add('ad-slot-visible');
+      }, 2500);
+    }
+
+    // ═══ 4) İçerik ve alt reklamlar: Scroll ile görüş alanına girince belirsin ═══
+    var scrollAds = [
+      document.getElementById('adSlotMidStats'),
+      document.getElementById('adSlotNativeStrip'),
+      document.getElementById('adSlotNativeBetCard'),
+      document.getElementById('adSlotFooterBillboard')
+    ];
+
+    if ('IntersectionObserver' in window) {
+      var adObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            // Kısa gecikme ile görünsün (daha doğal efekt)
+            setTimeout(function() {
+              entry.target.classList.add('ad-slot-visible');
+            }, 300);
+            adObserver.unobserve(entry.target);
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1
+      });
+
+      scrollAds.forEach(function(ad) {
+        if (ad) adObserver.observe(ad);
+      });
+    } else {
+      // IntersectionObserver desteklenmiyorsa hepsini 2s sonra göster
+      setTimeout(function() {
+        scrollAds.forEach(function(ad) {
+          if (ad) ad.classList.add('ad-slot-visible');
+        });
+      }, 2000);
+    }
+  })();
   </script>
 </body>
 </html>

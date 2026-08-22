@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.dataset.id = country.id;
 
       item.innerHTML = `
-        <img src="${country.flag}" alt="${country.name}" class="option-logo" onerror="this.src='https://via.placeholder.com/24?text=${country.id}'">
+        <img src="${country.flag}" alt="${country.name}" class="option-logo" onerror="this.onerror=null; this.src='flags/${country.id.toLowerCase()}.png';">
         <span class="option-name">${country.name}</span>
       `;
 
@@ -417,10 +417,12 @@ document.addEventListener("DOMContentLoaded", () => {
     awayTeamName = null;
 
     countryTriggerLabel.textContent = country.name;
-    countryTriggerLogo.innerHTML = `<img src="${country.flag}" alt="${country.name}" style="width:24px;height:16px;object-fit:cover;" onerror="this.src='https://via.placeholder.com/24?text=${country.id}';">`;
+    countryTriggerLogo.innerHTML = `<img src="${country.flag}" alt="${country.name}" style="width:24px;height:16px;object-fit:cover;" onerror="this.onerror=null; this.src='flags/${country.id.toLowerCase()}.png';">`;
 
     if (countryDropdown) countryDropdown.classList.remove("open");
     if (countryDropdownMenu) countryDropdownMenu.classList.add("hidden");
+
+    resetDropdownSearch("country");
 
     // Populate Home & Away Dropdowns
     populateDropdownOptions("home", country);
@@ -428,6 +430,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     resetDropdownTrigger("home");
     resetDropdownTrigger("away");
+
+    resetDropdownSearch("home");
+    resetDropdownSearch("away");
 
     teamsSelectionWrapper.classList.remove("hidden");
     resultsSection.classList.add("hidden");
@@ -450,6 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
       countryDropdown.classList.toggle("open");
       countryDropdownMenu.classList.toggle("hidden");
       if (!countryDropdownMenu.classList.contains("hidden")) {
+        resetDropdownSearch("country");
         countrySearchInput.focus();
       }
     });
@@ -474,8 +480,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (countrySearchInput) {
+    countrySearchInput.addEventListener("focus", () => resetDropdownSearch("country"));
     countrySearchInput.addEventListener("input", (e) => {
       const q = e.target.value.toLowerCase();
+      if (countryOptionsList) countryOptionsList.scrollTop = 0;
       const items = countryOptionsList.querySelectorAll(".dropdown-option-item");
       items.forEach(item => {
         const name = item.querySelector(".option-name")?.textContent.toLowerCase() || "";
@@ -532,6 +540,8 @@ document.addEventListener("DOMContentLoaded", () => {
       awayTeamName = null;
       resetDropdownTrigger("home");
       resetDropdownTrigger("away");
+      resetDropdownSearch("home");
+      resetDropdownSearch("away");
       if (selectedCountry) {
         populateDropdownOptions("home", selectedCountry);
         populateDropdownOptions("away", selectedCountry);
@@ -560,6 +570,8 @@ document.addEventListener("DOMContentLoaded", () => {
       populateDropdownOptions("away", null);
       resetDropdownTrigger("home");
       resetDropdownTrigger("away");
+      resetDropdownSearch("home");
+      resetDropdownSearch("away");
       resultsSection.classList.add("hidden");
       compareBtn.disabled = true;
     });
@@ -768,12 +780,14 @@ document.addEventListener("DOMContentLoaded", () => {
       homeTriggerLogo.innerHTML = `<img src="${logoUrl}" alt="${teamName}" style="width:28px;height:28px;object-fit:contain;" onerror="this.onerror=null; this.src='${fallbackUrl}';">`;
       homeDropdown.classList.remove("open");
       homeDropdownMenu.classList.add("hidden");
+      resetDropdownSearch("home");
     } else {
       awayTeamName = teamName;
       awayTriggerLabel.textContent = teamName;
       awayTriggerLogo.innerHTML = `<img src="${logoUrl}" alt="${teamName}" style="width:28px;height:28px;object-fit:contain;" onerror="this.onerror=null; this.src='${fallbackUrl}';">`;
       awayDropdown.classList.remove("open");
       awayDropdownMenu.classList.add("hidden");
+      resetDropdownSearch("away");
     }
 
     checkCanCompare();
@@ -795,6 +809,7 @@ document.addEventListener("DOMContentLoaded", () => {
       homeDropdown.classList.toggle("open");
       homeDropdownMenu.classList.toggle("hidden");
       if (!homeDropdownMenu.classList.contains("hidden")) {
+        resetDropdownSearch("home");
         homeSearchInput.focus();
       }
     });
@@ -815,18 +830,26 @@ document.addEventListener("DOMContentLoaded", () => {
       awayDropdown.classList.toggle("open");
       awayDropdownMenu.classList.toggle("hidden");
       if (!awayDropdownMenu.classList.contains("hidden")) {
+        resetDropdownSearch("away");
         awaySearchInput.focus();
       }
     });
   }
 
   // Search Filter in Dropdowns
-  if (homeSearchInput) homeSearchInput.addEventListener("input", (e) => filterOptions("home", e.target.value));
-  if (awaySearchInput) awaySearchInput.addEventListener("input", (e) => filterOptions("away", e.target.value));
+  if (homeSearchInput) {
+    homeSearchInput.addEventListener("focus", () => resetDropdownSearch("home"));
+    homeSearchInput.addEventListener("input", (e) => filterOptions("home", e.target.value));
+  }
+  if (awaySearchInput) {
+    awaySearchInput.addEventListener("focus", () => resetDropdownSearch("away"));
+    awaySearchInput.addEventListener("input", (e) => filterOptions("away", e.target.value));
+  }
 
   function filterOptions(type, query) {
     const list = type === "home" ? homeOptionsList : awayOptionsList;
     if (!list) return;
+    list.scrollTop = 0;
     const items = list.querySelectorAll(".dropdown-option-item");
     const q = query.toLowerCase();
 
@@ -836,19 +859,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function resetDropdownSearch(type) {
+    if (type === "country") {
+      if (countrySearchInput) countrySearchInput.value = "";
+      if (countryOptionsList) {
+        countryOptionsList.scrollTop = 0;
+        const items = countryOptionsList.querySelectorAll(".dropdown-option-item");
+        items.forEach(item => item.style.display = "flex");
+      }
+      if (countryDropdownMenu) countryDropdownMenu.scrollTop = 0;
+    } else if (type === "home" || type === "away") {
+      const input = type === "home" ? homeSearchInput : awaySearchInput;
+      const list = type === "home" ? homeOptionsList : awayOptionsList;
+      const menu = type === "home" ? homeDropdownMenu : awayDropdownMenu;
+      if (input) input.value = "";
+      if (list) {
+        list.scrollTop = 0;
+        const items = list.querySelectorAll(".dropdown-option-item");
+        items.forEach(item => item.style.display = "flex");
+      }
+      if (menu) menu.scrollTop = 0;
+    }
+  }
+
   // Close dropdowns when clicking outside
   document.addEventListener("click", (e) => {
     if (countryDropdown && !countryDropdown.contains(e.target)) {
       countryDropdown.classList.remove("open");
       countryDropdownMenu.classList.add("hidden");
+      if (countryOptionsList) countryOptionsList.scrollTop = 0;
     }
     if (homeDropdown && !homeDropdown.contains(e.target)) {
       homeDropdown.classList.remove("open");
       homeDropdownMenu.classList.add("hidden");
+      if (homeOptionsList) homeOptionsList.scrollTop = 0;
     }
     if (awayDropdown && !awayDropdown.contains(e.target)) {
       awayDropdown.classList.remove("open");
       awayDropdownMenu.classList.add("hidden");
+      if (awayOptionsList) awayOptionsList.scrollTop = 0;
     }
   });
 
@@ -997,6 +1046,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="h2h-stat-item">
         <div class="h2h-stat-val" style="color: var(--accent-crimson);">${h2hProfile.awayWins}</div>
         <div class="h2h-stat-lbl">${awayProfile.teamName} Galibiyet</div>
+      </div>
       <div class="h2h-stat-item">
         <div class="h2h-stat-val">${h2hProfile.avgGoals}</div>
         <div class="h2h-stat-lbl">Ortalama Gol</div>
@@ -1018,55 +1068,100 @@ document.addEventListener("DOMContentLoaded", () => {
     const hStats = homeProfile.stats;
     const aStats = awayProfile.stats;
 
-    const hSeasonLabel = homeProfile.dataSeasonLabel || '2026-2027';
-    const aSeasonLabel = awayProfile.dataSeasonLabel || '2026-2027';
+    const hSeasonLabel = homeProfile.dataSeasonLabel || 'Son 5 Maç';
+    const aSeasonLabel = awayProfile.dataSeasonLabel || 'Son 5 Maç';
     const seasonLabel = (hSeasonLabel === aSeasonLabel) ? hSeasonLabel : `${hSeasonLabel} / ${aSeasonLabel}`;
 
     statsList.innerHTML = "";
 
     const seasonInfo = document.createElement("div");
     seasonInfo.style.cssText = "font-size:11px;color:var(--accent-cyan);text-align:center;margin-bottom:10px;opacity:0.85;letter-spacing:0.04em;font-weight:600;";
-    seasonInfo.textContent = `📊 İstatistikler: ${seasonLabel} Sezonu Verilerine Göre`;
+    seasonInfo.textContent = `📊 İstatistikler: ${seasonLabel} Verilerine Göre`;
     statsList.appendChild(seasonInfo);
 
     const cornersNote = (!homeProfile.cornersReliable || !awayProfile.cornersReliable) ? ' (tahmini)' : '';
     const cardsNote   = (!homeProfile.cardsReliable   || !awayProfile.cardsReliable)   ? ' (tahmini)' : '';
 
+    function fmtVal(v, prefix = "", suffix = "") {
+      if (v === null || v === undefined || v === "" || isNaN(v)) return "—";
+      return `${prefix}${v}${suffix}`;
+    }
+
+    function fmtShotsOnTarget(avgSot, accuracyPct) {
+      if (avgSot === null || avgSot === undefined || isNaN(avgSot)) return "—";
+      const accStr = (accuracyPct !== null && accuracyPct !== undefined && !isNaN(accuracyPct)) ? ` (%${accuracyPct})` : "";
+      return `${avgSot}${accStr}`;
+    }
+
     const metrics = [
-      { title:"⚽ Atılan Gol Ortalaması",      homeVal:hStats.avgGoalsScored,    awayVal:aStats.avgGoalsScored,    unit:" Gol/Maç" },
-      { title:"🥅 Yenilen Gol Ortalaması",      homeVal:hStats.avgGoalsConceded,  awayVal:aStats.avgGoalsConceded,  unit:" Gol/Maç" },
-      { title:"🎯 Toplam Şut Ortalaması",        homeVal:hStats.avgShots,          awayVal:aStats.avgShots,          unit:" Şut" },
+      { title:"⚽ Atılan Gol Ortalaması",
+        homeDisplay: fmtVal(hStats.avgGoalsScored, "", " Gol/Maç"),
+        awayDisplay: fmtVal(aStats.avgGoalsConceded ? aStats.avgGoalsScored : hStats.avgGoalsScored, "", " Gol/Maç"),
+        rawHome: parseFloat(hStats.avgGoalsScored) || 0,
+        rawAway: parseFloat(aStats.avgGoalsScored) || 0 },
+      { title:"🥅 Yenilen Gol Ortalaması",
+        homeDisplay: fmtVal(hStats.avgGoalsConceded, "", " Gol/Maç"),
+        awayDisplay: fmtVal(aStats.avgGoalsConceded, "", " Gol/Maç"),
+        rawHome: parseFloat(hStats.avgGoalsConceded) || 0,
+        rawAway: parseFloat(aStats.avgGoalsConceded) || 0 },
+      { title:"🎯 Toplam Şut Ortalaması",
+        homeDisplay: fmtVal(hStats.avgShots, "", " Şut"),
+        awayDisplay: fmtVal(aStats.avgShots, "", " Şut"),
+        rawHome: parseFloat(hStats.avgShots) || 0,
+        rawAway: parseFloat(aStats.avgShots) || 0 },
       { title:"🎯 İsabetli Şut & İsabet Oranı",
-        homeVal:`${hStats.avgShotsOnTarget} (%${hStats.shotAccuracyPct})`,
-        awayVal:`${aStats.avgShotsOnTarget} (%${aStats.shotAccuracyPct})`,
-        rawHome:parseFloat(hStats.avgShotsOnTarget), rawAway:parseFloat(aStats.avgShotsOnTarget) },
-      { title:`🚩 Korner Ortalaması${cornersNote}`,homeVal:hStats.avgCorners,       awayVal:aStats.avgCorners,        unit:" Korner" },
-      { title:`🟨 Sarı Kart Ortalaması${cardsNote}`,homeVal:hStats.avgYellowCards,  awayVal:aStats.avgYellowCards,    unit:" Kart/Maç" },
-      { title:"🟥 Kırmızı Kart (Toplam)",        homeVal:hStats.totalRedCardsIn5,  awayVal:aStats.totalRedCardsIn5,  unit:" Adet" },
+        homeDisplay: fmtShotsOnTarget(hStats.avgShotsOnTarget, hStats.shotAccuracyPct),
+        awayDisplay: fmtShotsOnTarget(aStats.avgShotsOnTarget, aStats.shotAccuracyPct),
+        rawHome: parseFloat(hStats.avgShotsOnTarget) || 0,
+        rawAway: parseFloat(aStats.avgShotsOnTarget) || 0 },
+      { title:`🚩 Korner Ortalaması${cornersNote}`,
+        homeDisplay: fmtVal(hStats.avgCorners, "", " Korner"),
+        awayDisplay: fmtVal(aStats.avgCorners, "", " Korner"),
+        rawHome: parseFloat(hStats.avgCorners) || 0,
+        rawAway: parseFloat(aStats.avgCorners) || 0 },
+      { title:`🟨 Sarı Kart Ortalaması${cardsNote}`,
+        homeDisplay: fmtVal(hStats.avgYellowCards, "", " Kart/Maç"),
+        awayDisplay: fmtVal(aStats.avgYellowCards, "", " Kart/Maç"),
+        rawHome: parseFloat(hStats.avgYellowCards) || 0,
+        rawAway: parseFloat(aStats.avgYellowCards) || 0 },
+      { title:"🟥 Kırmızı Kart (Toplam)",
+        homeDisplay: fmtVal(hStats.totalRedCardsIn5, "", " Adet"),
+        awayDisplay: fmtVal(aStats.totalRedCardsIn5, "", " Adet"),
+        rawHome: parseFloat(hStats.totalRedCardsIn5) || 0,
+        rawAway: parseFloat(aStats.totalRedCardsIn5) || 0 },
       { title:"⚡ KG Var (Karşılıklı Gol) Oranı",
-        homeVal:`%${hStats.bttsPct}`, awayVal:`%${aStats.bttsPct}`,
-        rawHome:hStats.bttsPct, rawAway:aStats.bttsPct },
+        homeDisplay: fmtVal(hStats.bttsPct, "%"),
+        awayDisplay: fmtVal(aStats.bttsPct, "%"),
+        rawHome: parseFloat(hStats.bttsPct) || 0,
+        rawAway: parseFloat(aStats.bttsPct) || 0 },
       { title:"📈 2.5 Üst Gol Oranı",
-        homeVal:`%${hStats.over25Pct}`, awayVal:`%${aStats.over25Pct}`,
-        rawHome:hStats.over25Pct, rawAway:aStats.over25Pct },
+        homeDisplay: fmtVal(hStats.over25Pct, "%"),
+        awayDisplay: fmtVal(aStats.over25Pct, "%"),
+        rawHome: parseFloat(hStats.over25Pct) || 0,
+        rawAway: parseFloat(aStats.over25Pct) || 0 },
       { title:"🏆 Galibiyet Oranı",
-        homeVal:`%${hStats.winPct}`, awayVal:`%${aStats.winPct}`,
-        rawHome:hStats.winPct, rawAway:aStats.winPct }
+        homeDisplay: fmtVal(hStats.winPct, "%"),
+        awayDisplay: fmtVal(aStats.winPct, "%"),
+        rawHome: parseFloat(hStats.winPct) || 0,
+        rawAway: parseFloat(aStats.winPct) || 0 }
     ];
 
     metrics.forEach(m => {
-      const hNum  = m.rawHome !== undefined ? m.rawHome : parseFloat(m.homeVal);
-      const aNum  = m.rawAway !== undefined ? m.rawAway : parseFloat(m.awayVal);
-      const total = (hNum + aNum) || 1;
-      const hPct  = Math.round((hNum / total) * 100);
-      const aPct  = 100 - hPct;
-      const row   = document.createElement("div");
+      const hNum  = (m.rawHome !== undefined && !isNaN(m.rawHome)) ? m.rawHome : 0;
+      const aNum  = (m.rawAway !== undefined && !isNaN(m.rawAway)) ? m.rawAway : 0;
+      const total = (hNum + aNum);
+      let hPct = 50, aPct = 50;
+      if (total > 0) {
+        hPct = Math.round((hNum / total) * 100);
+        aPct = 100 - hPct;
+      }
+      const row = document.createElement("div");
       row.className = "stat-row";
       row.innerHTML = `
         <div class="stat-label-bar">
-          <span class="home-val">${m.homeVal}${m.unit||''}</span>
+          <span class="home-val">${m.homeDisplay}</span>
           <span class="stat-title">${m.title}</span>
-          <span class="away-val">${m.awayVal}${m.unit||''}</span>
+          <span class="away-val">${m.awayDisplay}</span>
         </div>
         <div class="stat-progress-container">
           <div class="stat-progress-bar home" style="width:${hPct}%;"></div>

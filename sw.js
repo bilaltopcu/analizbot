@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golanaliz-v1';
+const CACHE_NAME = 'golanaliz-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -36,17 +36,31 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network-First Strategy: Try network first so updates reflect immediately on phones.
+// Fallback to cache when offline.
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-      });
-    })
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
   );
 });
