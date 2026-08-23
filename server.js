@@ -24,6 +24,7 @@ const MIME_TYPES = {
 
 // In-Memory Fast Cache for Static Assets
 const FILE_CACHE = new Map();
+let isSyncing = false;
 
 function getCachedOrReadFile(filePath, callback) {
   const stat = fs.statSync(filePath, { throwIfNoEntry: false });
@@ -105,6 +106,15 @@ const server = http.createServer((req, res) => {
       'Content-Type': 'application/json; charset=UTF-8',
       'Access-Control-Allow-Origin': '*'
     });
+
+    if (isSyncing) {
+      return res.end(JSON.stringify({ 
+        status: 'ALREADY_RUNNING', 
+        message: 'Veri güncelleme zaten arka planda devam ediyor.' 
+      }));
+    }
+
+    isSyncing = true;
     res.end(JSON.stringify({ 
       status: 'STARTED', 
       message: 'Veri güncelleme işlemi arka planda başlatıldı.' 
@@ -117,6 +127,7 @@ const server = http.createServer((req, res) => {
       : 'python3 update_2026_2027_data.py || python update_2026_2027_data.py';
 
     exec(cmd, (error, stdout, stderr) => {
+      isSyncing = false;
       if (error) {
         console.error('[Sync Error]', error.message);
       } else {
