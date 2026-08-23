@@ -1,10 +1,11 @@
-const CACHE_NAME = 'golanaliz-v2';
+const CACHE_NAME = 'golanaliz-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './data.js',
+  './advanced_stats.js',
   './charts.js',
   './auth.js',
   './manifest.json',
@@ -42,7 +43,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-cache' })
       .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();

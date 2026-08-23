@@ -103,8 +103,12 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/sync-2026-2027' || pathname === '/api/sync-data') {
     FILE_CACHE.clear(); // Clear cache on sync
     const { exec } = require('child_process');
-    exec('python update_2026_2027_data.py', (error, stdout, stderr) => {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+    const cmd = process.platform === 'win32' ? 'python update_2026_2027_data.py' : 'python3 update_2026_2027_data.py || python update_2026_2027_data.py';
+    exec(cmd, (error, stdout, stderr) => {
+      res.writeHead(200, { 
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Access-Control-Allow-Origin': '*'
+      });
       if (error) {
         return res.end(JSON.stringify({ status: 'ERROR', message: error.message }));
       }
@@ -149,10 +153,16 @@ function serveAsset(req, res, fileData) {
   }
 
   const acceptEncoding = req.headers['accept-encoding'] || '';
+  const isDataOrCode = fileData.contentType.includes('html') ||
+                       fileData.contentType.includes('javascript') ||
+                       fileData.contentType.includes('json');
+
+  const cacheControl = isDataOrCode ? 'no-cache, must-revalidate' : 'public, max-age=86400';
+
   const headers = {
     'Content-Type': fileData.contentType,
     'ETag': fileData.etag,
-    'Cache-Control': 'public, max-age=3600'
+    'Cache-Control': cacheControl
   };
 
   if (fileData.gzip && acceptEncoding.includes('gzip')) {
