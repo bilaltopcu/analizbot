@@ -42,12 +42,16 @@ class HealthAndStaticRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            try:
-                import update_2026_2027_data
-                update_2026_2027_data.run_sync()
-                res = {"status": "SUCCESS", "message": "2025-2026 ve 2026-2027 sezonları verileri football-data.co.uk üzerinden başarıyla güncellendi!"}
-            except Exception as e:
-                res = {"status": "ERROR", "message": str(e)}
+            import threading
+            def bg_sync():
+                try:
+                    import update_2026_2027_data
+                    update_2026_2027_data.run_sync()
+                    print("[Sync Success] Python server background sync complete!")
+                except Exception as e:
+                    print(f"[Sync Error] {e}")
+            threading.Thread(target=bg_sync, daemon=True).start()
+            res = {"status": "STARTED", "message": "Veri güncelleme işlemi arka planda başlatıldı."}
             self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
             return
 

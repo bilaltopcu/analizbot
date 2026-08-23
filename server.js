@@ -101,18 +101,28 @@ const server = http.createServer((req, res) => {
   }
 
   if (pathname === '/api/sync-2026-2027' || pathname === '/api/sync-data') {
+    res.writeHead(200, { 
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end(JSON.stringify({ 
+      status: 'STARTED', 
+      message: 'Veri güncelleme işlemi arka planda başlatıldı.' 
+    }));
+
     FILE_CACHE.clear(); // Clear cache on sync
     const { exec } = require('child_process');
-    const cmd = process.platform === 'win32' ? 'python update_2026_2027_data.py' : 'python3 update_2026_2027_data.py || python update_2026_2027_data.py';
+    const cmd = process.platform === 'win32' 
+      ? 'python update_2026_2027_data.py' 
+      : 'python3 update_2026_2027_data.py || python update_2026_2027_data.py';
+
     exec(cmd, (error, stdout, stderr) => {
-      res.writeHead(200, { 
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Access-Control-Allow-Origin': '*'
-      });
       if (error) {
-        return res.end(JSON.stringify({ status: 'ERROR', message: error.message }));
+        console.error('[Sync Error]', error.message);
+      } else {
+        console.log('[Sync Success] Veriler başarıyla güncellendi.');
+        FILE_CACHE.clear();
       }
-      return res.end(JSON.stringify({ status: 'SUCCESS', message: 'Veriler güncellendi!' }));
     });
     return;
   }
