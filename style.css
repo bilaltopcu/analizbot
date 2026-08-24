@@ -415,8 +415,9 @@ body {
 }
 
 .dropdown-options-list {
-  max-height: 250px;
+  max-height: 280px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1045,6 +1046,14 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .dropdown-menu {
+    max-height: 65vh;
+  }
+
+  .dropdown-options-list {
+    max-height: 50vh;
+  }
+
   .team-selectors-container {
     grid-template-columns: 1fr;
     gap: 14px;

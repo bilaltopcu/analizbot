@@ -727,8 +727,6 @@ def run_sync():
     countries_list = []
     for c, meta in COUNTRY_META.items():
         teams_set = set(country_teams.get(c, []))
-        if c in DEFAULT_TEAMS:
-            teams_set.update(DEFAULT_TEAMS[c])
         final_teams = {TEAM_CANONICAL.get(t, t) for t in teams_set}
         sorted_teams = sorted(list(final_teams))
         if sorted_teams:

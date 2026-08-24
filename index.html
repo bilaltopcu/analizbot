@@ -356,6 +356,7 @@
           <div class="ai-card-content" id="aiCardShareArea">
             <div class="top-row">
               <span class="best-pick-pill"><i class="fa-solid fa-star"></i> GÜNÜN EN UYGUN BAHSİ</span>
+              <span id="aiModelBadge" class="ai-model-badge" style="background: rgba(138, 43, 226, 0.2); border: 1px solid rgba(147, 51, 234, 0.4); color: #d8b4fe; padding: 4px 10px; borderRadius: 20px; font-size: 0.78rem; font-weight: 600;"><i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Pro AI</span>
               <span id="aiValueBadge" class="value-bet-badge hidden"><i class="fa-solid fa-bolt"></i> Değerli Bahis (+8% EV)</span>
               <div class="confidence-meter">
                 <span>Güven Oranı:</span>
@@ -382,8 +383,18 @@
             </div>
 
             <div class="ai-explanation-box">
-              <h4><i class="fa-solid fa-lightbulb"></i> Engine 5.0 AI Analiz Raporu & Gerekçesi</h4>
+              <h4><i class="fa-solid fa-brain"></i> <span id="aiExplanationTitle">Gemini Pro Derin Maç Analiz Raporu</span></h4>
               <p id="aiExplanationText">Yükleniyor...</p>
+              <div id="geminiTacticalDetails" class="gemini-tactical-details hidden" style="margin-top: 12px; display: grid; gap: 10px;">
+                <div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 8px; border-left: 3px solid #3b82f6;">
+                  <strong style="color: #60a5fa; font-size: 0.85rem;"><i class="fa-solid fa-chess"></i> Taktiksel Saha İçi Akışı:</strong>
+                  <p id="geminiTacticalText" style="margin-top: 4px; font-size: 0.85rem; color: #e2e8f0;"></p>
+                </div>
+                <div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 8px; border-left: 3px solid #f59e0b;">
+                  <strong style="color: #fbbf24; font-size: 0.85rem;"><i class="fa-solid fa-triangle-exclamation"></i> Risk Analizi & Faktörler:</strong>
+                  <p id="geminiRiskText" style="margin-top: 4px; font-size: 0.85rem; color: #e2e8f0;"></p>
+                </div>
+              </div>
             </div>
           </div>
 

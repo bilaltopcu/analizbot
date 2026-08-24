@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof FOOTBALL_DATA !== "undefined" && FOOTBALL_DATA.countries) {
       FOOTBALL_DATA.countries.forEach(c => {
         (c.teams || []).forEach(teamName => {
-          if (!seen.has(teamName)) {
+          if (!seen.has(teamName) && hasTeamData(teamName)) {
             seen.add(teamName);
             list.push({
               teamName,
@@ -710,19 +710,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function hasTeamData(teamName) {
+    if (!teamName) return false;
+    if (typeof generateTeamProfile === "function") {
+      try {
+        const prof = generateTeamProfile(teamName, "");
+        return prof && prof.playedCount > 0;
+      } catch (e) {
+        return true;
+      }
+    }
+    return true;
+  }
+
   // Populate Custom Logo Options inside Dropdown List
   function populateDropdownOptions(type, country) {
     const list = type === "home" ? homeOptionsList : awayOptionsList;
     list.innerHTML = "";
 
     const isCupMode = selectedMatchMode === "cup" || !country;
-    const teamsList = isCupMode ? getAllTeamsUnified() : (country.teams || []).map(t => ({
+    const rawTeams = isCupMode ? getAllTeamsUnified() : (country.teams || []).map(t => ({
       teamName: t,
       countryCode: country.code,
       countryName: country.name,
       countryFlag: country.flag,
       countryEmoji: country.flagEmoji || ""
     }));
+
+    const teamsList = rawTeams.filter(t => hasTeamData(t.teamName));
 
     teamsList.forEach(t => {
       const teamName = t.teamName;
@@ -1726,9 +1741,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const aiBetTitle        = document.getElementById("aiBetTitle");
     const aiConfidenceValue = document.getElementById("aiConfidenceValue");
     const aiExplanationText = document.getElementById("aiExplanationText");
+    const aiExplanationTitle= document.getElementById("aiExplanationTitle");
     const aiOddsValue       = document.getElementById("aiOddsValue");
     const aiFairOddsValue   = document.getElementById("aiFairOddsValue");
     const aiValueBadge      = document.getElementById("aiValueBadge");
+    const aiModelBadge      = document.getElementById("aiModelBadge");
+    const geminiTacticalDetails = document.getElementById("geminiTacticalDetails");
+    const geminiTacticalText    = document.getElementById("geminiTacticalText");
+    const geminiRiskText        = document.getElementById("geminiRiskText");
     const aiBankoConfidence = document.getElementById("aiBankoConfidence");
     const aiBankoReason     = document.getElementById("aiBankoReason");
 
@@ -1824,6 +1844,94 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="tactical-card-desc">Maç Temposu</div>
         </div>`;
     }
+
+    // =============================================
+    // Gemini Pro Deep Analysis Asynchronous Integration
+    // =============================================
+    if (aiExplanationText) {
+      aiExplanationText.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <em>Gemini Pro maçı taktiksel olarak analiz ediyor...</em>`;
+    }
+
+    const payload = {
+      homeTeam: homeProfile.teamName,
+      awayTeam: awayProfile.teamName,
+      country: selectedCountry ? selectedCountry.name : 'Genel',
+      xG_home: probs.xG_home,
+      xG_away: probs.xG_away,
+      pHomeWin: probs.pHomeWin,
+      pDraw: probs.pDraw,
+      pAwayWin: probs.pAwayWin,
+      pOver25: probs.pOver25,
+      pBTTS: probs.pBTTS,
+      homeGoalsScored: hStats.avgGoalsScored,
+      homeGoalsConceded: hStats.avgGoalsConceded,
+      awayGoalsScored: aStats.avgGoalsScored,
+      awayGoalsConceded: aStats.avgGoalsConceded,
+      expCorners: probs.expCorners,
+      expCards: probs.expCards,
+      suggestedBet: bestPick.title,
+      confidence: bestPick.pct
+    };
+
+    fetch('/api/gemini-analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.success && data.analysis) {
+        if (aiModelBadge) {
+          aiModelBadge.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Pro AI (${data.model || 'Pro'})`;
+          aiModelBadge.style.background = 'rgba(147, 51, 234, 0.25)';
+        }
+        if (aiExplanationTitle) {
+          aiExplanationTitle.textContent = 'Gemini Pro Derin Maç Analiz Raporu';
+        }
+        if (aiExplanationText) {
+          aiExplanationText.textContent = data.analysis.bestBetRationale || data.analysis.matchAnalysisSummary || bestPick.reason;
+        }
+        if (geminiTacticalDetails) {
+          geminiTacticalDetails.classList.remove('hidden');
+        }
+        if (geminiTacticalText) {
+          geminiTacticalText.textContent = data.analysis.tacticalScenario || 'Taktiksel analiz mevcut.';
+        }
+        if (geminiRiskText) {
+          geminiRiskText.textContent = data.analysis.riskAssessment || 'Belirgin risk faktörü tespit edilmedi.';
+        }
+      } else {
+        // Fallback to local engine
+        if (aiModelBadge) {
+          aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 5.0 (Yerel)`;
+          aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
+        }
+        if (aiExplanationTitle) {
+          aiExplanationTitle.textContent = 'Engine 5.0 AI Analiz Raporu & Gerekçesi';
+        }
+        if (aiExplanationText) {
+          aiExplanationText.textContent = bestPick.reason;
+        }
+        if (geminiTacticalDetails) {
+          geminiTacticalDetails.classList.add('hidden');
+        }
+      }
+    })
+    .catch(err => {
+      console.warn('[Gemini Frontend Fetch Fallback]', err);
+      if (aiModelBadge) {
+        aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 5.0 (Yerel)`;
+      }
+      if (aiExplanationTitle) {
+        aiExplanationTitle.textContent = 'Engine 5.0 AI Analiz Raporu & Gerekçesi';
+      }
+      if (aiExplanationText) {
+        aiExplanationText.textContent = bestPick.reason;
+      }
+      if (geminiTacticalDetails) {
+        geminiTacticalDetails.classList.add('hidden');
+      }
+    });
   }
 
   function generatePossibleBets() {

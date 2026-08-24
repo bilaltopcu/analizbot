@@ -1,9 +1,89 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
+// Load .env file automatically
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split(/\r?\n/).forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const idx = trimmed.indexOf('=');
+      if (idx > 0) {
+        const key = trimmed.substring(0, idx).trim();
+        const val = trimmed.substring(idx + 1).trim().replace(/^["']|["']$/g, '');
+        if (!process.env[key]) process.env[key] = val;
+      }
+    }
+  });
+}
+
 const PORT = process.env.PORT || 3000;
+
+function callGeminiApi(promptText, apiKey) {
+  return new Promise((resolve) => {
+    const model = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
+    const postData = JSON.stringify({
+      contents: [
+        {
+          parts: [{ text: promptText }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        responseMimeType: "application/json"
+      }
+    });
+
+    const options = {
+      hostname: 'generativelanguage.googleapis.com',
+      port: 443,
+      path: `/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const parsed = JSON.parse(data);
+            const textResponse = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textResponse) {
+              // Strip markdown backticks if any
+              const cleanText = textResponse.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+              resolve(JSON.parse(cleanText));
+            } else {
+              resolve(null);
+            }
+          } catch (e) {
+            console.error('[Gemini JSON Parse Error]', e.message, data);
+            resolve(null);
+          }
+        } else {
+          console.error('[Gemini API Error]', res.statusCode, data);
+          resolve(null);
+        }
+      });
+    });
+
+    req.on('error', (e) => {
+      console.error('[Gemini Request Error]', e.message);
+      resolve(null);
+    });
+
+    req.write(postData);
+    req.end();
+  });
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',
@@ -133,6 +213,92 @@ const server = http.createServer((req, res) => {
       } else {
         console.log('[Sync Success] Veriler başarıyla güncellendi.');
         FILE_CACHE.clear();
+      }
+    });
+    return;
+  }
+
+  // Gemini Pro AI Deep Analysis Endpoint
+  if (pathname === '/api/gemini-analyze') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      return res.end();
+    }
+
+    if (req.method !== 'POST') {
+      res.writeHead(405, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Method not allowed' }));
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const apiKey = process.env.GEMINI_API_KEY;
+
+        if (!apiKey) {
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+          return res.end(JSON.stringify({
+            success: false,
+            fallback: true,
+            message: 'GEMINI_API_KEY çevre değişkeni bulunamadı. Yerel motor kullanılıyor.'
+          }));
+        }
+
+        const promptText = `Sen uzman bir futbol analisti ve spor istatistikçisisin. Aşağıdaki maç istatistiklerini ve Dixon-Coles Poisson simülasyon çıktılarını inceleyerek profesyonel bir taktiksel analiz ve bahis gerekçelendirmesi üret.
+
+MAÇ BİLGİLERİ:
+- Ev Sahibi: ${payload.homeTeam || 'Ev Sahibi'}
+- Deplasman: ${payload.awayTeam || 'Deplasman'}
+- Ülke / Lig: ${payload.country || 'Genel'}
+
+Sayısal & İstatistiksel Veriler (Dixon-Coles Simulation Engine 5.0):
+- Beklenen Goller (xG): Ev Sahibi ${payload.xG_home || 1.2} - Deplasman ${payload.xG_away || 1.0}
+- Olasılıklar: Ev Galibiyeti %${payload.pHomeWin || 40}, Beraberlik %${payload.pDraw || 30}, Deplasman Galibiyeti %${payload.pAwayWin || 30}
+- 2.5 Üst Olasılığı: %${payload.pOver25 || 50} | KG Var Olasılığı: %${payload.pBTTS || 50}
+- Ev Sahibi Ort. Gol (Attığı/Yediği): ${payload.homeGoalsScored || '1.5'} / ${payload.homeGoalsConceded || '1.0'}
+- Deplasman Ort. Gol (Attığı/Yediği): ${payload.awayGoalsScored || '1.2'} / ${payload.awayGoalsConceded || '1.3'}
+- Beklenen Toplam Korner: ${payload.expCorners || '9.5'} | Beklenen Toplam Sarı Kart: ${payload.expCards || '4.2'}
+- Önerilen Ön İstatistiksel Bahis: ${payload.suggestedBet || 'KG Var'} (Güven: %${payload.confidence || 75})
+
+GÖREV:
+Aşağıdaki JSON formatında Türkçe yanıt döndür. Başka hiçbir açıklama metni ekleme.
+JSON Şeması:
+{
+  "tacticalScenario": "Maçın muhtemel taktiksel akışı, tempo ve saha içi dinamikleri hakkında 2-3 cümlelik detaylı açıklama.",
+  "bestBetRationale": "Seçilen en uygun bahsin istatistiksel ve taktiksel nedenleri (1-2 cümle).",
+  "riskAssessment": "Maçın dikkat edilmesi gereken risk faktörleri (disiplin/kart, tempo düşüklüğü, sürpriz beraberlik riski vb.).",
+  "confidenceScore": 85,
+  "matchAnalysisSummary": "Genel sonuç özeti ve maçın gidişat tahmini."
+}`;
+
+        const geminiResult = await callGeminiApi(promptText, apiKey);
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        if (geminiResult) {
+          res.end(JSON.stringify({
+            success: true,
+            fallback: false,
+            model: process.env.GEMINI_MODEL || 'gemini-1.5-pro',
+            analysis: geminiResult
+          }));
+        } else {
+          res.end(JSON.stringify({
+            success: false,
+            fallback: true,
+            message: 'Gemini API yanıt üretemedi, yerel motora geçildi.'
+          }));
+        }
+
+      } catch (err) {
+        console.error('[Gemini Route Error]', err);
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({ success: false, fallback: true, error: err.message }));
       }
     });
     return;
