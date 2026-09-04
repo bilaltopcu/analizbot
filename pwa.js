@@ -9,7 +9,7 @@
   const DISMISS_KEY = 'golanaliz_pwa_dismissed';
   const DISMISS_HOURS = 48; // 2 gun sonra tekrar oner
 
-  // Cihaz ve mod tespiti
+  // ─── Otomatik Cihaz & Model Adaptasyon Motoru ───
   const isStandalone = () => {
     return (
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -22,6 +22,82 @@
     const ua = window.navigator.userAgent.toLowerCase();
     return /iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   };
+
+  const isAndroid = () => {
+    return /android/.test(window.navigator.userAgent.toLowerCase());
+  };
+
+  function detectAndApplyDeviceClasses() {
+    const docEl = document.documentElement;
+    const body = document.body;
+    const ua = navigator.userAgent.toLowerCase();
+    
+    const ios = isIOS();
+    const android = isAndroid();
+    const standalone = isStandalone();
+
+    const width = window.innerWidth || docEl.clientWidth;
+    const height = window.innerHeight || docEl.clientHeight;
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+    // Tablet tespiti (iPad, Android Tablet, veya dokunmatik 641-1024px)
+    const isTabletDevice = (
+      /ipad/.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+      (android && !/mobile/.test(ua)) ||
+      (isTouch && width >= 641 && width <= 1024)
+    );
+
+    // Telefon tespiti
+    const isMobileDevice = !isTabletDevice && (width <= 640 || (/iphone|ipod|mobile/.test(ua) && width <= 768));
+
+    // Class guncelleme
+    docEl.classList.remove('device-mobile', 'device-tablet', 'device-desktop', 'platform-ios', 'platform-android', 'display-standalone');
+    if (body) body.classList.remove('device-mobile', 'device-tablet', 'device-desktop', 'platform-ios', 'platform-android', 'display-standalone');
+
+    let deviceType = 'desktop';
+    if (isMobileDevice) {
+      deviceType = 'mobile';
+      docEl.classList.add('device-mobile');
+      if (body) body.classList.add('device-mobile');
+    } else if (isTabletDevice) {
+      deviceType = 'tablet';
+      docEl.classList.add('device-tablet');
+      if (body) body.classList.add('device-tablet');
+    } else {
+      docEl.classList.add('device-desktop');
+      if (body) body.classList.add('device-desktop');
+    }
+
+    if (ios) {
+      docEl.classList.add('platform-ios');
+      if (body) body.classList.add('platform-ios');
+      docEl.setAttribute('data-platform', 'ios');
+    } else if (android) {
+      docEl.classList.add('platform-android');
+      if (body) body.classList.add('platform-android');
+      docEl.setAttribute('data-platform', 'android');
+    } else {
+      docEl.setAttribute('data-platform', 'other');
+    }
+
+    if (standalone) {
+      docEl.classList.add('display-standalone');
+      if (body) body.classList.add('display-standalone');
+      docEl.setAttribute('data-display-mode', 'standalone');
+    } else {
+      docEl.setAttribute('data-display-mode', 'browser');
+    }
+
+    docEl.setAttribute('data-device', deviceType);
+    docEl.setAttribute('data-screen-w', width.toString());
+    docEl.setAttribute('data-screen-h', height.toString());
+  }
+
+  // Ilk yukleme aninda calistir
+  detectAndApplyDeviceClasses();
+  window.addEventListener('resize', detectAndApplyDeviceClasses);
+  window.addEventListener('orientationchange', () => setTimeout(detectAndApplyDeviceClasses, 150));
 
   const isDismissedRecently = () => {
     try {

@@ -2,15 +2,15 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>GOLANALIZ AI | Yeni Nesil İddaa & Futbol Analiz Platformu</title>
   
   <!-- PWA & Mobile App Meta Tags -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b0f19">
+  <meta name="theme-color" content="#f1f5f9">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="GOLANALIZ AI">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
@@ -33,7 +33,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=2.0.2">
+  <link rel="stylesheet" href="style.css?v=2.2.0">
 </head>
 <body>
 
@@ -60,53 +60,55 @@
     
     <!-- Navbar / Header -->
     <header class="app-header">
-      <div class="logo-brand">
-        <div class="brand-icon">
-          <img src="icons/icon-192.png" alt="GOLANALIZ AI Logo" class="brand-logo-img">
-        </div>
-        <div class="brand-text">
-          <h1>GOLANALIZ <span class="accent-text">AI</span></h1>
-          <span class="brand-subtext">PROFESYONEL İSTATİSTİK & YAPAY ZEKA TAHMİNİ</span>
-        </div>
-      </div>
-      <div class="header-right-area">
-        <div class="header-badges">
-          <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
-          <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
-        </div>
-        <!-- PWA Install Header Button -->
-        <button class="btn-pwa-header hidden" id="pwaHeaderInstallBtn" title="GOLANALIZ AI Uygulamasını Yükle">
-          <i class="fa-solid fa-mobile-screen-button"></i>
-          <span>Uygulamayı Yükle</span>
-        </button>
-        <!-- Auth Area: Login/Register OR User Info -->
-        <div class="header-auth-area" id="headerAuthArea">
-          <!-- Logged out state -->
-          <div class="auth-logged-out" id="authLoggedOut">
-            <button class="btn-auth-login" id="headerLoginBtn">
-              <i class="fa-solid fa-right-to-bracket"></i> Giriş / Kayıt
-            </button>
+      <div class="header-main-row">
+        <div class="logo-brand">
+          <div class="brand-icon">
+            <img src="icons/icon-192.png" alt="GOLANALIZ AI Logo" class="brand-logo-img">
           </div>
-          <!-- Logged in state -->
-          <div class="auth-logged-in hidden" id="authLoggedIn">
-            <button class="btn-user-action" id="headerFavoritesBtn" title="Favori Takımlarım">
-              <i class="fa-solid fa-star"></i>
-              <span class="user-action-label">Favorilerim</span>
-            </button>
-            <button class="btn-user-action" id="headerMyBetsBtn" title="Bahislerim">
-              <i class="fa-solid fa-bookmark"></i>
-              <span class="user-action-label">Bahislerim</span>
-              <span class="mybets-count-badge hidden" id="myBetsCountBadge">0</span>
-            </button>
-            <div class="user-profile-pill" id="userProfilePill">
-              <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
-              <span class="user-email" id="headerUserEmail">user@mail.com</span>
-              <button class="btn-logout" id="headerLogoutBtn" title="Çıkış Yap">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <div class="brand-text">
+            <h1>GOLANALIZ <span class="accent-text">AI</span></h1>
+            <span class="brand-subtext">PROFESYONEL İSTATİSTİK & YAPAY ZEKA TAHMİNİ</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <!-- PWA Install Header Button -->
+          <button class="btn-pwa-header hidden" id="pwaHeaderInstallBtn" title="GOLANALIZ AI Uygulamasını Yükle">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+            <span class="pwa-header-label">Yükle</span>
+          </button>
+          <!-- Auth Area: Login/Register OR User Info -->
+          <div class="header-auth-area" id="headerAuthArea">
+            <!-- Logged out state -->
+            <div class="auth-logged-out" id="authLoggedOut">
+              <button class="btn-auth-login" id="headerLoginBtn">
+                <i class="fa-solid fa-right-to-bracket"></i> <span class="auth-btn-label">Giriş / Kayıt</span>
               </button>
+            </div>
+            <!-- Logged in state -->
+            <div class="auth-logged-in hidden" id="authLoggedIn">
+              <button class="btn-user-action" id="headerFavoritesBtn" title="Favori Takımlarım">
+                <i class="fa-solid fa-star"></i>
+                <span class="user-action-label">Favorilerim</span>
+              </button>
+              <button class="btn-user-action" id="headerMyBetsBtn" title="Bahislerim">
+                <i class="fa-solid fa-bookmark"></i>
+                <span class="user-action-label">Bahislerim</span>
+                <span class="mybets-count-badge hidden" id="myBetsCountBadge">0</span>
+              </button>
+              <div class="user-profile-pill" id="userProfilePill">
+                <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+                <span class="user-email" id="headerUserEmail">user@mail.com</span>
+                <button class="btn-logout" id="headerLogoutBtn" title="Çıkış Yap">
+                  <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+      <div class="header-badges">
+        <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
+        <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
       </div>
     </header>
 

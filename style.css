@@ -124,23 +124,32 @@ body {
 /* Header */
 .app-header {
   display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 8px 0;
+}
+
+.header-main-row {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding: 10px 0;
+  width: 100%;
+  gap: 14px;
 }
 
 .logo-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .brand-icon {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   background: transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,16 +163,21 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: 12px;
   display: block;
+}
+
+.brand-text {
+  min-width: 0;
 }
 
 .brand-text h1 {
   font-family: var(--font-heading);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: var(--text-primary);
+  line-height: 1.15;
 }
 
 .accent-text {
@@ -173,22 +187,35 @@ body {
 }
 
 .brand-subtext {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--text-secondary);
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .header-badges {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .live-badge, .source-badge {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 30px;
   display: flex;
   align-items: center;
@@ -1142,78 +1169,8 @@ body {
   50% { transform: scale(1.15); }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .dropdown-menu {
-    max-height: 65vh;
-  }
+/* Responsive rules are organized in the Device & Responsive System at the end of this file */
 
-  .dropdown-options-list {
-    max-height: 50vh;
-  }
-
-  .team-selectors-container {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  
-  .vs-badge {
-    margin: -6px 0;
-  }
-  
-  .match-banner {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .ai-trigger-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-ai-glow {
-    justify-content: center;
-  }
-
-  .h2h-match-row {
-    grid-template-columns: 40px 1fr auto 1fr 60px;
-    font-size: 11px;
-  }
-
-  .h2h-stats-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .split-stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .poisson-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .coupon-panel {
-    width: calc(100vw - 32px);
-    right: 16px;
-    left: 16px;
-    bottom: 16px;
-  }
-
-  .ad-slot-banner.ad-slot-visible {
-    min-height: 60px;
-  }
-
-  .ad-placeholder {
-    flex-direction: column;
-    gap: 6px;
-    font-size: 11px;
-    padding: 14px 10px;
-  }
-
-  .ad-placeholder i {
-    font-size: 18px;
-  }
-}
 
 /* ==========================================================================
    Reklam Alanları (Ad Slots)
@@ -3104,16 +3061,16 @@ body {
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
-  padding: 16px;
-  background: rgba(15, 23, 42, 0.35);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
 }
 
 .match-mode-label {
   font-size: 13px;
   font-weight: 800;
-  color: #f59e0b;
+  color: var(--accent-amber);
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
@@ -3122,16 +3079,18 @@ body {
 
 .match-mode-buttons {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 520px;
   justify-content: center;
 }
 
 .match-type-btn {
-  background: rgba(30, 41, 59, 0.8);
+  flex: 1;
+  background: #ffffff;
   color: var(--text-secondary);
-  border: 1.5px solid var(--border-glass);
-  padding: 10px 22px;
+  border: 1.5px solid var(--border-glass-bright);
+  padding: 10px 18px;
   border-radius: 30px;
   font-size: 13px;
   font-weight: 700;
@@ -3139,13 +3098,15 @@ body {
   transition: all 0.25s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  box-shadow: var(--shadow-sm);
 }
 
 .match-type-btn:hover {
-  border-color: #f59e0b;
+  border-color: var(--accent-amber);
   color: var(--text-primary);
-  transform: translateY(-1px);
+  background: #fffbeb;
 }
 
 .match-type-btn.active {
@@ -3162,8 +3123,8 @@ body {
   gap: 10px;
   margin-bottom: 20px;
   padding: 14px;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px dashed rgba(245, 158, 11, 0.35);
+  background: #fffbeb;
+  border: 1px dashed rgba(245, 158, 11, 0.4);
   border-radius: var(--radius-md);
   animation: fadeIn 0.3s ease;
 }
@@ -3171,7 +3132,7 @@ body {
 .cup-format-label {
   font-size: 12px;
   font-weight: 800;
-  color: #fbbf24;
+  color: #b45309;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
@@ -3186,9 +3147,9 @@ body {
 }
 
 .cup-pill-btn {
-  background: rgba(15, 23, 42, 0.7);
-  color: var(--text-muted);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: #ffffff;
+  color: var(--text-secondary);
+  border: 1px solid #fde68a;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
@@ -3198,24 +3159,26 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: var(--shadow-sm);
 }
 
 .cup-pill-btn:hover {
-  color: #fbbf24;
-  border-color: #fbbf24;
+  color: #b45309;
+  border-color: #f59e0b;
+  background: #fef3c7;
 }
 
 .cup-pill-btn.active {
   background: #f59e0b;
-  color: #0f172a;
+  color: #ffffff;
   border-color: #f59e0b;
   font-weight: 800;
 }
 
 /* Cup Analysis Dashboard Grid */
 .cup-analysis-section {
-  border: 1.5px solid rgba(245, 158, 11, 0.4);
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+  border: 1.5px solid #fde68a;
+  background: #fffbeb;
 }
 
 .cup-dashboard-grid {
@@ -3226,19 +3189,20 @@ body {
 }
 
 .cup-stat-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  background: #ffffff;
+  border: 1px solid #fde68a;
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: var(--shadow-sm);
 }
 
 .cup-card-title {
   font-size: 13px;
   font-weight: 800;
-  color: #fbbf24;
+  color: #b45309;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3259,7 +3223,7 @@ body {
 
 .qualify-track {
   height: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #e2e8f0;
   border-radius: 6px;
   overflow: hidden;
   display: flex;
@@ -3284,9 +3248,9 @@ body {
 }
 
 .cup-risk-badge {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
@@ -3623,19 +3587,974 @@ body {
   font-size: 16px;
 }
 
-@media (max-width: 640px) {
-  .btn-pwa-header span {
-    display: none;
+/* ==========================================================================
+   GOLANALIZ AI - MASTER RESPONSIVE & DEVICE ADAPTATION SYSTEM
+   Automated styling for Phones, Tablets, Desktop, and Installed PWA Apps
+   ========================================================================== */
+
+/* ── Global Touch & Viewport Foundations ── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .cup-pill-btn, .match-type-btn {
+  touch-action: manipulation;
+}
+
+/* ==========================================================================
+   1. DESKTOP ADAPTATIONS (min-width: 1025px)
+   ========================================================================== */
+@media (min-width: 1025px) {
+  .app-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
   }
-  .btn-pwa-header {
-    padding: 8px 10px;
-    border-radius: 50%;
+
+  .header-main-row {
+    width: auto;
+    gap: 24px;
   }
-  .pwa-modal {
-    padding: 26px 18px;
-  }
-  .pwa-title-area h2 {
-    font-size: 20px;
+
+  .header-badges {
+    margin-left: auto;
   }
 }
+
+/* ==========================================================================
+   2. TABLET ADAPTATIONS (641px <= width <= 1024px or .device-tablet)
+   ========================================================================== */
+@media (min-width: 641px) and (max-width: 1024px), (min-width: 641px) and (.device-tablet) {
+  .app-container {
+    max-width: 100%;
+    padding: 16px 20px 48px 20px;
+  }
+
+  /* Header on Tablet */
+  .app-header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .header-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .header-badges {
+    justify-content: center;
+    width: 100%;
+    gap: 10px;
+  }
+
+  /* Selection Card on Tablet */
+  .glass-panel {
+    padding: 22px 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 22px;
+  }
+
+  .match-mode-buttons {
+    max-width: 480px;
+  }
+
+  .team-selectors-container {
+    display: grid;
+    grid-template-columns: 1fr 50px 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .vs-badge {
+    margin: 20px auto 0 auto;
+    width: 42px;
+    height: 42px;
+    font-size: 13px;
+  }
+
+  .btn-primary-glow {
+    padding: 14px 40px;
+    font-size: 15px;
+  }
+
+  /* Match Banner on Tablet: Clean Scoreboard Layout */
+  .match-banner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .banner-team {
+    min-width: 0;
+  }
+
+  .banner-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 8px;
+  }
+
+  .banner-team h3 {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  .banner-center {
+    padding: 0 10px;
+  }
+
+  .vs-text {
+    font-size: 13px;
+  }
+
+  /* Bets Grid on Tablet: 2 Columns */
+  .bets-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  /* Poisson Matrix on Tablet: 4 Columns */
+  .poisson-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  /* Cup Analysis Grid on Tablet */
+  .cup-dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  /* Floating Coupon */
+  .coupon-panel {
+    width: 360px;
+    right: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  }
+}
+
+/* ==========================================================================
+   3. MOBILE PHONES ADAPTATIONS (width <= 640px or .device-mobile)
+   ========================================================================== */
+@media (max-width: 640px), (.device-mobile) {
+  .app-container {
+    padding: 12px 12px 50px 12px;
+  }
+
+  /* --- Mobile App Header --- */
+  .app-header {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 4px 0 8px 0;
+  }
+
+  .header-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .logo-brand {
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .brand-text h1 {
+    font-size: 19px;
+    letter-spacing: 0.2px;
+  }
+
+  .brand-subtext {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-pwa-header {
+    padding: 6px 10px;
+    font-size: 11.5px;
+    gap: 5px;
+    border-radius: 20px;
+  }
+
+  .btn-auth-login {
+    padding: 6px 12px;
+    font-size: 11.5px;
+    gap: 5px;
+    border-radius: 20px;
+  }
+
+  .btn-user-action {
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 16px;
+  }
+
+  .btn-user-action .user-action-label {
+    display: none; /* Hide label, keep star/bookmark icon on phone */
+  }
+
+  .user-profile-pill {
+    padding: 3px 6px 3px 3px;
+    border-radius: 16px;
+    gap: 5px;
+  }
+
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 10.5px;
+  }
+
+  .user-email {
+    max-width: 80px;
+    font-size: 10.5px;
+  }
+
+  .btn-logout {
+    width: 22px;
+    height: 22px;
+    font-size: 9.5px;
+  }
+
+  .header-badges {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .live-badge, .source-badge {
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 16px;
+    gap: 4px;
+  }
+
+  /* --- Mobile Selection Card --- */
+  .glass-panel {
+    padding: 16px 12px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  }
+
+  .match-mode-container {
+    padding: 12px 10px;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+
+  .match-mode-label {
+    font-size: 11.5px;
+  }
+
+  .match-mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .match-type-btn {
+    padding: 9px 6px;
+    font-size: 11.5px;
+    gap: 4px;
+    border-radius: 20px;
+    justify-content: center;
+  }
+
+  .cup-format-wrapper {
+    padding: 10px;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+
+  .cup-format-label {
+    font-size: 11px;
+  }
+
+  .cup-format-buttons {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .cup-pill-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 11.5px;
+  }
+
+  .step-pill {
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+
+  .country-selector-wrapper {
+    max-width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .dropdown-trigger {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .team-label {
+    font-size: 13.5px;
+  }
+
+  .dropdown-search-input {
+    font-size: 16px !important; /* CRITICAL: Prevents iOS Safari from zooming in on focus! */
+    padding: 9px 12px 9px 34px;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    width: 100%;
+    max-height: 48vh;
+    padding: 8px;
+    border-radius: 14px;
+    z-index: 1050;
+  }
+
+  .dropdown-options-list {
+    max-height: 36vh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dropdown-option-item {
+    padding: 9px 10px;
+    min-height: 44px; /* Touch target */
+    gap: 10px;
+  }
+
+  .option-name {
+    font-size: 13px;
+  }
+
+  .divider-line {
+    margin: 20px 0 16px 0;
+    font-size: 12.5px;
+  }
+
+  .divider-line span {
+    padding: 0 8px;
+  }
+
+  /* Team Selectors: Home & Away */
+  .team-selectors-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .glass-card {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+
+  .box-tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    margin-bottom: 10px;
+  }
+
+  .vs-badge {
+    margin: -10px auto;
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    font-size: 11px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  }
+
+  .action-btn-wrapper {
+    margin-top: 18px;
+  }
+
+  .btn-primary-glow {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 18px;
+    font-size: 14px;
+    border-radius: 25px;
+  }
+
+  /* --- Mobile Match Banner: Modern Scoreboard Layout --- */
+  .match-banner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 10px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    background: #ffffff;
+  }
+
+  .banner-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+  }
+
+  .banner-logo {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 6px;
+  }
+
+  .banner-team h3 {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 105px;
+  }
+
+  .form-strip {
+    gap: 3px;
+    margin-top: 5px;
+  }
+
+  .form-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+    font-weight: 800;
+    border-radius: 4px;
+  }
+
+  .banner-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    min-width: 85px;
+  }
+
+  .league-tag {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .vs-text {
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .sample-tag {
+    display: none; /* Hide bulky text in mobile scoreboard banner */
+  }
+
+  /* --- Mobile Stats Analysis Section --- */
+  .section-title-box h3 {
+    font-size: 14.5px;
+    gap: 8px;
+  }
+
+  .section-title-box p {
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+
+  .stats-list {
+    gap: 10px;
+  }
+
+  .stat-row {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .stat-label-bar {
+    font-size: 11.5px;
+    margin-bottom: 6px;
+  }
+
+  .home-val, .away-val {
+    font-size: 13px;
+  }
+
+  .stat-progress-track {
+    height: 8px;
+    border-radius: 8px;
+  }
+
+  /* --- Mobile AI Prediction Card --- */
+  .ai-trigger-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .ai-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  .ai-info h3 {
+    font-size: 15px;
+  }
+
+  .ai-info p {
+    font-size: 11.5px;
+  }
+
+  .btn-ai-glow {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 18px;
+    font-size: 13.5px;
+    border-radius: 25px;
+  }
+
+  .ai-result-card {
+    padding: 16px 12px;
+    border-radius: 14px;
+    margin-top: 16px;
+  }
+
+  .top-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .best-pick-pill, .ai-model-badge, .value-bet-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .confidence-meter {
+    font-size: 11.5px;
+  }
+
+  .confidence-meter strong {
+    font-size: 15px;
+  }
+
+  .main-prediction-display {
+    padding: 12px 0;
+    margin-bottom: 14px;
+  }
+
+  .bet-headline {
+    font-size: clamp(18px, 5.2vw, 24px);
+    line-height: 1.25;
+    word-break: break-word;
+  }
+
+  .prediction-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .score-prediction {
+    font-size: 10.5px;
+    padding: 5px 4px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .score-prediction strong {
+    font-size: 13px;
+    margin-left: 0;
+  }
+
+  .ai-explanation-box h4 {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .ai-explanation-box p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .gemini-tactical-details {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .gemini-detail-card {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .detail-card-header {
+    font-size: 12px;
+    margin-bottom: 4px;
+    gap: 6px;
+  }
+
+  .detail-card-text {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  .btn-share-download {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    border-radius: 20px;
+  }
+
+  /* --- Mobile Poisson 6x6 Matrix --- */
+  .poisson-section {
+    padding: 14px 10px;
+    border-radius: 14px;
+    margin-top: 16px;
+  }
+
+  .poisson-header h4 {
+    font-size: 14.5px;
+  }
+
+  .poisson-header p {
+    font-size: 11px;
+  }
+
+  .poisson-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .poisson-card {
+    padding: 8px 4px;
+    border-radius: 10px;
+  }
+
+  .poisson-score {
+    font-size: 16px;
+  }
+
+  .poisson-pct {
+    font-size: 10.5px;
+    margin-bottom: 4px;
+  }
+
+  .poisson-likely-row {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .poisson-likely-pill {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .likely-score {
+    font-size: 13.5px;
+  }
+
+  /* --- Mobile Market Tabs: Native Horizontal Swipe --- */
+  .possible-bets-section .flex-between {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .market-tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    gap: 6px;
+    padding: 4px;
+    scrollbar-width: none;
+    width: 100%;
+    border-radius: 25px;
+  }
+
+  .market-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* --- Mobile Bets Grid --- */
+  .bets-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .bet-card {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+
+  .bet-name {
+    font-size: 14.5px;
+    margin-bottom: 8px;
+  }
+
+  .bet-card-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .bet-card-actions .btn-add-coupon,
+  .bet-card-actions .btn-save-mybet {
+    font-size: 11px;
+    padding: 8px 6px;
+    flex: 1;
+    min-height: 40px; /* Tap target */
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* --- Mobile Cup Dashboard --- */
+  .cup-dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .cup-stat-card {
+    padding: 14px 12px;
+  }
+
+  /* --- Mobile Coupon Panel (Bottom Sheet) --- */
+  .coupon-panel {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: max(10px, env(safe-area-inset-bottom, 10px));
+    width: auto;
+    max-height: 72vh;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 1200;
+  }
+
+  .coupon-header {
+    padding: 12px 14px;
+  }
+
+  .coupon-title {
+    font-size: 14px;
+  }
+
+  .coupon-body {
+    max-height: calc(72vh - 60px);
+    padding: 10px 12px;
+  }
+
+  .coupon-float-btn {
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    right: 14px;
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+    z-index: 1100;
+  }
+
+  /* --- Mobile Modals --- */
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-container {
+    width: 100%;
+    max-height: 88vh;
+    padding: 24px 16px 20px 16px;
+    border-radius: 18px;
+  }
+
+  .auth-modal, .favorites-modal, .mybets-modal, .pwa-modal {
+    max-width: 100%;
+  }
+
+  .form-group input {
+    font-size: 16px !important; /* CRITICAL: Prevents iOS Safari auto-zoom! */
+    padding: 12px;
+  }
+
+  .btn-auth-submit {
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .modal-close-btn {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  /* --- Mobile Ads --- */
+  .ad-slot-skyscraper {
+    display: none !important;
+  }
+
+  .ad-slot {
+    max-width: 100%;
+    margin: 12px 0;
+    border-radius: 12px;
+  }
+
+  .ad-promo-container {
+    padding: 14px 12px;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .ad-promo-title {
+    font-size: 13.5px;
+    justify-content: center !important;
+  }
+
+  .ad-promo-desc {
+    font-size: 11.5px;
+  }
+
+  .ad-promo-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+}
+
+/* ==========================================================================
+   4. EXTRA SMALL PHONES (width <= 380px)
+   ========================================================================== */
+@media (max-width: 380px) {
+  .banner-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .banner-team h3 {
+    font-size: 11.5px;
+    max-width: 85px;
+  }
+
+  .banner-center {
+    min-width: 70px;
+  }
+
+  .vs-text {
+    font-size: 9.5px;
+  }
+
+  .form-badge {
+    width: 15px;
+    height: 15px;
+    font-size: 8px;
+  }
+
+  .poisson-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .prediction-stats-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .bet-card-actions {
+    flex-direction: column;
+  }
+
+  .brand-subtext {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   5. PWA STANDALONE MODE (Installed Web App on Phone / Tablet)
+   ========================================================================== */
+@media all and (display-mode: standalone), (.display-standalone) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    overscroll-behavior-y: contain;
+  }
+
+  .app-container {
+    padding-top: max(14px, env(safe-area-inset-top, 14px));
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  }
+
+  /* In installed standalone app, hide the install header button */
+  .btn-pwa-header,
+  #pwaInstallModal {
+    display: none !important;
+  }
+}
+
 
