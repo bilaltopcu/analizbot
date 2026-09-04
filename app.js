@@ -128,10 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const performanceModal = document.getElementById('performanceModal');
   const performanceModalClose = document.getElementById('performanceModalClose');
   const perfModalWinRate = document.getElementById('perfModalWinRate');
-  const perfModalWonCount = document.getElementById('perfModalWonCount');
-  const perfModalLostCount = document.getElementById('perfModalLostCount');
-  const perfModalAllTimeCount = document.getElementById('perfModalAllTimeCount');
-  const perfCatGrid = document.getElementById('perfCatGrid');
 
   // Show auth message
   function showAuthMessage(el, msg, isError) {
@@ -334,37 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const metrics = PredictionTracker.getPerformanceMetrics();
 
     if (perfModalWinRate) perfModalWinRate.textContent = `%${metrics.winRate}`;
-    if (perfModalWonCount) perfModalWonCount.textContent = `%${metrics.winRate}`;
-    if (perfModalLostCount) perfModalLostCount.textContent = `%${(100 - metrics.winRate).toFixed(1)}`;
-    if (perfModalAllTimeCount) perfModalAllTimeCount.textContent = metrics.settledTotal.toLocaleString('tr-TR');
-
-    // Category Grid
-    if (perfCatGrid && metrics.categories) {
-      perfCatGrid.innerHTML = '';
-      const catIcons = {
-        'kart': 'fa-clone',
-        'taraf': 'fa-trophy',
-        'gol': 'fa-futbol',
-        'korner': 'fa-flag'
-      };
-
-      for (const [key, cat] of Object.entries(metrics.categories)) {
-        const iconClass = catIcons[key] || 'fa-chart-simple';
-        const card = document.createElement('div');
-        card.className = 'perf-cat-item';
-        card.innerHTML = `
-          <div class="perf-cat-top">
-            <span class="perf-cat-name"><i class="fa-solid ${iconClass}"></i> ${cat.label}</span>
-            <span class="perf-cat-pct">%${cat.winRate}</span>
-          </div>
-          <div class="perf-bar-wrap">
-            <div class="perf-bar-fill" style="width: ${cat.winRate}%"></div>
-          </div>
-          <span class="perf-cat-sub">Doğruluk Oranı: %${cat.winRate} (${cat.total.toLocaleString('tr-TR')} Maç)</span>
-        `;
-        perfCatGrid.appendChild(card);
-      }
-    }
   }
 
   // =============================================
