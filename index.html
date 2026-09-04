@@ -83,6 +83,7 @@
           <span class="pulse-indicator"></span>
           <i class="fa-solid fa-shield-halved"></i>
           <span>Doğrulanmış Başarı: <strong id="headerWinRateVal">%80.4</strong></span>
+          <span class="header-pending-pill hidden" id="headerPendingPill">⏳ <span id="headerPendingCount">0</span> Bekleyen</span>
         </button>
         <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
       </div>
@@ -654,6 +655,7 @@
           </div>
           <div class="perf-filter-tabs">
             <button type="button" class="perf-tab-btn active" data-filter="all">Tümü (<span id="ledgerCountAll">50</span>)</button>
+            <button type="button" class="perf-tab-btn" data-filter="pending">⏳ Bekleyenler (<span id="ledgerCountPending">0</span>)</button>
             <button type="button" class="perf-tab-btn" data-filter="won">✅ Kazananlar (<span id="ledgerCountWon">0</span>)</button>
             <button type="button" class="perf-tab-btn" data-filter="lost">❌ Kaybedenler (<span id="ledgerCountLost">0</span>)</button>
           </div>
@@ -763,6 +765,7 @@
   <script src="advanced_stats.js"></script>
   <script src="data.js"></script>
   <script src="performance_data.js"></script>
+  <script src="prediction_tracker.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
   <script src="pwa.js"></script>

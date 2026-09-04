@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golanaliz-v12';
+const CACHE_NAME = 'golanaliz-v13';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
   './pwa.js',
   './data.js',
   './performance_data.js',
+  './prediction_tracker.js',
   './advanced_stats.js',
   './local_logo_map.js',
   './fontawesome.min.css',

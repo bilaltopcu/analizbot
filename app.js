@@ -288,23 +288,51 @@ document.addEventListener("DOMContentLoaded", () => {
   // =============================================
   // AI Performance & Audit Dashboard Logic
   // =============================================
+  // =============================================
+  // AI Performance & Audit Dashboard Logic (PredictionTracker Entegre)
+  // =============================================
   let currentLedgerFilter = 'all';
 
-  function initPerformanceDashboard() {
-    const perfData = window.AI_PERFORMANCE_DATA;
-    if (!perfData || !perfData.summary) return;
+  function updatePerformanceBadgeUI() {
+    if (typeof PredictionTracker === 'undefined') return;
+    const metrics = PredictionTracker.getPerformanceMetrics();
 
     if (headerWinRateVal) {
-      headerWinRateVal.textContent = `%${perfData.summary.winRate}`;
+      headerWinRateVal.textContent = `%${metrics.winRate}`;
+    }
+
+    const headerPendingPill = document.getElementById('headerPendingPill');
+    const headerPendingCount = document.getElementById('headerPendingCount');
+    if (headerPendingPill && headerPendingCount) {
+      headerPendingCount.textContent = metrics.pendingCount;
+      if (metrics.pendingCount > 0) {
+        headerPendingPill.classList.remove('hidden');
+      } else {
+        headerPendingPill.classList.add('hidden');
+      }
     }
 
     const adPromoWinRate = document.getElementById('adPromoWinRate');
     if (adPromoWinRate) {
-      adPromoWinRate.textContent = `%${perfData.summary.winRate}`;
+      adPromoWinRate.textContent = `%${metrics.winRate}`;
     }
+  }
+
+  function initPerformanceDashboard() {
+    // 1. Yeni maç sonuçları geldiyse beklemedeki tahminleri anında denetle ve sonuçlandır
+    if (typeof PredictionTracker !== 'undefined') {
+      PredictionTracker.auditPendingPredictions();
+    }
+
+    // 2. Arayüz rozetlerini güncelle
+    updatePerformanceBadgeUI();
 
     if (btnPerformanceModal && performanceModal) {
       btnPerformanceModal.addEventListener('click', () => {
+        // Modalı açmadan önce bir kez daha denetle
+        if (typeof PredictionTracker !== 'undefined') {
+          PredictionTracker.auditPendingPredictions();
+        }
         renderPerformanceModal();
         performanceModal.classList.remove('hidden');
       });
@@ -332,17 +360,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderPerformanceModal() {
-    const perfData = window.AI_PERFORMANCE_DATA;
-    if (!perfData) return;
+    if (typeof PredictionTracker === 'undefined') return;
+    const metrics = PredictionTracker.getPerformanceMetrics();
 
-    const s = perfData.summary;
-    if (perfModalWinRate) perfModalWinRate.textContent = `%${s.winRate}`;
-    if (perfModalWonCount) perfModalWonCount.textContent = s.wonMatches.toLocaleString('tr-TR');
-    if (perfModalLostCount) perfModalLostCount.textContent = s.lostMatches.toLocaleString('tr-TR');
-    if (perfModalAllTimeCount) perfModalAllTimeCount.textContent = s.allTimeMatches.toLocaleString('tr-TR');
+    if (perfModalWinRate) perfModalWinRate.textContent = `%${metrics.winRate}`;
+    if (perfModalWonCount) perfModalWonCount.textContent = metrics.wonCount.toLocaleString('tr-TR');
+    if (perfModalLostCount) perfModalLostCount.textContent = metrics.lostCount.toLocaleString('tr-TR');
+    if (perfModalAllTimeCount) perfModalAllTimeCount.textContent = metrics.settledTotal.toLocaleString('tr-TR');
 
     // Category Grid
-    if (perfCatGrid && perfData.categories) {
+    if (perfCatGrid && metrics.categories) {
       perfCatGrid.innerHTML = '';
       const catIcons = {
         'kart': 'fa-clone',
@@ -351,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
         'korner': 'fa-flag'
       };
 
-      for (const [key, cat] of Object.entries(perfData.categories)) {
+      for (const [key, cat] of Object.entries(metrics.categories)) {
         const iconClass = catIcons[key] || 'fa-chart-simple';
         const card = document.createElement('div');
         card.className = 'perf-cat-item';
@@ -363,52 +390,76 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="perf-bar-wrap">
             <div class="perf-bar-fill" style="width: ${cat.winRate}%"></div>
           </div>
-          <span class="perf-cat-sub">${cat.won.toLocaleString('tr-TR')} Başarılı / ${cat.total.toLocaleString('tr-TR')} Maç</span>
+          <span class="perf-cat-sub">${cat.won.toLocaleString('tr-TR')} Başarılı / ${cat.total.toLocaleString('tr-TR')} Sonuçlanan</span>
         `;
         perfCatGrid.appendChild(card);
       }
     }
 
     // Counts on tabs
-    const ledger = perfData.recentLedger || [];
-    const wonCount = ledger.filter(r => r.status === 'WON').length;
-    const lostCount = ledger.length - wonCount;
-
-    if (ledgerCountAll) ledgerCountAll.textContent = ledger.length;
-    if (ledgerCountWon) ledgerCountWon.textContent = wonCount;
-    if (ledgerCountLost) ledgerCountLost.textContent = lostCount;
+    const ledgerCountPending = document.getElementById('ledgerCountPending');
+    if (ledgerCountAll) ledgerCountAll.textContent = metrics.allList.length;
+    if (ledgerCountPending) ledgerCountPending.textContent = metrics.pendingCount;
+    if (ledgerCountWon) ledgerCountWon.textContent = metrics.wonCount;
+    if (ledgerCountLost) ledgerCountLost.textContent = metrics.lostCount;
 
     renderLedgerItems();
   }
 
   function renderLedgerItems() {
-    if (!perfLedgerScroll) return;
-    const perfData = window.AI_PERFORMANCE_DATA;
-    if (!perfData || !perfData.recentLedger) return;
+    if (!perfLedgerScroll || typeof PredictionTracker === 'undefined') return;
+    const metrics = PredictionTracker.getPerformanceMetrics();
 
-    let items = perfData.recentLedger;
-    if (currentLedgerFilter === 'won') {
-      items = items.filter(r => r.status === 'WON');
+    let items = metrics.allList;
+    if (currentLedgerFilter === 'pending') {
+      items = metrics.pendingList;
+    } else if (currentLedgerFilter === 'won') {
+      items = metrics.settledList.filter(r => r.outcome === 'WON');
     } else if (currentLedgerFilter === 'lost') {
-      items = items.filter(r => r.status === 'LOST');
+      items = metrics.settledList.filter(r => r.outcome === 'LOST');
     }
 
     perfLedgerScroll.innerHTML = '';
-    if (items.length === 0) {
-      perfLedgerScroll.innerHTML = '<div style="text-align:center; padding: 25px; color:#94a3b8; font-size:13px;">Bu filtreye uygun denetlenmiş kayıt bulunamadı.</div>';
+    if (!items || items.length === 0) {
+      perfLedgerScroll.innerHTML = '<div style="text-align:center; padding: 25px; color:#94a3b8; font-size:13px;"><i class="fa-solid fa-inbox" style="font-size:24px; margin-bottom:8px; display:block;"></i>Bu filtreye uygun kayıt bulunamadı.</div>';
       return;
     }
 
     items.forEach(m => {
-      const isWon = m.status === 'WON';
+      const isPending = m.status === 'PENDING';
+      const isWon = m.outcome === 'WON';
       const el = document.createElement('div');
       el.className = 'perf-ledger-item';
+
+      let statusBadgeHtml = '';
+      if (isPending) {
+        statusBadgeHtml = `
+          <div class="perf-status-badge status-pending">
+            <i class="fa-solid fa-hourglass-half fa-spin"></i>
+            <span>SONUÇ BEKLENİYOR</span>
+          </div>`;
+      } else {
+        statusBadgeHtml = `
+          <div class="perf-status-badge ${isWon ? 'status-won' : 'status-lost'}">
+            <i class="fa-solid ${isWon ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+            <span>${isWon ? 'KAZANDI' : 'KAYBETTİ'}</span>
+          </div>`;
+      }
+
+      const scoreDisplay = isPending 
+        ? '<span class="perf-match-score" style="background:#fef3c7; color:#92400e;">⏳ Oynanmadı</span>'
+        : `<span class="perf-match-score">${m.actualScore || '—'}</span>`;
+
+      const dateDisplay = m.recordedAt 
+        ? (m.recordedAt.length > 10 && m.recordedAt.includes('T') ? m.recordedAt.slice(0, 10) : m.recordedAt) 
+        : '2026-2027';
+
       el.innerHTML = `
         <div class="perf-match-meta">
-          <span class="perf-match-date"><i class="fa-regular fa-calendar"></i> ${m.date} ${m.time ? '• ' + m.time : ''} • ${m.league}</span>
+          <span class="perf-match-date"><i class="fa-regular fa-calendar"></i> ${dateDisplay} • ${m.league || 'Lig'}</span>
           <div class="perf-match-teams">
             <span>${m.homeTeam} vs ${m.awayTeam}</span>
-            <span class="perf-match-score">${m.score}</span>
+            ${scoreDisplay}
           </div>
         </div>
         <div class="perf-pred-info">
@@ -419,13 +470,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="perf-pred-sub">
             <span>Oran: <strong>${m.odds}</strong></span> • 
             <span>Model Güveni: <strong>%${m.confidence}</strong></span> • 
-            <span>${m.reason}</span>
+            <span>${m.reason || ''}</span>
           </div>
         </div>
-        <div class="perf-status-badge ${isWon ? 'status-won' : 'status-lost'}">
-          <i class="fa-solid ${isWon ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
-          <span>${isWon ? 'KAZANDI' : 'KAYBETTİ'}</span>
-        </div>
+        ${statusBadgeHtml}
       `;
       perfLedgerScroll.appendChild(el);
     });
@@ -1960,6 +2008,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (typeof updateAIPickCouponBtnState === "function") {
       updateAIPickCouponBtnState();
+    }
+
+    // Auto-record prediction to Live Registry (starts as PENDING until score arrives)
+    if (typeof PredictionTracker !== 'undefined' && homeProfile && awayProfile) {
+      PredictionTracker.recordPrediction({
+        homeTeam: homeProfile.teamName,
+        awayTeam: awayProfile.teamName,
+        league: bannerLeagueName ? bannerLeagueName.textContent : 'Lig Maçı',
+        country: selectedCountry ? selectedCountry.name : '',
+        prediction: bestPick.title,
+        category: bestPick.category,
+        categoryLabel: bestPick.category === 'kart' ? 'Kart Bahsi' : (bestPick.category === 'korner' ? 'Korner Bahsi' : (bestPick.category === 'taraf' ? 'Taraf Bahsi' : 'Gol Bahsi')),
+        odds: bestPick.odds || evData.marketOdds,
+        confidence: bestPick.pct,
+        reason: bestPick.reason
+      });
+      updatePerformanceBadgeUI();
     }
 
     // Skor tahmini (Poisson tutarlı)

@@ -272,6 +272,55 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Live Prediction Record Endpoint
+  if (pathname === '/api/record-prediction') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      return res.end();
+    }
+
+    if (req.method !== 'POST') {
+      res.writeHead(405, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Method not allowed' }));
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const item = JSON.parse(body || '{}');
+        const regPath = path.join(__dirname, 'predictions_registry.json');
+        let reg = [];
+        if (fs.existsSync(regPath)) {
+          try { reg = JSON.parse(fs.readFileSync(regPath, 'utf8')); } catch (_) { reg = []; }
+        }
+        const idx = reg.findIndex(p => 
+          p.status === 'PENDING' &&
+          (p.homeTeam || '').toLowerCase() === (item.homeTeam || '').toLowerCase() &&
+          (p.awayTeam || '').toLowerCase() === (item.awayTeam || '').toLowerCase()
+        );
+        if (idx !== -1) {
+          reg[idx] = item;
+        } else {
+          reg.unshift(item);
+        }
+        if (reg.length > 500) reg = reg.slice(0, 500);
+        fs.writeFileSync(regPath, JSON.stringify(reg, null, 2), 'utf8');
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, count: reg.length }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
   // Gemini Pro AI Deep Analysis Endpoint
   if (pathname === '/api/gemini-analyze') {
     res.setHeader('Access-Control-Allow-Origin', '*');
