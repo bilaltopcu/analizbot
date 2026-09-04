@@ -14,7 +14,23 @@
       "use": "@vercel/static"
     },
     {
+      "src": "*.json",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "favicon.ico",
+      "use": "@vercel/static"
+    },
+    {
       "src": "logos/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "icons/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "flags/**",
       "use": "@vercel/static"
     }
   ],

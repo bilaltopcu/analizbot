@@ -85,16 +85,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const couponFloatBtn = document.getElementById("couponFloatBtn");
   const couponFloatCount = document.getElementById("couponFloatCount");
 
-  // H2H 2026-2027 Elements
-  const h2hSection = document.getElementById("h2hSection");
-  const h2hMatchesList = document.getElementById("h2hMatchesList");
-  const h2hStatsRow = document.getElementById("h2hStatsRow");
-  const h2hSubtitle = document.getElementById("h2hSubtitle");
-
   // Coupon State
   let couponItems_data = [];
-  let h2hProfile = null;
   let couponBodyOpen = true;
+
 
   // =============================================
   // Auth UI Management
@@ -383,6 +377,56 @@ document.addEventListener("DOMContentLoaded", () => {
     </svg>`;
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
+
+  // Gelişmiş logo URL çözümleyici - data.js'deki versiyonu override eder
+  // Kırık resim yerine SVG fallback döndürür
+  window.getTeamLogoUrl = function(teamName, countryCode) {
+    if (!teamName) return createFallbackSvgDataUrl('?');
+    const rawKey = teamName.trim();
+
+    // slugify fonksiyonu (data.js'dekiyle aynı mantık)
+    function _slug(name) {
+      if (!name) return '';
+      const trMap = {
+        '\u00e7':'c','\u00c7':'c','\u011f':'g','\u011e':'g','\u0131':'i','\u0049':'i','\u0130':'i',
+        '\u00f6':'o','\u00d6':'o','\u015f':'s','\u015e':'s','\u00fc':'u','\u00dc':'u',
+        '\u00e1':'a','\u00e0':'a','\u00e4':'a','\u00e2':'a','\u00e9':'e','\u00e8':'e',
+        '\u00eb':'e','\u00ea':'e','\u00ed':'i','\u00ec':'i','\u00ef':'i','\u00ee':'i',
+        '\u00f3':'o','\u00f2':'o','\u00f4':'o','\u00fa':'u','\u00f9':'u','\u00fb':'u','\u00f1':'n'
+      };
+      let s = name;
+      for (const k in trMap) s = s.replace(new RegExp(k, 'g'), trMap[k]);
+      return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    const slug = _slug(rawKey);
+
+    if (typeof LOCAL_LOGO_MAP !== 'undefined') {
+      // 1) Tam eşleşme
+      if (LOCAL_LOGO_MAP[rawKey]) return LOCAL_LOGO_MAP[rawKey];
+      if (LOCAL_LOGO_MAP[rawKey.toLowerCase()]) return LOCAL_LOGO_MAP[rawKey.toLowerCase()];
+      // 2) Slug eşleşmesi
+      if (LOCAL_LOGO_MAP[slug]) return LOCAL_LOGO_MAP[slug];
+      // 3) Kısmi eşleşme - gereksiz false positive'leri önlemek için min uzunluk kontrolü
+      if (slug.length >= 5) {
+        for (const k in LOCAL_LOGO_MAP) {
+          const kSlug = _slug(k);
+          if (kSlug === slug) return LOCAL_LOGO_MAP[k];
+          if (slug.length >= 6 && kSlug.length >= 5 &&
+              Math.abs(kSlug.length - slug.length) <= 4 &&
+              (kSlug.includes(slug) || slug.includes(kSlug))) {
+            return LOCAL_LOGO_MAP[k];
+          }
+        }
+      }
+    }
+
+    // 4) Fallback: dosya yolunu dene ama onerror ile SVG badge göster
+    // Burada her zaman bir dosya yolu döndürüyoruz; onerror HTML elementlerinde halledilir
+    return `logos/${slug}.png`;
+  };
+
+
 
   // 1. Render Country Dropdown Options
   function initCountryDropdown() {
@@ -934,7 +978,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const awayCode = getEffectiveCountryCode(awayTeamName);
       homeProfile = generateTeamProfile(homeTeamName, homeCode);
       awayProfile = generateTeamProfile(awayTeamName, awayCode);
-      h2hProfile = generateH2HProfile(homeTeamName, awayTeamName);
+
 
       renderComparisonResults();
       resultsSection.classList.remove("hidden");
@@ -970,8 +1014,9 @@ document.addEventListener("DOMContentLoaded", () => {
     bannerHomeLogo.src = homeLogoUrl;
     bannerAwayLogo.src = awayLogoUrl;
 
-    bannerHomeLogo.onerror = () => { bannerHomeLogo.src = createFallbackSvgDataUrl(homeProfile.teamName); };
-    bannerAwayLogo.onerror = () => { bannerAwayLogo.src = createFallbackSvgDataUrl(awayProfile.teamName); };
+    bannerHomeLogo.onerror = () => { bannerHomeLogo.onerror = null; bannerHomeLogo.src = createFallbackSvgDataUrl(homeProfile.teamName); };
+    bannerAwayLogo.onerror = () => { bannerAwayLogo.onerror = null; bannerAwayLogo.src = createFallbackSvgDataUrl(awayProfile.teamName); };
+
 
     // Form Strips (Sadece Son 5 Karşılaşma)
     renderFormStrip(homeFormStrip, homeProfile.matches);
@@ -980,8 +1025,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Detailed Stats Rows (Son 5 Karşılaşma)
     renderStatsList();
 
-    // H2H Section
-    renderH2HSection();
 
     // Cup Analysis Dashboard (Only active when Cup Mode is selected)
     renderCupAnalysisSection();
@@ -1006,78 +1049,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Render H2H Section (Son 5 Karşılaşma)
-  function renderH2HSection() {
-    if (!h2hSection || !h2hMatchesList || !h2hStatsRow) return;
-    h2hSection.style.display = "block";
-
-    if (!h2hProfile || !h2hProfile.hasH2H || h2hProfile.matches.length === 0) {
-      if (h2hSubtitle) h2hSubtitle.textContent = "Bu iki takım arasında doğrudan geçmiş karşılaşma kaydı bulunamadı.";
-      h2hMatchesList.innerHTML = `
-        <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-glass); border-radius: 8px;">
-          <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan); margin-right: 6px;"></i>
-          İki takım arasında doğrudan geçmiş karşılaşma kaydı bulunamadı.
-        </div>
-      `;
-      h2hStatsRow.innerHTML = "";
-      return;
-    }
-
-    const last5H2H = h2hProfile.matches.slice(-5);
-    if (h2hSubtitle) h2hSubtitle.textContent = `İki Takım Arasındaki Son ${last5H2H.length} Karşılaşma`;
-
-    h2hMatchesList.innerHTML = "";
-    last5H2H.forEach(m => {
-      const row = document.createElement("div");
-      row.className = "h2h-match-row";
-      
-      let resText = "Berabere";
-      let resClass = "h2h-draw";
-      if (m.homeGoals > m.awayGoals) { resText = `${m.homeTeam} Kazandı`; resClass = "h2h-home-win"; }
-      else if (m.homeGoals < m.awayGoals) { resText = `${m.awayTeam} Kazandı`; resClass = "h2h-away-win"; }
-
-      row.innerHTML = `
-        <div class="h2h-season">${m.date || m.season || 'H2H'}</div>
-        <div class="h2h-home-label">${m.homeTeam}</div>
-        <div class="h2h-score-bubble ${resClass}">${m.score}</div>
-        <div class="h2h-away-label">${m.awayTeam}</div>
-        <div class="h2h-result-pill ${resClass}">${resText}</div>
-      `;
-      h2hMatchesList.appendChild(row);
-    });
-
-    const bttsPct = h2hProfile.bttsPct || 0;
-    const over25Pct = h2hProfile.over25Pct || 0;
-
-    h2hStatsRow.innerHTML = `
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-val" style="color: var(--accent-cyan);">${h2hProfile.homeWins}</div>
-        <div class="h2h-stat-lbl">${homeProfile.teamName} Galibiyet</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-val" style="color: var(--accent-amber);">${h2hProfile.draws}</div>
-        <div class="h2h-stat-lbl">Beraberlik</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-val" style="color: var(--accent-crimson);">${h2hProfile.awayWins}</div>
-        <div class="h2h-stat-lbl">${awayProfile.teamName} Galibiyet</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-val">${h2hProfile.avgGoals}</div>
-        <div class="h2h-stat-lbl">Ortalama Gol</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-val">%${bttsPct}</div>
-        <div class="h2h-stat-lbl">H2H KG Var</div>
-      </div>
-      <div class="h2h-stat-item">
-        <div class="h2h-stat-val">%${over25Pct}</div>
-        <div class="h2h-stat-lbl">H2H 2.5 Üst</div>
-      </div>
-    `;
-  }
-
   // Render Line-by-Line Stats
+
   function renderStatsList() {
     if (!statsList || !homeProfile || !awayProfile) return;
     const hStats = homeProfile.stats;
@@ -1453,6 +1426,36 @@ document.addEventListener("DOMContentLoaded", () => {
       hAdv,
       aAdv
     };
+  }
+
+  // =============================================
+  // Gemini 3.8 Flash Client Caching & Fast Stream Engine
+  // =============================================
+  const clientAiAnalysisCache = new Map();
+  let currentAiAbortController = null;
+  let aiTypewriterTimer = null;
+
+  function fastStreamText(element, fullText, onDone) {
+    if (aiTypewriterTimer) {
+      clearInterval(aiTypewriterTimer);
+      aiTypewriterTimer = null;
+    }
+    if (!element) return;
+    element.textContent = '';
+    let idx = 0;
+    const chars = Array.from(fullText);
+    aiTypewriterTimer = setInterval(() => {
+      if (idx < chars.length) {
+        // Render 3-4 chars per tick for ultra-responsive, snappy feel (~12ms)
+        const chunk = chars.slice(idx, idx + 4).join('');
+        element.textContent += chunk;
+        idx += 4;
+      } else {
+        clearInterval(aiTypewriterTimer);
+        aiTypewriterTimer = null;
+        if (typeof onDone === 'function') onDone();
+      }
+    }, 12);
   }
 
   // AI Prediction Engine 5.0: Category-First Signal Picker
@@ -1846,10 +1849,62 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =============================================
-    // Gemini Pro Deep Analysis Asynchronous Integration
+    // Gemini 3.8 Flash AI Deep Analysis (High-Speed & Streaming)
     // =============================================
+    // 1. Heuristic instant tactical preview (0ms delay)
+    const instantTacticalText = `${homeProfile.teamName} takımının iç saha temposu (${hStats.avgShots || 12.5} şut/maç) karşısında ${awayProfile.teamName} geçiş savunmasıyla direnç göstermeyi hedefleyecektir. İki takımın xG dengesi (${probs.xG_home} vs ${probs.xG_away}) maçın gidişatındaki ana eksendir.`;
+    const instantRiskText = `Toplam beklenen kart ortalaması ${probs.expCards || '3.8'} ve korner beklentisi ${probs.expCorners || '9.2'}. Disiplin tansiyonu, hakem kararları ve ilk yarı skor dengesi ana risk unsurlarıdır.`;
+
+    if (geminiTacticalDetails) geminiTacticalDetails.classList.remove('hidden');
+    if (geminiTacticalText) geminiTacticalText.textContent = instantTacticalText;
+    if (geminiRiskText) geminiRiskText.textContent = instantRiskText;
+
+    const cacheKey = `${homeProfile.teamName}__${awayProfile.teamName}__${bestPick.title}`;
+
+    function applyAiAnalysis(modelName, analysis, stream = true) {
+      let displayName = 'Gemini 3.8 Flash AI';
+      if (modelName) {
+        if (modelName.includes('3.8')) displayName = 'Gemini 3.8 Flash AI';
+        else if (modelName.includes('3.7')) displayName = 'Gemini 3.7 Flash AI';
+        else if (modelName.includes('3.1')) displayName = 'Gemini 3.1 Flash Lite AI';
+        else if (modelName.includes('3.6')) displayName = 'Gemini 3.6 Flash AI';
+        else displayName = `Gemini AI (${modelName})`;
+      }
+
+      if (aiModelBadge) {
+        aiModelBadge.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${displayName}`;
+        aiModelBadge.style.background = 'rgba(147, 51, 234, 0.25)';
+      }
+      if (aiExplanationTitle) {
+        aiExplanationTitle.textContent = `${displayName} Derin Maç Analiz Raporu`;
+      }
+
+      const mainText = analysis.bestBetRationale || analysis.matchAnalysisSummary || bestPick.reason;
+      if (stream && typeof fastStreamText === 'function') {
+        fastStreamText(aiExplanationText, mainText);
+      } else {
+        if (aiExplanationText) aiExplanationText.textContent = mainText;
+      }
+
+      if (geminiTacticalDetails) geminiTacticalDetails.classList.remove('hidden');
+      if (geminiTacticalText && analysis.tacticalScenario) {
+        geminiTacticalText.textContent = analysis.tacticalScenario;
+      }
+      if (geminiRiskText && analysis.riskAssessment) {
+        geminiRiskText.textContent = analysis.riskAssessment;
+      }
+    }
+
+    // If already in client cache, apply instantly with 0 network latency!
+    if (clientAiAnalysisCache.has(cacheKey)) {
+      const cached = clientAiAnalysisCache.get(cacheKey);
+      applyAiAnalysis(cached.model, cached.analysis, false);
+      return;
+    }
+
+    // Show initial rationale with smooth streaming tag
     if (aiExplanationText) {
-      aiExplanationText.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <em>Gemini Pro maçı taktiksel olarak analiz ediyor...</em>`;
+      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> Gemini 3.8 Flash AI derinleştiriyor...</span>`;
     }
 
     const payload = {
@@ -1873,33 +1928,22 @@ document.addEventListener("DOMContentLoaded", () => {
       confidence: bestPick.pct
     };
 
+    if (currentAiAbortController) {
+      currentAiAbortController.abort();
+    }
+    currentAiAbortController = new AbortController();
+
     fetch('/api/gemini-analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: currentAiAbortController.signal
     })
     .then(res => res.json())
     .then(data => {
       if (data && data.success && data.analysis) {
-        if (aiModelBadge) {
-          aiModelBadge.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Pro AI (${data.model || 'Pro'})`;
-          aiModelBadge.style.background = 'rgba(147, 51, 234, 0.25)';
-        }
-        if (aiExplanationTitle) {
-          aiExplanationTitle.textContent = 'Gemini Pro Derin Maç Analiz Raporu';
-        }
-        if (aiExplanationText) {
-          aiExplanationText.textContent = data.analysis.bestBetRationale || data.analysis.matchAnalysisSummary || bestPick.reason;
-        }
-        if (geminiTacticalDetails) {
-          geminiTacticalDetails.classList.remove('hidden');
-        }
-        if (geminiTacticalText) {
-          geminiTacticalText.textContent = data.analysis.tacticalScenario || 'Taktiksel analiz mevcut.';
-        }
-        if (geminiRiskText) {
-          geminiRiskText.textContent = data.analysis.riskAssessment || 'Belirgin risk faktörü tespit edilmedi.';
-        }
+        clientAiAnalysisCache.set(cacheKey, { model: data.model, analysis: data.analysis });
+        applyAiAnalysis(data.model, data.analysis, true);
       } else {
         // Fallback to local engine
         if (aiModelBadge) {
@@ -1912,12 +1956,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (aiExplanationText) {
           aiExplanationText.textContent = bestPick.reason;
         }
-        if (geminiTacticalDetails) {
-          geminiTacticalDetails.classList.add('hidden');
-        }
       }
     })
     .catch(err => {
+      if (err.name === 'AbortError') return;
       console.warn('[Gemini Frontend Fetch Fallback]', err);
       if (aiModelBadge) {
         aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 5.0 (Yerel)`;
@@ -1928,10 +1970,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (aiExplanationText) {
         aiExplanationText.textContent = bestPick.reason;
       }
-      if (geminiTacticalDetails) {
-        geminiTacticalDetails.classList.add('hidden');
-      }
     });
+
   }
 
   function generatePossibleBets() {

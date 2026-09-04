@@ -31,9 +31,10 @@ from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8')
 
 # ─── Bağlantı Ayarları ───────────────────────────────────────────────────────
-IP       = "217.160.0.246"
+IP       = "195.175.254.2"
 HOSTNAME = "www.football-data.co.uk"
 PORT     = 443
+
 
 # ─── Lig Konfigürasyonu ──────────────────────────────────────────────────────
 MAIN_LEAGUES = [
@@ -208,14 +209,19 @@ def fetch_raw(path: str) -> tuple[str, bytes]:
         f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
         f"Connection: close\r\n\r\n"
     )
+    ss.settimeout(30)  # Okuma timeout - sunucu veri göndermeyi keserse takılmaz
     ss.sendall(req.encode('utf-8'))
     response = b""
-    while True:
-        data = ss.recv(16384)
-        if not data:
-            break
-        response += data
+    try:
+        while True:
+            data = ss.recv(16384)
+            if not data:
+                break
+            response += data
+    except socket.timeout:
+        pass  # Timeout: gelen veriyi kullan
     ss.close()
+
 
     parts = response.split(b"\r\n\r\n", 1)
     header = parts[0].decode('utf-8', errors='ignore')

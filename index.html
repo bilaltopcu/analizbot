@@ -24,11 +24,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- FontAwesome Icons -->
+  <!-- FontAwesome Icons (Local + CDN) -->
+  <link rel="stylesheet" href="fontawesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- html2canvas for Screenshot / Share -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- html2canvas for Screenshot / Share (Local Fallback) -->
+  <script src="html2canvas.min.js"></script>
+
   
   <!-- Custom Styles -->
   <link rel="stylesheet" href="style.css?v=2.0.2">
@@ -72,6 +74,11 @@
           <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
           <span class="source-badge"><i class="fa-solid fa-database"></i> football-data.co.uk</span>
         </div>
+        <!-- PWA Install Header Button -->
+        <button class="btn-pwa-header hidden" id="pwaHeaderInstallBtn" title="GOLANALIZ AI Uygulamasını Yükle">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span>Uygulamayı Yükle</span>
+        </button>
         <!-- Auth Area: Login/Register OR User Info -->
         <div class="header-auth-area" id="headerAuthArea">
           <!-- Logged out state -->
@@ -281,7 +288,7 @@
         </div>
       </section>
 
-      <!-- ═══ REKLAM ALANI 3: İstatistikler ile H2H Arası (Dixon-Coles & +EV Tanıtımı) ═══ -->
+      <!-- ═══ REKLAM ALANI 3: İstatistikler ile Yapay Zeka Arası (Dixon-Coles & +EV Tanıtımı) ═══ -->
       <div class="ad-slot ad-slot-large-rect" id="adSlotMidStats">
         <div class="ad-promo-container">
           <span class="ad-promo-badge"><i class="fa-solid fa-calculator"></i> DIXON-COLES ALGORİTMASI</span>
@@ -293,21 +300,6 @@
         </div>
       </div>
 
-      <!-- Head to Head (H2H) Section -->
-      <section class="h2h-split-section glass-panel" id="h2hSection">
-        <div class="section-title-box">
-          <h3><i class="fa-solid fa-people-arrows"></i> İki Takımın Son Karşılaşmaları (H2H)</h3>
-          <p id="h2hSubtitle">İki takım arasındaki doğrudan müsabaka geçmişi</p>
-        </div>
-
-        <div class="h2h-matches-list" id="h2hMatchesList">
-          <!-- Populated by JS -->
-        </div>
-
-        <div class="h2h-stats-row" id="h2hStatsRow">
-          <!-- Populated by JS -->
-        </div>
-      </section>
 
       <!-- ═══ REKLAM ALANI 4: Native Esnek Sponsor Bandı (Veritabanı Tanıtımı) ═══ -->
       <div class="ad-slot ad-slot-native-strip" id="adSlotNativeStrip">
@@ -356,7 +348,7 @@
           <div class="ai-card-content" id="aiCardShareArea">
             <div class="top-row">
               <span class="best-pick-pill"><i class="fa-solid fa-star"></i> GÜNÜN EN UYGUN BAHSİ</span>
-              <span id="aiModelBadge" class="ai-model-badge" style="background: rgba(138, 43, 226, 0.2); border: 1px solid rgba(147, 51, 234, 0.4); color: #d8b4fe; padding: 4px 10px; borderRadius: 20px; font-size: 0.78rem; font-weight: 600;"><i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Pro AI</span>
+              <span id="aiModelBadge" class="ai-model-badge" style="background: rgba(138, 43, 226, 0.2); border: 1px solid rgba(147, 51, 234, 0.4); color: #d8b4fe; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;"><i class="fa-solid fa-wand-magic-sparkles"></i> Gemini 3.8 Flash AI</span>
               <span id="aiValueBadge" class="value-bet-badge hidden"><i class="fa-solid fa-bolt"></i> Değerli Bahis (+8% EV)</span>
               <div class="confidence-meter">
                 <span>Güven Oranı:</span>
@@ -383,20 +375,27 @@
             </div>
 
             <div class="ai-explanation-box">
-              <h4><i class="fa-solid fa-brain"></i> <span id="aiExplanationTitle">Gemini Pro Derin Maç Analiz Raporu</span></h4>
+              <h4><i class="fa-solid fa-brain"></i> <span id="aiExplanationTitle">Gemini 3.8 Flash Derin Maç Analiz Raporu</span></h4>
               <p id="aiExplanationText">Yükleniyor...</p>
-              <div id="geminiTacticalDetails" class="gemini-tactical-details hidden" style="margin-top: 12px; display: grid; gap: 10px;">
-                <div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 8px; border-left: 3px solid #3b82f6;">
-                  <strong style="color: #60a5fa; font-size: 0.85rem;"><i class="fa-solid fa-chess"></i> Taktiksel Saha İçi Akışı:</strong>
-                  <p id="geminiTacticalText" style="margin-top: 4px; font-size: 0.85rem; color: #e2e8f0;"></p>
+              <div id="geminiTacticalDetails" class="gemini-tactical-details hidden">
+                <div class="gemini-detail-card tactical-card">
+                  <div class="detail-card-header tactical-header">
+                    <i class="fa-solid fa-chess"></i>
+                    <strong>Taktiksel Saha İçi Akışı:</strong>
+                  </div>
+                  <p id="geminiTacticalText" class="detail-card-text"></p>
                 </div>
-                <div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 8px; border-left: 3px solid #f59e0b;">
-                  <strong style="color: #fbbf24; font-size: 0.85rem;"><i class="fa-solid fa-triangle-exclamation"></i> Risk Analizi & Faktörler:</strong>
-                  <p id="geminiRiskText" style="margin-top: 4px; font-size: 0.85rem; color: #e2e8f0;"></p>
+                <div class="gemini-detail-card risk-card">
+                  <div class="detail-card-header risk-header">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <strong>Risk Analizi & Faktörler:</strong>
+                  </div>
+                  <p id="geminiRiskText" class="detail-card-text"></p>
                 </div>
               </div>
             </div>
           </div>
+
 
           <!-- Share / Download Button -->
           <div class="ai-share-row">
@@ -618,12 +617,100 @@
     </div>
   </div>
 
+  <!-- PWA Install Modal Overlay -->
+  <div id="pwaInstallModal" class="modal-overlay hidden">
+    <div class="modal-container pwa-modal glass-panel">
+      <button class="modal-close-btn" id="pwaModalClose" title="Kapat">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="pwa-modal-header">
+        <div class="pwa-icon-glow">
+          <img src="icons/icon-192.png" alt="GOLANALIZ AI" class="pwa-badge-img">
+        </div>
+        <div class="pwa-title-area">
+          <span class="pwa-kicker"><i class="fa-solid fa-bolt"></i> WEB UYGULAMASI</span>
+          <h2>GOLANALIZ AI'ı Telefonuna Yükle</h2>
+          <p>Tarayıcı adres çubuğu olmadan tam ekran mobil uygulama deneyimi yaşayın!</p>
+        </div>
+      </div>
+
+      <div class="pwa-modal-body">
+        <!-- Feature Highlights -->
+        <div class="pwa-features-grid">
+          <div class="pwa-feature-item">
+            <div class="pwa-feature-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+            <div class="pwa-feature-text">
+              <strong>Anında & Hızlı Açılış</strong>
+              <span>Önbellekleme ile beklemeden yüklenir</span>
+            </div>
+          </div>
+          <div class="pwa-feature-item">
+            <div class="pwa-feature-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+            <div class="pwa-feature-text">
+              <strong>Tam Ekran Görünüm</strong>
+              <span>Tarayıcı butonları olmadan gerçek uygulama hissi</span>
+            </div>
+          </div>
+          <div class="pwa-feature-item">
+            <div class="pwa-feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="pwa-feature-text">
+              <strong>Hafif & Güvenli</strong>
+              <span>Telefonda gereksiz yer kaplamaz, pil dostudur</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Android & Desktop Install Section -->
+        <div class="pwa-action-android" id="pwaActionAndroid">
+          <button type="button" class="btn-pwa-main-install" id="pwaInstallBtn">
+            <i class="fa-solid fa-download"></i> <span>Uygulamayı Telefonuma Yükle</span>
+          </button>
+          <button type="button" class="btn-pwa-dismiss" id="pwaDismissBtn">
+            Daha Sonra
+          </button>
+        </div>
+
+        <!-- iOS Safari Step-by-Step Instructions -->
+        <div class="pwa-action-ios hidden" id="pwaActionIOS">
+          <div class="pwa-ios-banner">
+            <i class="fa-brands fa-apple"></i> iPhone / iPad Kurulum Adımları
+          </div>
+          <div class="pwa-ios-instructions">
+            <div class="pwa-ios-step">
+              <span class="step-num">1</span>
+              <div class="step-desc">
+                Safari'nin alt menüsündeki <strong>Paylaş</strong> (<i class="fa-solid fa-arrow-up-from-bracket"></i>) simgesine dokunun.
+              </div>
+            </div>
+            <div class="pwa-ios-step">
+              <span class="step-num">2</span>
+              <div class="step-desc">
+                Açılan listede aşağı kaydırıp <strong>"Ana Ekrana Ekle"</strong> (<i class="fa-regular fa-square-plus"></i>) seçeneğine basın.
+              </div>
+            </div>
+            <div class="pwa-ios-step">
+              <span class="step-num">3</span>
+              <div class="step-desc">
+                Sağ üstteki <strong>"Ekle"</strong> butonuna dokunun. Uygulamanız ana ekrana yüklenecektir!
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-pwa-main-install" id="pwaIosGotItBtn">
+            <i class="fa-solid fa-check"></i> <span>Anladım, Kapat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="local_logo_map.js"></script>
   <script src="advanced_stats.js"></script>
   <script src="data.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
+  <script src="pwa.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

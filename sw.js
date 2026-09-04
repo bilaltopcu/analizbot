@@ -1,14 +1,21 @@
-const CACHE_NAME = 'golanaliz-v3';
+const CACHE_NAME = 'golanaliz-v7';
+
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './pwa.js',
   './data.js',
   './advanced_stats.js',
-  './charts.js',
+  './local_logo_map.js',
+  './fontawesome.min.css',
+  './html2canvas.min.js',
   './auth.js',
   './manifest.json',
+  './favicon.ico',
+  './icons/apple-touch-icon.png',
+  './icons/favicon-32x32.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
@@ -37,31 +44,48 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-First Strategy: Try network first so updates reflect immediately on phones.
-// Fallback to cache when offline.
+// Stale-While-Revalidate Strategy:
+// Instant 0ms load from cache (so opening from browser history or bookmark is instant)
+// Background fetch keeps assets fresh without making the user wait.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+
+  // Never cache API calls, non-http, or sync endpoints
+  if (url.pathname.startsWith('/api/') || !url.protocol.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request, { cache: 'no-cache' })
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+      // Fetch fresh version in the background to update cache
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => null);
+
+      // If available in cache, return IMMEDIATELY for 0ms instant display!
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // If not in cache (first visit), wait for network
+      return fetchPromise.then((networkResponse) => {
+        if (networkResponse) return networkResponse;
+
+        // Fallback for navigation requests if offline and not in cache
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html', { ignoreSearch: true });
         }
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
-        });
-      })
+      });
+    })
   );
 });

@@ -1,0 +1,208 @@
+// ==========================================================================
+// GOLANALIZ AI - Progressive Web App (PWA) Install Manager
+// ==========================================================================
+
+(function() {
+  'use strict';
+
+  let deferredPrompt = null;
+  const DISMISS_KEY = 'golanaliz_pwa_dismissed';
+  const DISMISS_HOURS = 48; // 2 gun sonra tekrar oner
+
+  // Cihaz ve mod tespiti
+  const isStandalone = () => {
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.includes('android-app://')
+    );
+  };
+
+  const isIOS = () => {
+    const ua = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
+  const isDismissedRecently = () => {
+    try {
+      const dismissedTime = localStorage.getItem(DISMISS_KEY);
+      if (!dismissedTime) return false;
+      const hoursPassed = (Date.now() - parseInt(dismissedTime, 10)) / (1000 * 60 * 60);
+      return hoursPassed < DISMISS_HOURS;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const setDismissed = () => {
+    try {
+      localStorage.setItem(DISMISS_KEY, Date.now().toString());
+    } catch (e) {}
+  };
+
+  // UI Referanslari
+  function getElements() {
+    return {
+      modal: document.getElementById('pwaInstallModal'),
+      closeBtn: document.getElementById('pwaModalClose'),
+      headerBtn: document.getElementById('pwaHeaderInstallBtn'),
+      installBtn: document.getElementById('pwaInstallBtn'),
+      dismissBtn: document.getElementById('pwaDismissBtn'),
+      androidArea: document.getElementById('pwaActionAndroid'),
+      iosArea: document.getElementById('pwaActionIOS'),
+      iosGotItBtn: document.getElementById('pwaIosGotItBtn')
+    };
+  }
+
+  function showModal() {
+    const els = getElements();
+    if (!els.modal) return;
+
+    // Platforma gore arayuzu goster
+    if (isIOS()) {
+      if (els.androidArea) els.androidArea.classList.add('hidden');
+      if (els.iosArea) els.iosArea.classList.remove('hidden');
+    } else {
+      if (els.androidArea) els.androidArea.classList.remove('hidden');
+      if (els.iosArea) els.iosArea.classList.add('hidden');
+    }
+
+    els.modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hideModal(setDismissCookie) {
+    if (typeof setDismissCookie === 'undefined') setDismissCookie = true;
+    const els = getElements();
+    if (!els.modal) return;
+    els.modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    if (setDismissCookie) {
+      setDismissed();
+    }
+  }
+
+  function showToast(message, type) {
+    if (!type) type = 'success';
+    let toast = document.getElementById('pwaNotificationToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'pwaNotificationToast';
+      toast.className = 'pwa-toast';
+      document.body.appendChild(toast);
+    }
+    const iconClass = type === 'success' ? 'fa-circle-check' : 'fa-circle-info';
+    toast.innerHTML = '<i class="fa-solid ' + iconClass + '"></i> <span>' + message + '</span>';
+    toast.classList.add('visible');
+    setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 4500);
+  }
+
+  async function triggerInstall() {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          showToast('Uygulama telefonunuza başarıyla yükleniyor!', 'success');
+          hideModal(false);
+        } else {
+          hideModal(true);
+        }
+        deferredPrompt = null;
+      } catch (err) {
+        console.warn('[PWA] Prompt hatası:', err);
+      }
+    } else {
+      if (!isIOS()) {
+        showToast('Tarayıcınızın menüsünden (3 nokta ⋮) "Uygulamayı Yükle" veya "Ana Ekrana Ekle"yi seçebilirsiniz.', 'info');
+      }
+    }
+  }
+
+  // Baslangic Kurulumu
+  function initPWA() {
+    const els = getElements();
+
+    // Zaten yukluyse veya standalone moddaysa butonlari ve pop-up'i gizle
+    if (isStandalone()) {
+      if (els.headerBtn) els.headerBtn.style.display = 'none';
+      return;
+    }
+
+    // Header butonu gorunur olsun
+    if (els.headerBtn) {
+      els.headerBtn.classList.remove('hidden');
+      els.headerBtn.addEventListener('click', () => {
+        showModal();
+      });
+    }
+
+    // Modal Kapatma
+    if (els.closeBtn) {
+      els.closeBtn.addEventListener('click', () => hideModal(true));
+    }
+    if (els.dismissBtn) {
+      els.dismissBtn.addEventListener('click', () => hideModal(true));
+    }
+    if (els.iosGotItBtn) {
+      els.iosGotItBtn.addEventListener('click', () => hideModal(true));
+    }
+
+    // Modal disina tiklayinca kapat
+    if (els.modal) {
+      els.modal.addEventListener('click', (e) => {
+        if (e.target === els.modal) {
+          hideModal(true);
+        }
+      });
+    }
+
+    // Yukleme Butonu
+    if (els.installBtn) {
+      els.installBtn.addEventListener('click', triggerInstall);
+    }
+
+    // Otomatik Pop-up: Ilk giriste veya 48 saat sonra 2.5 saniye sonra goster
+    if (!isDismissedRecently()) {
+      setTimeout(() => {
+        if (!isStandalone()) {
+          showModal();
+        }
+      }, 2500);
+    }
+  }
+
+  // Chrome / Android PWA beforeinstallprompt yakalama
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const els = getElements();
+    if (els.headerBtn && !isStandalone()) {
+      els.headerBtn.classList.remove('hidden');
+    }
+  });
+
+  // Uygulama yuklendiginde
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    hideModal(false);
+    const els = getElements();
+    if (els.headerBtn) {
+      els.headerBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Yüklendi</span>';
+      els.headerBtn.classList.add('installed');
+      setTimeout(() => {
+        els.headerBtn.style.display = 'none';
+      }, 3000);
+    }
+    showToast('🎉 Harika! GOLANALIZ AI ana ekranınıza başarıyla eklendi.', 'success');
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPWA);
+  } else {
+    initPWA();
+  }
+})();

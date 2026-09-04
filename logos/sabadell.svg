@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="grad_sabadell" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0047ab" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="60" fill="url(#grad_sabadell)" stroke="#ffffff" stroke-width="4"/>
+  <text x="64" y="72" font-family="Outfit, Arial, sans-serif" font-size="32" font-weight="900" fill="#ffffff" text-anchor="middle">CES</text>
+</svg>

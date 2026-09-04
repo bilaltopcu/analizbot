@@ -4,8 +4,17 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
+// Prevent process crashes on network/socket glitches
+process.on('uncaughtException', (err) => {
+  console.error('[Uncaught Exception Guard]', err.message || err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Unhandled Rejection Guard]', reason);
+});
+
 // Load .env file automatically
 const envPath = path.join(__dirname, '.env');
+
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   envContent.split(/\r?\n/).forEach(line => {
@@ -23,19 +32,24 @@ if (fs.existsSync(envPath)) {
 
 const PORT = process.env.PORT || 3000;
 
-function callGeminiApi(promptText, apiKey) {
+// AI In-Memory Analysis Cache for instant sub-millisecond responses
+const aiAnalysisCache = new Map();
+const MAX_CACHE_SIZE = 300;
+
+function callSingleModel(model, promptText, apiKey, useThinkingZero) {
   return new Promise((resolve) => {
-    const model = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
+    const config = {
+      temperature: 0.3,
+      maxOutputTokens: 320,
+      responseMimeType: "application/json"
+    };
+    if (useThinkingZero) {
+      config.thinkingConfig = { thinkingBudget: 0 };
+    }
+
     const postData = JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: promptText }]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        responseMimeType: "application/json"
-      }
+      contents: [{ parts: [{ text: promptText }] }],
+      generationConfig: config
     });
 
     const options = {
@@ -46,7 +60,8 @@ function callGeminiApi(promptText, apiKey) {
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData)
-      }
+      },
+      timeout: 4500
     };
 
     const req = https.request(options, (res) => {
@@ -58,32 +73,59 @@ function callGeminiApi(promptText, apiKey) {
             const parsed = JSON.parse(data);
             const textResponse = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (textResponse) {
-              // Strip markdown backticks if any
               const cleanText = textResponse.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
-              resolve(JSON.parse(cleanText));
+              resolve({ success: true, model, data: JSON.parse(cleanText) });
             } else {
-              resolve(null);
+              resolve({ success: false, model, status: res.statusCode, error: 'Empty text parts' });
             }
           } catch (e) {
-            console.error('[Gemini JSON Parse Error]', e.message, data);
-            resolve(null);
+            resolve({ success: false, model, status: res.statusCode, error: 'JSON parse error: ' + e.message });
           }
         } else {
-          console.error('[Gemini API Error]', res.statusCode, data);
-          resolve(null);
+          resolve({ success: false, model, status: res.statusCode, error: data.slice(0, 120) });
         }
       });
     });
 
+    req.on('timeout', () => {
+      req.destroy();
+      resolve({ success: false, model, status: 408, error: 'Request timeout' });
+    });
+
     req.on('error', (e) => {
-      console.error('[Gemini Request Error]', e.message);
-      resolve(null);
+      resolve({ success: false, model, status: 500, error: e.message });
     });
 
     req.write(postData);
     req.end();
   });
 }
+
+async function callGeminiApi(promptText, apiKey) {
+  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const modelCascade = [
+    preferredModel,
+    'gemini-3.8-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash'
+  ];
+  const uniqueModels = [...new Set(modelCascade)];
+
+  for (const m of uniqueModels) {
+    // Try first with thinkingBudget: 0 to eliminate thinking token latency
+    let res = await callSingleModel(m, promptText, apiKey, true);
+    if (!res.success && res.status === 400) {
+      // Model does not support thinkingBudget 0, retry immediately without it
+      res = await callSingleModel(m, promptText, apiKey, false);
+    }
+    if (res.success && res.data) {
+      return { analysis: res.data, model: m };
+    }
+  }
+  return null;
+}
+
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',
@@ -164,21 +206,33 @@ const server = http.createServer((req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = reqUrl.pathname;
 
-  // Support HEAD requests for UptimeRobot
+  // Support HEAD requests for UptimeRobot / Ping Monitors
   if (req.method === 'HEAD' && (pathname === '/ping' || pathname === '/health' || pathname === '/')) {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=UTF-8' });
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=UTF-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Connection': 'close'
+    });
     return res.end();
   }
 
-  // UptimeRobot / Health Check Endpoints
+  // UptimeRobot / Health Check Endpoints (Zero-overhead keep-alive)
   if (pathname === '/ping') {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=UTF-8' });
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=UTF-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Connection': 'close'
+    });
     return res.end('OK');
   }
 
   if (pathname === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-    return res.end(JSON.stringify({ status: 'UP', timestamp: new Date().toISOString() }));
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Connection': 'close'
+    });
+    return res.end(JSON.stringify({ status: 'UP', service: 'golanaliz-ai', timestamp: new Date().toISOString() }));
   }
 
   if (pathname === '/api/sync-2026-2027' || pathname === '/api/sync-data') {
@@ -250,6 +304,19 @@ const server = http.createServer((req, res) => {
           }));
         }
 
+        const cacheKey = `${payload.homeTeam || ''}__${payload.awayTeam || ''}__${payload.suggestedBet || ''}`;
+        if (aiAnalysisCache.has(cacheKey)) {
+          const cached = aiAnalysisCache.get(cacheKey);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+          return res.end(JSON.stringify({
+            success: true,
+            fallback: false,
+            cached: true,
+            model: cached.model,
+            analysis: cached.analysis
+          }));
+        }
+
         const promptText = `Sen uzman bir futbol analisti ve spor istatistikçisisin. Aşağıdaki maç istatistiklerini ve Dixon-Coles Poisson simülasyon çıktılarını inceleyerek profesyonel bir taktiksel analiz ve bahis gerekçelendirmesi üret.
 
 MAÇ BİLGİLERİ:
@@ -270,9 +337,9 @@ GÖREV:
 Aşağıdaki JSON formatında Türkçe yanıt döndür. Başka hiçbir açıklama metni ekleme.
 JSON Şeması:
 {
-  "tacticalScenario": "Maçın muhtemel taktiksel akışı, tempo ve saha içi dinamikleri hakkında 2-3 cümlelik detaylı açıklama.",
+  "tacticalScenario": "Maçın muhtemel taktiksel akışı, tempo ve saha içi dinamikleri hakkında 2 cümlelik net analiz.",
   "bestBetRationale": "Seçilen en uygun bahsin istatistiksel ve taktiksel nedenleri (1-2 cümle).",
-  "riskAssessment": "Maçın dikkat edilmesi gereken risk faktörleri (disiplin/kart, tempo düşüklüğü, sürpriz beraberlik riski vb.).",
+  "riskAssessment": "Maçın dikkat edilmesi gereken temel risk faktörleri (1 cümle).",
   "confidenceScore": 85,
   "matchAnalysisSummary": "Genel sonuç özeti ve maçın gidişat tahmini."
 }`;
@@ -280,12 +347,21 @@ JSON Şeması:
         const geminiResult = await callGeminiApi(promptText, apiKey);
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-        if (geminiResult) {
+        if (geminiResult && geminiResult.analysis) {
+          if (aiAnalysisCache.size >= MAX_CACHE_SIZE) {
+            const firstKey = aiAnalysisCache.keys().next().value;
+            aiAnalysisCache.delete(firstKey);
+          }
+          aiAnalysisCache.set(cacheKey, {
+            model: geminiResult.model,
+            analysis: geminiResult.analysis
+          });
+
           res.end(JSON.stringify({
             success: true,
             fallback: false,
-            model: process.env.GEMINI_MODEL || 'gemini-1.5-pro',
-            analysis: geminiResult
+            model: geminiResult.model,
+            analysis: geminiResult.analysis
           }));
         } else {
           res.end(JSON.stringify({
@@ -365,6 +441,16 @@ function serveAsset(req, res, fileData) {
   res.end(fileData.raw);
 }
 
+server.on('clientError', (err, socket) => {
+  if (err.code === 'ECONNRESET' || !socket.writable) return;
+  socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+});
+
+server.on('error', (err) => {
+  console.error('[Server Error Guard]', err.message);
+});
+
 server.listen(PORT, () => {
   console.log(`[AnalizBot] Ultra Hızlı & GZIP Sıkıştırmalı Sunucu ${PORT} portunda aktif!`);
 });
+

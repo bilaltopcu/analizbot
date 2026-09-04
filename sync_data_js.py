@@ -2,6 +2,8 @@ import os
 import json
 import re
 import sys
+from datetime import datetime
+
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -137,8 +139,9 @@ def run():
     js_content = f"""// GOLANALIZ AI - Ultra Hızlı Kompakt Veri Bankası
 const FOOTBALL_DATA = {{
   season: "2025-2027",
-  lastUpdated: "{matches[0]['date'] if matches else 'August 2026'} (2025/26 & 2026/27 Sezonları)",
+  lastUpdated: "{datetime.now().strftime('%d/%m/%Y %H:%M')} (2025/26 & 2026/27 Sezonları)",
   countries: {json.dumps(countries_list, ensure_ascii=False, separators=(',', ':'))}
+
 }};
 
 // Pre-Indexed Fast Match Map (O(1) Access, Ultra-Compact Tuple Format)
