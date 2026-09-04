@@ -33,7 +33,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=2.3.0">
+  <link rel="stylesheet" href="style.css?v=2.4.0">
 </head>
 <body>
 
@@ -80,11 +80,20 @@
       </div>
       <div class="header-badges">
         <button type="button" class="live-badge verified-winrate-badge" id="btnPerformanceModal" title="Resmi AI Kazanan Tahmin Oranını İncele">
-          <span class="pulse-indicator"></span>
-          <i class="fa-solid fa-shield-halved"></i>
-          <span>Kazanan: <strong id="headerWinRateVal">%100</strong></span>
+          <div class="badge-left-group">
+            <span class="pulse-indicator"></span>
+            <i class="fa-solid fa-shield-halved"></i>
+            <span class="badge-label-text">Kazanan Tahmin Oranı:</span>
+          </div>
+          <div class="badge-right-group">
+            <strong id="headerWinRateVal">%100</strong>
+            <i class="fa-solid fa-angle-right badge-caret"></i>
+          </div>
         </button>
-        <span class="live-badge season-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026/27</span>
+        <div class="live-badge season-badge">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>27 Ülke Ligi & 2026-2027 Sezonu</span>
+        </div>
       </div>
     </header>
 
@@ -728,14 +737,12 @@
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
-      }
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
 
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')

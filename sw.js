@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golanaliz-v18';
+const CACHE_NAME = 'golanaliz-v20';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -46,9 +46,8 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Stale-While-Revalidate Strategy:
-// Instant 0ms load from cache (so opening from browser history or bookmark is instant)
-// Background fetch keeps assets fresh without making the user wait.
+// Network-First Strategy for HTML Navigation & Core Code
+// Ensures mobile devices and PWA apps instantly receive the newest interface updates.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -59,9 +58,43 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 1. HTML Sayfa Açılışı (Navigation): Daima Önce İnternetten En Güncelini Çek!
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match('./index.html', { ignoreSearch: true });
+        })
+    );
+    return;
+  }
+
+  // 2. CSS ve JS Dosyaları: Ağdan en son sürümü al, ağ yoksa önbellekten sun
+  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 3. Diğer Statik Öğeler (Resimler, İkonlar, Fontlar): Hızlı Önbellek + Arka Plan Güncelleme
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-      // Fetch fresh version in the background to update cache
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
@@ -74,20 +107,10 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => null);
 
-      // If available in cache, return IMMEDIATELY for 0ms instant display!
       if (cachedResponse) {
         return cachedResponse;
       }
-
-      // If not in cache (first visit), wait for network
-      return fetchPromise.then((networkResponse) => {
-        if (networkResponse) return networkResponse;
-
-        // Fallback for navigation requests if offline and not in cache
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html', { ignoreSearch: true });
-        }
-      });
+      return fetchPromise;
     })
   );
 });
