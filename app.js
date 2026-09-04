@@ -122,6 +122,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const myBetsEmpty = document.getElementById('myBetsEmpty');
   const clearAllMyBets = document.getElementById('clearAllMyBets');
 
+  // AI Performance & Audit Dashboard Elements
+  const btnPerformanceModal = document.getElementById('btnPerformanceModal');
+  const headerWinRateVal = document.getElementById('headerWinRateVal');
+  const performanceModal = document.getElementById('performanceModal');
+  const performanceModalClose = document.getElementById('performanceModalClose');
+  const perfModalWinRate = document.getElementById('perfModalWinRate');
+  const perfModalWonCount = document.getElementById('perfModalWonCount');
+  const perfModalLostCount = document.getElementById('perfModalLostCount');
+  const perfModalAllTimeCount = document.getElementById('perfModalAllTimeCount');
+  const perfCatGrid = document.getElementById('perfCatGrid');
+  const perfLedgerScroll = document.getElementById('perfLedgerScroll');
+  const ledgerCountAll = document.getElementById('ledgerCountAll');
+  const ledgerCountWon = document.getElementById('ledgerCountWon');
+  const ledgerCountLost = document.getElementById('ledgerCountLost');
+
   // Show auth message
   function showAuthMessage(el, msg, isError) {
     el.textContent = msg;
@@ -267,6 +282,152 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMyBetsModal();
         updateMyBetsCount();
       }
+    });
+  }
+
+  // =============================================
+  // AI Performance & Audit Dashboard Logic
+  // =============================================
+  let currentLedgerFilter = 'all';
+
+  function initPerformanceDashboard() {
+    const perfData = window.AI_PERFORMANCE_DATA;
+    if (!perfData || !perfData.summary) return;
+
+    if (headerWinRateVal) {
+      headerWinRateVal.textContent = `%${perfData.summary.winRate}`;
+    }
+
+    const adPromoWinRate = document.getElementById('adPromoWinRate');
+    if (adPromoWinRate) {
+      adPromoWinRate.textContent = `%${perfData.summary.winRate}`;
+    }
+
+    if (btnPerformanceModal && performanceModal) {
+      btnPerformanceModal.addEventListener('click', () => {
+        renderPerformanceModal();
+        performanceModal.classList.remove('hidden');
+      });
+    }
+
+    if (performanceModalClose && performanceModal) {
+      performanceModalClose.addEventListener('click', () => {
+        performanceModal.classList.add('hidden');
+      });
+      performanceModal.addEventListener('click', (e) => {
+        if (e.target === performanceModal) performanceModal.classList.add('hidden');
+      });
+    }
+
+    // Ledger Filter Tabs
+    const filterTabs = document.querySelectorAll('.perf-tab-btn');
+    filterTabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterTabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLedgerFilter = btn.dataset.filter || 'all';
+        renderLedgerItems();
+      });
+    });
+  }
+
+  function renderPerformanceModal() {
+    const perfData = window.AI_PERFORMANCE_DATA;
+    if (!perfData) return;
+
+    const s = perfData.summary;
+    if (perfModalWinRate) perfModalWinRate.textContent = `%${s.winRate}`;
+    if (perfModalWonCount) perfModalWonCount.textContent = s.wonMatches.toLocaleString('tr-TR');
+    if (perfModalLostCount) perfModalLostCount.textContent = s.lostMatches.toLocaleString('tr-TR');
+    if (perfModalAllTimeCount) perfModalAllTimeCount.textContent = s.allTimeMatches.toLocaleString('tr-TR');
+
+    // Category Grid
+    if (perfCatGrid && perfData.categories) {
+      perfCatGrid.innerHTML = '';
+      const catIcons = {
+        'kart': 'fa-clone',
+        'taraf': 'fa-trophy',
+        'gol': 'fa-futbol',
+        'korner': 'fa-flag'
+      };
+
+      for (const [key, cat] of Object.entries(perfData.categories)) {
+        const iconClass = catIcons[key] || 'fa-chart-simple';
+        const card = document.createElement('div');
+        card.className = 'perf-cat-item';
+        card.innerHTML = `
+          <div class="perf-cat-top">
+            <span class="perf-cat-name"><i class="fa-solid ${iconClass}"></i> ${cat.label}</span>
+            <span class="perf-cat-pct">%${cat.winRate}</span>
+          </div>
+          <div class="perf-bar-wrap">
+            <div class="perf-bar-fill" style="width: ${cat.winRate}%"></div>
+          </div>
+          <span class="perf-cat-sub">${cat.won.toLocaleString('tr-TR')} Başarılı / ${cat.total.toLocaleString('tr-TR')} Maç</span>
+        `;
+        perfCatGrid.appendChild(card);
+      }
+    }
+
+    // Counts on tabs
+    const ledger = perfData.recentLedger || [];
+    const wonCount = ledger.filter(r => r.status === 'WON').length;
+    const lostCount = ledger.length - wonCount;
+
+    if (ledgerCountAll) ledgerCountAll.textContent = ledger.length;
+    if (ledgerCountWon) ledgerCountWon.textContent = wonCount;
+    if (ledgerCountLost) ledgerCountLost.textContent = lostCount;
+
+    renderLedgerItems();
+  }
+
+  function renderLedgerItems() {
+    if (!perfLedgerScroll) return;
+    const perfData = window.AI_PERFORMANCE_DATA;
+    if (!perfData || !perfData.recentLedger) return;
+
+    let items = perfData.recentLedger;
+    if (currentLedgerFilter === 'won') {
+      items = items.filter(r => r.status === 'WON');
+    } else if (currentLedgerFilter === 'lost') {
+      items = items.filter(r => r.status === 'LOST');
+    }
+
+    perfLedgerScroll.innerHTML = '';
+    if (items.length === 0) {
+      perfLedgerScroll.innerHTML = '<div style="text-align:center; padding: 25px; color:#94a3b8; font-size:13px;">Bu filtreye uygun denetlenmiş kayıt bulunamadı.</div>';
+      return;
+    }
+
+    items.forEach(m => {
+      const isWon = m.status === 'WON';
+      const el = document.createElement('div');
+      el.className = 'perf-ledger-item';
+      el.innerHTML = `
+        <div class="perf-match-meta">
+          <span class="perf-match-date"><i class="fa-regular fa-calendar"></i> ${m.date} ${m.time ? '• ' + m.time : ''} • ${m.league}</span>
+          <div class="perf-match-teams">
+            <span>${m.homeTeam} vs ${m.awayTeam}</span>
+            <span class="perf-match-score">${m.score}</span>
+          </div>
+        </div>
+        <div class="perf-pred-info">
+          <div class="perf-pred-title">
+            <span class="bet-category cat-${m.category}">${m.categoryLabel || m.category}</span>
+            <span>${m.prediction}</span>
+          </div>
+          <div class="perf-pred-sub">
+            <span>Oran: <strong>${m.odds}</strong></span> • 
+            <span>Model Güveni: <strong>%${m.confidence}</strong></span> • 
+            <span>${m.reason}</span>
+          </div>
+        </div>
+        <div class="perf-status-badge ${isWon ? 'status-won' : 'status-lost'}">
+          <i class="fa-solid ${isWon ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+          <span>${isWon ? 'KAZANDI' : 'KAYBETTİ'}</span>
+        </div>
+      `;
+      perfLedgerScroll.appendChild(el);
     });
   }
 
@@ -2325,4 +2486,5 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize
   initCountryDropdown();
   updateAuthUI();
+  initPerformanceDashboard();
 });

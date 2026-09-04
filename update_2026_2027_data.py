@@ -745,5 +745,13 @@ function getTeamLogoUrl(teamName, countryCode) {{
     except Exception as e:
         print(f"FootyStats/FBref sync warning: {e}")
 
+    # Auto-Settlement Engine & Performance Ledger Sync
+    try:
+        from build_performance_ledger import run_performance_audit
+        print("\n--- GOLANALIZ AI Otomatik Sonuçlandırma & Başarı Defteri Güncelleniyor ---")
+        run_performance_audit()
+    except Exception as e:
+        print(f"Performance ledger sync warning: {e}")
+
 if __name__ == '__main__':
     run_sync()

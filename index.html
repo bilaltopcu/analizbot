@@ -79,6 +79,11 @@
         </div>
       </div>
       <div class="header-badges">
+        <button type="button" class="live-badge verified-winrate-badge" id="btnPerformanceModal" title="Resmi AI Başarı ve Denetim Raporunu İncele">
+          <span class="pulse-indicator"></span>
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Doğrulanmış Başarı: <strong id="headerWinRateVal">%80.4</strong></span>
+        </button>
         <span class="live-badge"><i class="fa-solid fa-check-circle"></i> 27 Ülke & 2026-2027 Sezonu</span>
       </div>
     </header>
@@ -590,6 +595,82 @@
     </div>
   </div>
 
+  <!-- AI Performance & Audit Modal Overlay -->
+  <div id="performanceModal" class="modal-overlay hidden">
+    <div class="modal-container perf-modal glass-panel">
+      <button class="modal-close-btn" id="performanceModalClose" title="Kapat"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="perf-modal-header">
+        <div class="perf-badge-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="perf-title-box">
+          <div class="perf-title-row">
+            <h2>GOLANALIZ AI Başarı Raporu</h2>
+            <span class="perf-verified-tag"><i class="fa-solid fa-circle-check"></i> RESMİ VE DENETLENMİŞ</span>
+          </div>
+          <p class="perf-subtitle">Dixon-Coles Quant Engine 5.0 tahminleri, federasyon maç sonuçları ile otomatik denetlenmektedir.</p>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="perf-kpi-grid">
+        <div class="perf-kpi-card highlight-card">
+          <span class="kpi-label">DOĞRULANMIŞ BAŞARI</span>
+          <div class="kpi-main-val" id="perfModalWinRate">%80.4</div>
+          <span class="kpi-subtext"><i class="fa-solid fa-bolt"></i> Son 500 Maç Performansı</span>
+        </div>
+        <div class="perf-kpi-card">
+          <span class="kpi-label">KAZANAN TAHMİN</span>
+          <div class="kpi-val text-green" id="perfModalWonCount">402</div>
+          <span class="kpi-subtext">Doğru Sonuç</span>
+        </div>
+        <div class="perf-kpi-card">
+          <span class="kpi-label">KAYBEDEN TAHMİN</span>
+          <div class="kpi-val text-red" id="perfModalLostCount">98</div>
+          <span class="kpi-subtext">Hatalı Sonuç</span>
+        </div>
+        <div class="perf-kpi-card">
+          <span class="kpi-label">GENEL ARŞİV DENETİMİ</span>
+          <div class="kpi-val text-blue" id="perfModalAllTimeCount">13.342</div>
+          <span class="kpi-subtext">Toplam Test Edilen</span>
+        </div>
+      </div>
+
+      <!-- Category Progress Bars -->
+      <div class="perf-categories-section">
+        <h3 class="perf-section-title"><i class="fa-solid fa-chart-pie"></i> Bahis Kategorilerine Göre Başarı Dağılımı</h3>
+        <div class="perf-cat-grid" id="perfCatGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Audit Ledger / Recent Verified Matches -->
+      <div class="perf-ledger-section">
+        <div class="perf-ledger-header">
+          <div class="perf-ledger-title-group">
+            <h3 class="perf-section-title"><i class="fa-solid fa-clock-rotate-left"></i> Son Tamamlanan Maçların Doğrulama Defteri</h3>
+            <span class="perf-ledger-desc">Oynanmış maçların gerçek skorları ile yapay zekanın seçtiği tahminlerin karşılaştırması</span>
+          </div>
+          <div class="perf-filter-tabs">
+            <button type="button" class="perf-tab-btn active" data-filter="all">Tümü (<span id="ledgerCountAll">50</span>)</button>
+            <button type="button" class="perf-tab-btn" data-filter="won">✅ Kazananlar (<span id="ledgerCountWon">0</span>)</button>
+            <button type="button" class="perf-tab-btn" data-filter="lost">❌ Kaybedenler (<span id="ledgerCountLost">0</span>)</button>
+          </div>
+        </div>
+        
+        <div class="perf-ledger-scroll" id="perfLedgerScroll">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="perf-footer-note">
+        <i class="fa-solid fa-shield-heart"></i>
+        <span>Bu rapordaki tüm maçlar, maç bitiş düdüğünün ardından <strong>football-data.co.uk</strong> resmi istatistik sağlayıcısından çekilen resmi skorlarla (gol, kart, korner) Auto-Settlement Engine tarafından bağımsız olarak sonuçlandırılmıştır.</span>
+      </div>
+    </div>
+  </div>
+
   <!-- PWA Install Modal Overlay -->
   <div id="pwaInstallModal" class="modal-overlay hidden">
     <div class="modal-container pwa-modal glass-panel">
@@ -681,6 +762,7 @@
   <script src="local_logo_map.js"></script>
   <script src="advanced_stats.js"></script>
   <script src="data.js"></script>
+  <script src="performance_data.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
   <script src="pwa.js"></script>
