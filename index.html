@@ -713,11 +713,28 @@
   <script src="pwa.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
+      let refreshing = false;
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      }
+
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
           .then(reg => {
             console.log('Service Worker registered successfully:', reg.scope);
             reg.update();
+
+            // Uygulama arka plandan öne geldiğinde otomatik güncelleme kontrolü yap
+            document.addEventListener('visibilitychange', () => {
+              if (document.visibilityState === 'visible') {
+                reg.update();
+              }
+            });
           })
           .catch(err => console.log('Service Worker registration failed:', err));
       });
