@@ -330,14 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const metrics = PredictionTracker.getPerformanceMetrics();
 
     if (perfModalWinRate) perfModalWinRate.textContent = `%${metrics.winRate}`;
-    const perfModalSubtitle = document.getElementById('perfModalSubtitle');
-    if (perfModalSubtitle) {
-      if (metrics.settledTotal > 0) {
-        perfModalSubtitle.textContent = `Doğrulanan ${metrics.settledTotal} Maç Sonucu`;
-      } else {
-        perfModalSubtitle.textContent = 'Yeni Takip Dönemi Başladı';
-      }
-    }
   }
 
   // =============================================
