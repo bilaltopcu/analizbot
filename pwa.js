@@ -99,6 +99,43 @@
   window.addEventListener('resize', detectAndApplyDeviceClasses);
   window.addEventListener('orientationchange', () => setTimeout(detectAndApplyDeviceClasses, 150));
 
+  // ─── Mobil Cihazlarda Büyütme/Küçültme (Pinch-to-zoom & Double-tap zoom) Engelleme ───
+  function preventMobileZoom() {
+    // 1. Çoklu parmak (pinch zoom) engelleme
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // 2. iOS Safari gesture zoom engelleme
+    document.addEventListener('gesturestart', (e) => {
+      e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gesturechange', (e) => {
+      e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gestureend', (e) => {
+      e.preventDefault();
+    }, { passive: false });
+
+    // 3. Hızlı çift dokunarak büyütme (double tap zoom) engelleme
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        const tag = e.target ? e.target.tagName : '';
+        if (!['INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(tag)) {
+          e.preventDefault();
+        }
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+  }
+
+  preventMobileZoom();
+
+
   const isDismissedRecently = () => {
     try {
       const dismissedTime = localStorage.getItem(DISMISS_KEY);

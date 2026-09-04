@@ -3597,6 +3597,8 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
 }
 
 body {
@@ -3605,6 +3607,9 @@ body {
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  overscroll-behavior-y: none;
 }
 
 button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .cup-pill-btn, .match-type-btn {
