@@ -132,18 +132,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update header based on auth state
   function updateAuthUI() {
-    if (AuthManager.isLoggedIn()) {
-      authLoggedOut.classList.add('hidden');
-      authLoggedIn.classList.remove('hidden');
-      headerUserEmail.textContent = AuthManager.getCurrentUser();
+    if (!authLoggedOut && !authLoggedIn) return;
+    if (typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn()) {
+      if (authLoggedOut) authLoggedOut.classList.add('hidden');
+      if (authLoggedIn) authLoggedIn.classList.remove('hidden');
+      if (headerUserEmail) headerUserEmail.textContent = AuthManager.getCurrentUser();
       updateMyBetsCount();
     } else {
-      authLoggedOut.classList.remove('hidden');
-      authLoggedIn.classList.add('hidden');
+      if (authLoggedOut) authLoggedOut.classList.remove('hidden');
+      if (authLoggedIn) authLoggedIn.classList.add('hidden');
     }
   }
 
   function updateMyBetsCount() {
+    if (!myBetsCountBadge || typeof AuthManager === 'undefined') return;
     const count = AuthManager.getMyBets().length;
     myBetsCountBadge.textContent = count;
     if (count > 0) {
@@ -154,96 +156,119 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Open auth modal
-  headerLoginBtn.addEventListener('click', () => {
-    authModal.classList.remove('hidden');
-    loginMessage.classList.add('hidden');
-    registerMessage.classList.add('hidden');
-  });
+  if (headerLoginBtn && authModal) {
+    headerLoginBtn.addEventListener('click', () => {
+      authModal.classList.remove('hidden');
+      if (loginMessage) loginMessage.classList.add('hidden');
+      if (registerMessage) registerMessage.classList.add('hidden');
+    });
+  }
 
   // Close auth modal
-  authModalClose.addEventListener('click', () => authModal.classList.add('hidden'));
-  authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
+  if (authModalClose && authModal) {
+    authModalClose.addEventListener('click', () => authModal.classList.add('hidden'));
+    authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
+  }
 
   // Auth tab switching
-  authTabLogin.addEventListener('click', () => {
-    authTabLogin.classList.add('active');
-    authTabRegister.classList.remove('active');
-    loginForm.classList.remove('hidden');
-    registerForm.classList.add('hidden');
-  });
-  authTabRegister.addEventListener('click', () => {
-    authTabRegister.classList.add('active');
-    authTabLogin.classList.remove('active');
-    registerForm.classList.remove('hidden');
-    loginForm.classList.add('hidden');
-  });
+  if (authTabLogin && authTabRegister) {
+    authTabLogin.addEventListener('click', () => {
+      authTabLogin.classList.add('active');
+      authTabRegister.classList.remove('active');
+      if (loginForm) loginForm.classList.remove('hidden');
+      if (registerForm) registerForm.classList.add('hidden');
+    });
+    authTabRegister.addEventListener('click', () => {
+      authTabRegister.classList.add('active');
+      authTabLogin.classList.remove('active');
+      if (registerForm) registerForm.classList.remove('hidden');
+      if (loginForm) loginForm.classList.add('hidden');
+    });
+  }
 
   // Login submit
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const result = AuthManager.login(email, password);
-    if (result.success) {
-      showAuthMessage(loginMessage, result.message, false);
-      setTimeout(() => {
-        authModal.classList.add('hidden');
-        updateAuthUI();
-        refreshFavoriteStars();
-      }, 800);
-    } else {
-      showAuthMessage(loginMessage, result.message, true);
-    }
-  });
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const result = AuthManager.login(email, password);
+      if (result.success) {
+        showAuthMessage(loginMessage, result.message, false);
+        setTimeout(() => {
+          if (authModal) authModal.classList.add('hidden');
+          updateAuthUI();
+          refreshFavoriteStars();
+        }, 800);
+      } else {
+        showAuthMessage(loginMessage, result.message, true);
+      }
+    });
+  }
 
   // Register submit
-  registerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirm = document.getElementById('registerPasswordConfirm').value;
-    const result = AuthManager.register(email, password, confirm);
-    if (result.success) {
-      showAuthMessage(registerMessage, result.message, false);
-      setTimeout(() => {
-        authModal.classList.add('hidden');
-        updateAuthUI();
-        refreshFavoriteStars();
-      }, 800);
-    } else {
-      showAuthMessage(registerMessage, result.message, true);
-    }
-  });
+  if (registerForm) {
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirm = document.getElementById('registerPasswordConfirm').value;
+      const result = AuthManager.register(email, password, confirm);
+      if (result.success) {
+        showAuthMessage(registerMessage, result.message, false);
+        setTimeout(() => {
+          if (authModal) authModal.classList.add('hidden');
+          updateAuthUI();
+          refreshFavoriteStars();
+        }, 800);
+      } else {
+        showAuthMessage(registerMessage, result.message, true);
+      }
+    });
+  }
 
   // Logout
-  headerLogoutBtn.addEventListener('click', () => {
-    AuthManager.logout();
-    updateAuthUI();
-    refreshFavoriteStars();
-  });
+  if (headerLogoutBtn) {
+    headerLogoutBtn.addEventListener('click', () => {
+      AuthManager.logout();
+      updateAuthUI();
+      refreshFavoriteStars();
+    });
+  }
 
   // Favorites modal
-  headerFavoritesBtn.addEventListener('click', () => {
-    renderFavoritesModal();
-    favoritesModal.classList.remove('hidden');
-  });
-  favoritesModalClose.addEventListener('click', () => favoritesModal.classList.add('hidden'));
-  favoritesModal.addEventListener('click', (e) => { if (e.target === favoritesModal) favoritesModal.classList.add('hidden'); });
+  if (headerFavoritesBtn && favoritesModal) {
+    headerFavoritesBtn.addEventListener('click', () => {
+      renderFavoritesModal();
+      favoritesModal.classList.remove('hidden');
+    });
+  }
+  if (favoritesModalClose && favoritesModal) {
+    favoritesModalClose.addEventListener('click', () => favoritesModal.classList.add('hidden'));
+    favoritesModal.addEventListener('click', (e) => { if (e.target === favoritesModal) favoritesModal.classList.add('hidden'); });
+  }
 
   // My Bets modal
-  headerMyBetsBtn.addEventListener('click', () => {
-    renderMyBetsModal();
-    myBetsOverlay.classList.remove('hidden');
-  });
-  myBetsModalClose.addEventListener('click', () => myBetsOverlay.classList.add('hidden'));
-  myBetsOverlay.addEventListener('click', (e) => { if (e.target === myBetsOverlay) myBetsOverlay.classList.add('hidden'); });
+  if (headerMyBetsBtn && myBetsOverlay) {
+    headerMyBetsBtn.addEventListener('click', () => {
+      renderMyBetsModal();
+      myBetsOverlay.classList.remove('hidden');
+    });
+  }
+  if (myBetsModalClose && myBetsOverlay) {
+    myBetsModalClose.addEventListener('click', () => myBetsOverlay.classList.add('hidden'));
+    myBetsOverlay.addEventListener('click', (e) => { if (e.target === myBetsOverlay) myBetsOverlay.classList.add('hidden'); });
+  }
 
-  // Clear all my bets
-  clearAllMyBets.addEventListener('click', () => {
-    AuthManager.clearAllBets();
-    renderMyBetsModal();
-    updateMyBetsCount();
-  });
+  if (clearAllMyBets) {
+    clearAllMyBets.addEventListener('click', () => {
+      if (confirm('Tüm kayıtlı bahislerinizi silmek istediğinize emin misiniz?')) {
+        AuthManager.clearAllBets();
+        renderMyBetsModal();
+        updateMyBetsCount();
+      }
+    });
+  }
 
   // =============================================
   // Favorites Modal Renderer
@@ -353,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function refreshFavoriteStars() {
     document.querySelectorAll('.fav-star-btn').forEach(btn => {
       const team = btn.dataset.team;
-      const isFav = AuthManager.isLoggedIn() && AuthManager.isFavorite(team);
+      const isFav = typeof AuthManager !== 'undefined' && AuthManager.isFavorite(team);
       btn.innerHTML = isFav
         ? '<i class="fa-solid fa-star"></i>'
         : '<i class="fa-regular fa-star"></i>';
@@ -795,7 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const logoUrl = getTeamLogoUrl(teamName, cCode);
       const fallbackUrl = createFallbackSvgDataUrl(teamName);
-      const isFav = AuthManager.isLoggedIn() && AuthManager.isFavorite(teamName);
+      const isFav = typeof AuthManager !== 'undefined' && AuthManager.isFavorite(teamName);
 
       const countryBadge = isCupMode && cName ? `<small class="country-badge-sm">${cEmoji || cName}</small>` : "";
 
@@ -818,12 +843,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const starBtn = item.querySelector('.fav-star-btn');
       starBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!AuthManager.isLoggedIn()) {
-          authModal.classList.remove('hidden');
-          return;
+        if (typeof AuthManager !== 'undefined') {
+          AuthManager.toggleFavorite(teamName, cCode, cName);
+          refreshFavoriteStars();
         }
-        AuthManager.toggleFavorite(teamName, cCode, cName);
-        refreshFavoriteStars();
       });
 
       list.appendChild(item);
@@ -2087,7 +2110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Check if already saved in MyBets
       const betId = `${homeTeamName}_${awayTeamName}_${bet.name}`;
-      const isSaved = AuthManager.isLoggedIn() && AuthManager.getMyBets().some(b => b.betId === betId);
+      const isSaved = typeof AuthManager !== 'undefined' && AuthManager.getMyBets().some(b => b.betId === betId);
 
       card.innerHTML = `
         <div>
@@ -2131,10 +2154,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const saveBtn = card.querySelector('.btn-save-mybet');
       saveBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!AuthManager.isLoggedIn()) {
-          authModal.classList.remove('hidden');
-          return;
-        }
+        if (typeof AuthManager === 'undefined') return;
         const name = decodeURIComponent(saveBtn.dataset.betname);
         const pct = parseInt(saveBtn.dataset.pct);
         const cat = saveBtn.dataset.cat;

@@ -108,14 +108,30 @@ const AuthManager = {
   // --- User Data Access ---
   _getUserData() {
     const email = this.getCurrentUser();
-    if (!email) return null;
+    if (!email) {
+      try {
+        return JSON.parse(localStorage.getItem('golanaliz_guest_data')) || { favorites: [], myBets: [] };
+      } catch {
+        return { favorites: [], myBets: [] };
+      }
+    }
     const users = this._getUsers();
     return users[email] || null;
   },
 
   _updateUserData(updateFn) {
     const email = this.getCurrentUser();
-    if (!email) return false;
+    if (!email) {
+      let data;
+      try {
+        data = JSON.parse(localStorage.getItem('golanaliz_guest_data')) || { favorites: [], myBets: [] };
+      } catch {
+        data = { favorites: [], myBets: [] };
+      }
+      updateFn(data);
+      localStorage.setItem('golanaliz_guest_data', JSON.stringify(data));
+      return true;
+    }
     const users = this._getUsers();
     if (!users[email]) return false;
     updateFn(users[email]);
@@ -134,9 +150,6 @@ const AuthManager = {
   },
 
   toggleFavorite(teamName, countryCode, countryName) {
-    const email = this.getCurrentUser();
-    if (!email) return { success: false, message: 'Favori eklemek için giriş yapın.' };
-
     return this._updateUserData(user => {
       if (!user.favorites) user.favorites = [];
       const idx = user.favorites.findIndex(f => f.name === teamName);
@@ -167,9 +180,6 @@ const AuthManager = {
   },
 
   addBet(betData) {
-    const email = this.getCurrentUser();
-    if (!email) return { success: false, message: 'Bahis kaydetmek için giriş yapın.' };
-
     // betData: { homeTeam, awayTeam, country, betName, pct, category, betId }
     const betId = `${betData.homeTeam}_${betData.awayTeam}_${betData.betName}`;
 
