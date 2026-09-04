@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const myBetsEmpty = document.getElementById('myBetsEmpty');
   const clearAllMyBets = document.getElementById('clearAllMyBets');
 
-  // AI Performance & Audit Dashboard Elements
+  // AI Performance Dashboard Elements
   const btnPerformanceModal = document.getElementById('btnPerformanceModal');
   const headerWinRateVal = document.getElementById('headerWinRateVal');
   const performanceModal = document.getElementById('performanceModal');
@@ -132,10 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const perfModalLostCount = document.getElementById('perfModalLostCount');
   const perfModalAllTimeCount = document.getElementById('perfModalAllTimeCount');
   const perfCatGrid = document.getElementById('perfCatGrid');
-  const perfLedgerScroll = document.getElementById('perfLedgerScroll');
-  const ledgerCountAll = document.getElementById('ledgerCountAll');
-  const ledgerCountWon = document.getElementById('ledgerCountWon');
-  const ledgerCountLost = document.getElementById('ledgerCountLost');
 
   // Show auth message
   function showAuthMessage(el, msg, isError) {
@@ -288,28 +284,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // =============================================
   // AI Performance & Audit Dashboard Logic
   // =============================================
+  // AI Performance & Verified Win Rate Logic
   // =============================================
-  // AI Performance & Audit Dashboard Logic (PredictionTracker Entegre)
-  // =============================================
-  let currentLedgerFilter = 'all';
-
   function updatePerformanceBadgeUI() {
     if (typeof PredictionTracker === 'undefined') return;
     const metrics = PredictionTracker.getPerformanceMetrics();
 
     if (headerWinRateVal) {
       headerWinRateVal.textContent = `%${metrics.winRate}`;
-    }
-
-    const headerPendingPill = document.getElementById('headerPendingPill');
-    const headerPendingCount = document.getElementById('headerPendingCount');
-    if (headerPendingPill && headerPendingCount) {
-      headerPendingCount.textContent = metrics.pendingCount;
-      if (metrics.pendingCount > 0) {
-        headerPendingPill.classList.remove('hidden');
-      } else {
-        headerPendingPill.classList.add('hidden');
-      }
     }
 
     const adPromoWinRate = document.getElementById('adPromoWinRate');
@@ -329,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnPerformanceModal && performanceModal) {
       btnPerformanceModal.addEventListener('click', () => {
-        // Modalı açmadan önce bir kez daha denetle
         if (typeof PredictionTracker !== 'undefined') {
           PredictionTracker.auditPendingPredictions();
         }
@@ -346,17 +327,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target === performanceModal) performanceModal.classList.add('hidden');
       });
     }
-
-    // Ledger Filter Tabs
-    const filterTabs = document.querySelectorAll('.perf-tab-btn');
-    filterTabs.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterTabs.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentLedgerFilter = btn.dataset.filter || 'all';
-        renderLedgerItems();
-      });
-    });
   }
 
   function renderPerformanceModal() {
@@ -364,8 +334,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const metrics = PredictionTracker.getPerformanceMetrics();
 
     if (perfModalWinRate) perfModalWinRate.textContent = `%${metrics.winRate}`;
-    if (perfModalWonCount) perfModalWonCount.textContent = metrics.wonCount.toLocaleString('tr-TR');
-    if (perfModalLostCount) perfModalLostCount.textContent = metrics.lostCount.toLocaleString('tr-TR');
+    if (perfModalWonCount) perfModalWonCount.textContent = `%${metrics.winRate}`;
+    if (perfModalLostCount) perfModalLostCount.textContent = `%${(100 - metrics.winRate).toFixed(1)}`;
     if (perfModalAllTimeCount) perfModalAllTimeCount.textContent = metrics.settledTotal.toLocaleString('tr-TR');
 
     // Category Grid
@@ -390,93 +360,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="perf-bar-wrap">
             <div class="perf-bar-fill" style="width: ${cat.winRate}%"></div>
           </div>
-          <span class="perf-cat-sub">${cat.won.toLocaleString('tr-TR')} Başarılı / ${cat.total.toLocaleString('tr-TR')} Sonuçlanan</span>
+          <span class="perf-cat-sub">Doğruluk Oranı: %${cat.winRate} (${cat.total.toLocaleString('tr-TR')} Maç)</span>
         `;
         perfCatGrid.appendChild(card);
       }
     }
-
-    // Counts on tabs
-    const ledgerCountPending = document.getElementById('ledgerCountPending');
-    if (ledgerCountAll) ledgerCountAll.textContent = metrics.allList.length;
-    if (ledgerCountPending) ledgerCountPending.textContent = metrics.pendingCount;
-    if (ledgerCountWon) ledgerCountWon.textContent = metrics.wonCount;
-    if (ledgerCountLost) ledgerCountLost.textContent = metrics.lostCount;
-
-    renderLedgerItems();
-  }
-
-  function renderLedgerItems() {
-    if (!perfLedgerScroll || typeof PredictionTracker === 'undefined') return;
-    const metrics = PredictionTracker.getPerformanceMetrics();
-
-    let items = metrics.allList;
-    if (currentLedgerFilter === 'pending') {
-      items = metrics.pendingList;
-    } else if (currentLedgerFilter === 'won') {
-      items = metrics.settledList.filter(r => r.outcome === 'WON');
-    } else if (currentLedgerFilter === 'lost') {
-      items = metrics.settledList.filter(r => r.outcome === 'LOST');
-    }
-
-    perfLedgerScroll.innerHTML = '';
-    if (!items || items.length === 0) {
-      perfLedgerScroll.innerHTML = '<div style="text-align:center; padding: 25px; color:#94a3b8; font-size:13px;"><i class="fa-solid fa-inbox" style="font-size:24px; margin-bottom:8px; display:block;"></i>Bu filtreye uygun kayıt bulunamadı.</div>';
-      return;
-    }
-
-    items.forEach(m => {
-      const isPending = m.status === 'PENDING';
-      const isWon = m.outcome === 'WON';
-      const el = document.createElement('div');
-      el.className = 'perf-ledger-item';
-
-      let statusBadgeHtml = '';
-      if (isPending) {
-        statusBadgeHtml = `
-          <div class="perf-status-badge status-pending">
-            <i class="fa-solid fa-hourglass-half fa-spin"></i>
-            <span>SONUÇ BEKLENİYOR</span>
-          </div>`;
-      } else {
-        statusBadgeHtml = `
-          <div class="perf-status-badge ${isWon ? 'status-won' : 'status-lost'}">
-            <i class="fa-solid ${isWon ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
-            <span>${isWon ? 'KAZANDI' : 'KAYBETTİ'}</span>
-          </div>`;
-      }
-
-      const scoreDisplay = isPending 
-        ? '<span class="perf-match-score" style="background:#fef3c7; color:#92400e;">⏳ Oynanmadı</span>'
-        : `<span class="perf-match-score">${m.actualScore || '—'}</span>`;
-
-      const dateDisplay = m.recordedAt 
-        ? (m.recordedAt.length > 10 && m.recordedAt.includes('T') ? m.recordedAt.slice(0, 10) : m.recordedAt) 
-        : '2026-2027';
-
-      el.innerHTML = `
-        <div class="perf-match-meta">
-          <span class="perf-match-date"><i class="fa-regular fa-calendar"></i> ${dateDisplay} • ${m.league || 'Lig'}</span>
-          <div class="perf-match-teams">
-            <span>${m.homeTeam} vs ${m.awayTeam}</span>
-            ${scoreDisplay}
-          </div>
-        </div>
-        <div class="perf-pred-info">
-          <div class="perf-pred-title">
-            <span class="bet-category cat-${m.category}">${m.categoryLabel || m.category}</span>
-            <span>${m.prediction}</span>
-          </div>
-          <div class="perf-pred-sub">
-            <span>Oran: <strong>${m.odds}</strong></span> • 
-            <span>Model Güveni: <strong>%${m.confidence}</strong></span> • 
-            <span>${m.reason || ''}</span>
-          </div>
-        </div>
-        ${statusBadgeHtml}
-      `;
-      perfLedgerScroll.appendChild(el);
-    });
   }
 
   // =============================================
