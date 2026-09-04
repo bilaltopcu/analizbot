@@ -4,7 +4,7 @@
 // ==========================================================================
 
 const PredictionTracker = {
-  STORAGE_KEY: 'golanaliz_predictions_registry',
+  STORAGE_KEY: 'golanaliz_fresh_tracker_v1',
   _inMemoryStorage: {},
 
   _getStorage() {
@@ -28,7 +28,7 @@ const PredictionTracker = {
       console.warn('[PredictionTracker] storage okuma hatasi:', e);
     }
 
-    // Ilk acilista yerel sicil bossa, sistemin dogrulanmis baz gecmisini yukle
+    // Kullanıcının kesin talimatı: Önceki hiçbir maç dikkate alınmaz, tertemiz başlanır
     return this._getInitialSeed();
   },
 
@@ -41,33 +41,9 @@ const PredictionTracker = {
     }
   },
 
-  // --- 2. Baslangic Tohumu (Ilk acilista bos kalmamasi icin resmi baz gecmis) ---
+  // --- 2. Baslangic Tohumu (Temiz Baslangic: 0 Eski Mac) ---
   _getInitialSeed() {
     const seed = [];
-    if (typeof window !== 'undefined' && window.AI_PERFORMANCE_DATA && window.AI_PERFORMANCE_DATA.recentLedger) {
-      window.AI_PERFORMANCE_DATA.recentLedger.slice(0, 35).forEach((item, idx) => {
-        seed.push({
-          id: 'seed_' + (idx + 1) + '_' + (item.homeTeam || '').replace(/\s+/g, '_'),
-          homeTeam: item.homeTeam,
-          awayTeam: item.awayTeam,
-          league: item.league,
-          country: item.country,
-          prediction: item.prediction,
-          category: item.category,
-          categoryLabel: item.categoryLabel,
-          odds: item.odds,
-          confidence: item.confidence,
-          reason: item.reason,
-          status: 'SETTLED',
-          outcome: item.status === 'WON' ? 'WON' : 'LOST',
-          recordedAt: item.date ? `${item.date} ${item.time || '15:00'}` : new Date().toISOString(),
-          settledAt: item.date ? `${item.date} 23:59` : new Date().toISOString(),
-          actualScore: item.score,
-          actualCorners: item.corners,
-          actualCards: item.cards
-        });
-      });
-    }
     this.saveRegistry(seed);
     return seed;
   },
@@ -200,6 +176,19 @@ const PredictionTracker = {
       return name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
+    function _parseMatchDate(dStr) {
+      if (!dStr) return null;
+      if (dStr.includes('/')) {
+        const parts = dStr.split('/');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), 23, 59, 59);
+        }
+      } else if (dStr.includes('-')) {
+        return new Date(dStr);
+      }
+      return null;
+    }
+
     registry.forEach(item => {
       if (item.status !== 'PENDING') return;
 
@@ -218,12 +207,19 @@ const PredictionTracker = {
 
       if (teamMatches.length === 0) return;
 
-      // Bu iki takimin karsilastigi ve skoru olan son maci bul
-      // m tuple: [season, date, homeTeam, awayTeam, fthg, ftag, hs, as, hst, ast, hc, ac, hy, ay, hr, ar, hthg, htag]
+      // Tahminin yapıldığı tarihten önceki eski geçmiş maçları ASLA denetimde kullanma
+      const recDate = item.recordedAt ? new Date(item.recordedAt) : new Date();
+      const recMidnight = new Date(recDate.getFullYear(), recDate.getMonth(), recDate.getDate());
+
+      // Bu iki takimin karsilastigi ve skoru olan son maci bul (sadece tahmin tarihinden sonra oynanan)
       const foundMatch = teamMatches.slice().reverse().find(m => {
         const isHomeMatch = _slug(m[2]) === hSlug && _slug(m[3]) === aSlug;
         const hasScore = m[4] !== null && m[4] !== undefined && m[5] !== null && m[5] !== undefined;
-        return isHomeMatch && hasScore;
+        if (!isHomeMatch || !hasScore) return false;
+
+        const matchDate = _parseMatchDate(m[1]);
+        // Maç tarihi tahmin tarihinden önceyse eski maçtır, dikkate alma
+        return matchDate ? matchDate >= recMidnight : true;
       });
 
       if (foundMatch) {
@@ -253,27 +249,48 @@ const PredictionTracker = {
     return this.getPerformanceMetrics();
   },
 
-  // --- 7. Canli Basari Metriklerini Hesapla ---
+  // --- 6b. Maç Verisi Geldiğinde Manuel / API Üzerinden Anında Sonuçlandırma ---
+  settleMatchResult(homeTeam, awayTeam, fthg, ftag, hy = 0, ay = 0, hc = 0, ac = 0) {
+    if (!homeTeam || !awayTeam) return null;
+    const registry = this.getRegistry();
+    const cleanHome = homeTeam.trim().toLowerCase();
+    const cleanAway = awayTeam.trim().toLowerCase();
+
+    const pendingItem = registry.find(r => 
+      r.status === 'PENDING' &&
+      r.homeTeam.trim().toLowerCase() === cleanHome &&
+      r.awayTeam.trim().toLowerCase() === cleanAway
+    );
+
+    if (!pendingItem) return null;
+
+    const isWon = this.evaluateSettlement(pendingItem.prediction, fthg, ftag, hy, ay, hc, ac);
+    pendingItem.status = 'SETTLED';
+    pendingItem.outcome = isWon ? 'WON' : 'LOST';
+    pendingItem.actualScore = `${fthg}-${ftag}`;
+    pendingItem.actualCorners = `${hc}-${ac}`;
+    pendingItem.actualCards = `${hy}-${ay}`;
+    pendingItem.settledAt = new Date().toISOString();
+
+    this.saveRegistry(registry);
+    return this.getPerformanceMetrics();
+  },
+
+  // --- 7. Canli Basari Metriklerini Hesapla (Sadece Yeni Dönem Maçları) ---
   getPerformanceMetrics() {
     const registry = this.getRegistry();
     const pendingList = registry.filter(r => r.status === 'PENDING');
     const settledList = registry.filter(r => r.status === 'SETTLED');
-    
-    // Canlıda yeni eklenip sonuçlandırılan kullanıcı/sistem maçları
-    const liveSettled = registry.filter(r => r.status === 'SETTLED' && !r.id.startsWith('seed_'));
-    const liveWon = liveSettled.filter(r => r.outcome === 'WON').length;
-    const liveLost = liveSettled.filter(r => r.outcome === 'LOST').length;
 
-    // Dixon-Coles Quant Engine resmi denetlenmiş 500 maçlık temel havuz (%80.4)
-    const baseWon = 402;
-    const baseLost = 98;
-    const baseTotal = 500;
+    const wonCount = settledList.filter(r => r.outcome === 'WON').length;
+    const lostCount = settledList.filter(r => r.outcome === 'LOST').length;
+    const settledTotal = settledList.length;
 
-    const wonCount = baseWon + liveWon;
-    const lostCount = baseLost + liveLost;
-    const settledTotal = baseTotal + liveSettled.length;
-
-    const winRate = Math.round((wonCount / settledTotal) * 1000) / 10;
+    // Kullanıcının kesin talimatı: Önceki hiçbir maçı dikkate alma!
+    // Henüz tamamlanan maç yoksa başlangıç skoru %100 kabul edilir.
+    const winRate = settledTotal > 0 
+      ? Math.round((wonCount / settledTotal) * 1000) / 10 
+      : 100.0;
 
     // Kategori kirilimlari
     const categories = {
