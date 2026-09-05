@@ -1103,11 +1103,11 @@ document.addEventListener("DOMContentLoaded", () => {
     bannerAwayLogo.onerror = () => { bannerAwayLogo.onerror = null; bannerAwayLogo.src = createFallbackSvgDataUrl(awayProfile.teamName); };
 
 
-    // Form Strips (Sadece Son 5 Karşılaşma)
+    // Form Strips (Sadece 2026-2027 Sezonu - Maksimum 5 Maç)
     renderFormStrip(homeFormStrip, homeProfile.matches);
     renderFormStrip(awayFormStrip, awayProfile.matches);
 
-    // Detailed Stats Rows (Son 5 Karşılaşma)
+    // Detailed Stats Rows (2026-2027 Sezonu)
     renderStatsList();
 
 
@@ -1120,16 +1120,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderFormStrip(container, matches) {
     container.innerHTML = "";
-    const last5 = (matches || []).slice(-5);
+    // Sadece 2026-2027 sezonuna ait maçları filtrele
+    const season2627 = (matches || []).filter(m => 
+      m.season === '2026/2027' || (m.season && m.season.includes('2026') && m.season.includes('2027'))
+    );
+    const matchesToShow = season2627.length > 0 ? season2627 : (matches || []).filter(m => m.season === '2026/2027');
+    // En fazla 5 maç (yeni maç eklendiğinde en eski maç düşer)
+    const last5 = matchesToShow.slice(-5);
     if (last5.length === 0) {
-      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);">Karşılaşma kaydı yok</span>`;
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">2026-2027 sezonunda henüz maç yok</span>`;
       return;
     }
     last5.forEach(m => {
       const badge = document.createElement("span");
       badge.className = `form-badge ${m.result}`;
       badge.textContent = m.result;
-      badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || 'Son Karşılaşma'}): ${m.score} vs ${m.opponent}`;
+      badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || '2026-2027'}): ${m.score} vs ${m.opponent}`;
       container.appendChild(badge);
     });
   }
@@ -1141,8 +1147,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const hStats = homeProfile.stats;
     const aStats = awayProfile.stats;
 
-    const hSeasonLabel = homeProfile.dataSeasonLabel || 'Son 5 Maç';
-    const aSeasonLabel = awayProfile.dataSeasonLabel || 'Son 5 Maç';
+    const hSeasonLabel = homeProfile.dataSeasonLabel || '2026-2027 Sezonu';
+    const aSeasonLabel = awayProfile.dataSeasonLabel || '2026-2027 Sezonu';
     const seasonLabel = (hSeasonLabel === aSeasonLabel) ? hSeasonLabel : `${hSeasonLabel} / ${aSeasonLabel}`;
 
     statsList.innerHTML = "";
@@ -2401,7 +2407,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const p85U = Math.min(95, Math.max(45, Math.round(expCorners * 9.2)));
       const p95U = Math.min(90, Math.max(35, Math.round(expCorners * 8.2)));
       currentPossibleBets.push(
-        makeBet("korner", "Toplam Korner 8.5 Üst", p85U, `Son 5 maç verilerine göre toplam beklenen korner ${expCorners}.`),
+        makeBet("korner", "Toplam Korner 8.5 Üst", p85U, `2026-2027 sezonu verilerine göre toplam beklenen korner ${expCorners}.`),
         makeBet("korner", "Toplam Korner 9.5 Üst", p95U, `Kanat hücumları ve şut temposuyla korner beklentisi.`)
       );
     }
