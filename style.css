@@ -5235,5 +5235,93 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   }
 }
 
+/* ══════════════════════════════════════════════════════════
+   Engine 6.0 — Research Score & Detailed Bet Analysis
+   ══════════════════════════════════════════════════════════ */
 
+.research-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.research-score-badge.score-strong {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.10));
+  color: #fbbf24;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+}
+.research-score-badge.score-medium {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(59, 130, 246, 0.08));
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.30);
+}
+.research-score-badge.score-risky {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.20), rgba(239, 68, 68, 0.08));
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+}
 
+.bet-research-details {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+.bet-research-details .research-factors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.bet-research-details .factor-pro {
+  color: #4ade80;
+}
+.bet-research-details .factor-con {
+  color: #fb923c;
+}
+
+.bet-card.strong-pick {
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.08);
+}
+
+.bet-card-top .research-score-badge {
+  margin-left: auto;
+}
+
+.ai-research-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.ai-research-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+.ai-research-card .research-card-title {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.ai-research-card .research-card-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.ai-research-card .research-card-desc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}

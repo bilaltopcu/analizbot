@@ -1169,7 +1169,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const metrics = [
       { title:"⚽ Atılan Gol Ortalaması",
         homeDisplay: fmtVal(hStats.avgGoalsScored, "", " Gol/Maç"),
-        awayDisplay: fmtVal(aStats.avgGoalsConceded ? aStats.avgGoalsScored : hStats.avgGoalsScored, "", " Gol/Maç"),
+        awayDisplay: fmtVal(aStats.avgGoalsScored, "", " Gol/Maç"),
         rawHome: parseFloat(hStats.avgGoalsScored) || 0,
         rawAway: parseFloat(aStats.avgGoalsScored) || 0 },
       { title:"🥅 Yenilen Gol Ortalaması",
@@ -1216,7 +1216,28 @@ document.addEventListener("DOMContentLoaded", () => {
         homeDisplay: fmtVal(hStats.winPct, "%"),
         awayDisplay: fmtVal(aStats.winPct, "%"),
         rawHome: parseFloat(hStats.winPct) || 0,
-        rawAway: parseFloat(aStats.winPct) || 0 }
+        rawAway: parseFloat(aStats.winPct) || 0 },
+      // Engine 6.0: 4 Yeni Derin Araştırma Metriği
+      { title:"🛡️ Kalesini Gole Kapatma (Clean Sheet)",
+        homeDisplay: fmtVal(hStats.cleanSheetPct, "%"),
+        awayDisplay: fmtVal(aStats.cleanSheetPct, "%"),
+        rawHome: parseFloat(hStats.cleanSheetPct) || 0,
+        rawAway: parseFloat(aStats.cleanSheetPct) || 0 },
+      { title:"⚡ Faul Ortalaması",
+        homeDisplay: fmtVal(hStats.avgFouls, "", " Faul"),
+        awayDisplay: fmtVal(aStats.avgFouls, "", " Faul"),
+        rawHome: parseFloat(hStats.avgFouls) || 0,
+        rawAway: parseFloat(aStats.avgFouls) || 0 },
+      { title:"🕐 İlk Yarıda Gol Olma (İY 0.5 Üst)",
+        homeDisplay: fmtVal(hStats.htOver05Pct, "%"),
+        awayDisplay: fmtVal(aStats.htOver05Pct, "%"),
+        rawHome: parseFloat(hStats.htOver05Pct) || 0,
+        rawAway: parseFloat(aStats.htOver05Pct) || 0 },
+      { title:"📊 xG Farkı (xG - xGA)",
+        homeDisplay: (hStats.xg_diff != null ? (hStats.xg_diff > 0 ? `+${hStats.xg_diff}` : `${hStats.xg_diff}`) : (hStats.xg_per90 && hStats.xga_per90 ? (hStats.xg_per90 - hStats.xga_per90).toFixed(2) : "—")),
+        awayDisplay: (aStats.xg_diff != null ? (aStats.xg_diff > 0 ? `+${aStats.xg_diff}` : `${aStats.xg_diff}`) : (aStats.xg_per90 && aStats.xga_per90 ? (aStats.xg_per90 - aStats.xga_per90).toFixed(2) : "—")),
+        rawHome: Math.max(0, 5 + (parseFloat(hStats.xg_diff) || 0)),
+        rawAway: Math.max(0, 5 + (parseFloat(aStats.xg_diff) || 0)) }
     ];
 
     metrics.forEach(m => {
@@ -1255,9 +1276,8 @@ document.addEventListener("DOMContentLoaded", () => {
     aiResultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
-  // =============================================
-  // Engine 5.0: Dixon-Coles Poisson & Quant Engine
-  // =============================================
+  // ── Engine 6.0: Venue-Specific Performance Blend ──
+  // Overall stats (40%) + venue-specific stats (60%) for accurate predictions
   function calculateDixonColesProbabilities(hProfile, aProfile) {
     if (!hProfile || !aProfile) return null;
     const h = hProfile.stats;
@@ -1274,10 +1294,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const aXg = a.xg_per90 || aGoalScored;
     const aXga = a.xga_per90 || aGoalConceded;
 
-    const hAttack = (hGoalScored * 0.5) + (hXg * 0.5);
-    const hDefense = (hGoalConceded * 0.5) + (hXga * 0.5);
-    const aAttack = (aGoalScored * 0.5) + (aXg * 0.5);
-    const aDefense = (aGoalConceded * 0.5) + (aXga * 0.5);
+    // Engine 6.0: Venue-specific blending
+    const vH = hProfile.venueHomeStats; // Home team's home-only stats
+    const vA = aProfile.venueAwayStats; // Away team's away-only stats
+
+    let hAttack, hDefense, aAttack, aDefense;
+
+    if (vH && vH.avgGoalsScored != null) {
+      // Blend: 40% overall + 60% venue-specific
+      const hOverallAtk = (hGoalScored * 0.5) + (hXg * 0.5);
+      const hVenueAtk = vH.avgGoalsScored;
+      hAttack = (hOverallAtk * 0.40) + (hVenueAtk * 0.60);
+      const hOverallDef = (hGoalConceded * 0.5) + (hXga * 0.5);
+      const hVenueDef = vH.avgGoalsConceded || hOverallDef;
+      hDefense = (hOverallDef * 0.40) + (hVenueDef * 0.60);
+    } else {
+      hAttack = (hGoalScored * 0.5) + (hXg * 0.5);
+      hDefense = (hGoalConceded * 0.5) + (hXga * 0.5);
+    }
+
+    if (vA && vA.avgGoalsScored != null) {
+      const aOverallAtk = (aGoalScored * 0.5) + (aXg * 0.5);
+      const aVenueAtk = vA.avgGoalsScored;
+      aAttack = (aOverallAtk * 0.40) + (aVenueAtk * 0.60);
+      const aOverallDef = (aGoalConceded * 0.5) + (aXga * 0.5);
+      const aVenueDef = vA.avgGoalsConceded || aOverallDef;
+      aDefense = (aOverallDef * 0.40) + (aVenueDef * 0.60);
+    } else {
+      aAttack = (aGoalScored * 0.5) + (aXg * 0.5);
+      aDefense = (aGoalConceded * 0.5) + (aXga * 0.5);
+    }
 
     const leagueAvg = 1.35;
     const isCupFinal = selectedMatchMode === "cup" && selectedCupFormat === "final";
@@ -1481,7 +1527,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  // Calculate match probabilities combining Dixon-Coles and team profile metrics
+  // Engine 6.0: Calculate match probabilities with deep research metrics
   function calculateMatchProbabilities() {
     if (!homeProfile || !awayProfile) return null;
     const quant = calculateDixonColesProbabilities(homeProfile, awayProfile);
@@ -1492,15 +1538,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const expCorners = (parseFloat(h.avgCorners || 4.8) + parseFloat(a.avgCorners || 4.8)).toFixed(1);
     const expCards   = (parseFloat(h.avgYellowCards || 1.9) + parseFloat(a.avgYellowCards || 1.9)).toFixed(1);
+    const expFouls   = (parseFloat(h.avgFouls || 0) + parseFloat(a.avgFouls || 0)).toFixed(1);
+
+    // Venue-specific win percentages
+    const vH = homeProfile.venueHomeStats;
+    const vA = awayProfile.venueAwayStats;
+    const homeVenueWinPct = vH ? (vH.winPct || h.winPct || 0) : (h.winPct || 0);
+    const awayVenueWinPct = vA ? (vA.winPct || a.winPct || 0) : (a.winPct || 0);
 
     const hAdv = {
       wWinPct: h.winPct || 0,
+      venueWinPct: homeVenueWinPct,
       momentum: ((h.formPoints || 0) - 7.5) / 7.5
     };
     const aAdv = {
       wWinPct: a.winPct || 0,
+      venueWinPct: awayVenueWinPct,
       momentum: ((a.formPoints || 0) - 7.5) / 7.5
     };
+
+    // Engine 6.0: Form trend (improving/declining)
+    function calcFormTrend(matches) {
+      if (!matches || matches.length < 4) return 0;
+      const recent2 = matches.slice(-2);
+      const older2 = matches.slice(-4, -2);
+      const recentPts = recent2.reduce((s, m) => s + (m.result === 'W' ? 3 : m.result === 'D' ? 1 : 0), 0);
+      const olderPts = older2.reduce((s, m) => s + (m.result === 'W' ? 3 : m.result === 'D' ? 1 : 0), 0);
+      return recentPts - olderPts; // positive = improving, negative = declining
+    }
 
     return {
       ...quant,
@@ -1508,8 +1573,22 @@ document.addEventListener("DOMContentLoaded", () => {
       xG_away: quant.mu,
       expCorners,
       expCards,
+      expFouls,
       hAdv,
-      aAdv
+      aAdv,
+      // Engine 6.0 deep metrics
+      homeCleanSheetPct: h.cleanSheetPct || 0,
+      awayCleanSheetPct: a.cleanSheetPct || 0,
+      homeHtGoalPct: h.htOver05Pct || 0,
+      awayHtGoalPct: a.htOver05Pct || 0,
+      homeFouls: parseFloat(h.avgFouls || 0),
+      awayFouls: parseFloat(a.avgFouls || 0),
+      homeImpliedProb: h.impliedWinProb || null,
+      awayImpliedProb: a.impliedWinProb || null,
+      homeFormTrend: calcFormTrend(homeProfile.matches),
+      awayFormTrend: calcFormTrend(awayProfile.matches),
+      homeXgDiff: h.xg_diff || 0,
+      awayXgDiff: a.xg_diff || 0
     };
   }
 
@@ -1543,8 +1622,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 12);
   }
 
-  // AI Prediction Engine 5.0: Category-First Signal Picker
-  // Hangi kategori en güçlü sinyali veriyorsa (kart/korner/gol/taraf) onu seç
+  // AI Prediction Engine 6.0: Multi-Factor Research Score + Category-First Signal Picker
+  // Her bahis adayı 6 bağımsız araştırma faktörü ile puanlanır
   function generateAIPrediction() {
     if (!homeProfile || !awayProfile) return;
 
@@ -1583,6 +1662,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const cornersReliable= homeProfile.cornersReliable && awayProfile.cornersReliable;
     const cardsReliable  = homeProfile.cardsReliable   && awayProfile.cardsReliable;
 
+    // Engine 6.0: New deep analysis variables
+    const homeFouls      = parseFloat(hStats.avgFouls || 0);
+    const awayFouls      = parseFloat(aStats.avgFouls || 0);
+    const totalFouls     = homeFouls + awayFouls;
+    const homeCleanSheet = hStats.cleanSheetPct || 0;
+    const awayCleanSheet = aStats.cleanSheetPct || 0;
+    const homeHtGoalPct  = hStats.htOver05Pct || 0;
+    const awayHtGoalPct  = aStats.htOver05Pct || 0;
+    const homeFormTrend  = probs.homeFormTrend || 0;
+    const awayFormTrend  = probs.awayFormTrend || 0;
+
     // Ortalamalar
     const totalCornersExp = parseFloat(probs.expCorners);
     const totalCardsExp   = parseFloat(probs.expCards);
@@ -1591,48 +1681,107 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeEdge        = probs.pHomeWin - probs.pAwayWin;
     const awayEdge        = probs.pAwayWin - probs.pHomeWin;
 
+    // Engine 6.0: Multi-Factor Research Score Calculator
+    // 6 factors: Dixon-Coles Prob (25%), Form Trend (20%), Venue Performance (20%),
+    // Market Alignment (15%), Category History (10%), Supporting Stats Count (10%)
+    const categoryHistoryWeight = { kart: 0.93, taraf: 0.74, korner: 0.64, gol: 0.56 };
+
+    function calcResearchScore(candidate) {
+      const f1 = Math.min(100, (candidate.pct / 80) * 100) * 0.25; // Dixon-Coles
+      // Form trend: positive is good for the pick
+      const trendVal = candidate.category === 'taraf'
+        ? (candidate.title.includes('1') ? homeFormTrend : awayFormTrend)
+        : (homeFormTrend + awayFormTrend) / 2;
+      const f2 = Math.min(100, 50 + trendVal * 10) * 0.20; // Form trend
+      // Venue performance
+      const venueScore = candidate.category === 'taraf'
+        ? (candidate.title.includes('1') ? (hAdv.venueWinPct || hAdv.wWinPct) : (aAdv.venueWinPct || aAdv.wWinPct))
+        : Math.max(hAdv.venueWinPct || 0, aAdv.venueWinPct || 0);
+      const f3 = Math.min(100, venueScore * 1.3) * 0.20; // Venue
+      // Market alignment (if implied prob exists)
+      const impliedH = probs.homeImpliedProb;
+      const impliedA = probs.awayImpliedProb;
+      let f4 = 50 * 0.15; // default neutral
+      if (impliedH && impliedA) {
+        const modelP = candidate.pct / 100;
+        const diffFromMarket = Math.abs(modelP - (candidate.title.includes('1') ? impliedH : candidate.title.includes('2') ? impliedA : 0.5));
+        f4 = Math.min(100, 100 - diffFromMarket * 200) * 0.15;
+      }
+      const f5 = (categoryHistoryWeight[candidate.category] || 0.60) * 100 * 0.10; // Category history
+      const f6 = Math.min(100, (candidate.supportingFactors || 2) * 20) * 0.10; // Supporting stats count
+      return Math.round(f1 + f2 + f3 + f4 + f5 + f6);
+    }
+
     // ────────────────────────────────────────────────────────
-    // ADAY HAVUZU: Her kategoriden adaylar
+    // ADAY HAVUZU: Her kategoriden adaylar (Engine 6.0 filtreleriyle)
     // ────────────────────────────────────────────────────────
     const candidates = [];
 
-    // ── KATEGORI 1: KART BAHİSLERİ ──
+    // ── KATEGORI 1: KART BAHİSLERİ (Engine 6.0: Faul Entegrasyonu) ──
     if (cardsReliable) {
-      // Toplam kart belirgin yüksekse VE her iki takım da en az 1.8 ortalamaya sahipse
-      if (totalCardsExp >= 4.5 && homeCards >= 1.8 && awayCards >= 1.8) {
-        const pct = Math.min(85, Math.round(totalCardsExp * 14));
+      // Engine 6.0: Kupa maçlarında kart çarpanı
+      const cupCardMultiplier = selectedMatchMode === "cup" ? 1.15 : 1.0;
+      const adjustedCardsExp = totalCardsExp * cupCardMultiplier;
+      // Faul bonus: yüksek faul ortalaması (≥13 toplam) kart sinyalini güçlendirir
+      const foulBonus = totalFouls >= 13 ? (totalFouls - 12) * 3 : 0;
+
+      if (adjustedCardsExp >= 4.5 && homeCards >= 1.8 && awayCards >= 1.8) {
+        let sf = 2; // supporting factors count
+        if (totalFouls >= 13) sf++;
+        if (selectedMatchMode === "cup") sf++;
+        const pct = Math.min(87, Math.round(adjustedCardsExp * 14));
+        const pros = [`Toplam kart ort. ${(homeCards+awayCards).toFixed(1)}`];
+        const cons = [];
+        if (totalFouls >= 13) pros.push(`Yüksek faul temposu (${totalFouls.toFixed(0)})`);
+        if (selectedMatchMode === "cup") pros.push('Kupa maçı tansiyon çarpanı');
+        if (homeCards < 2.0 || awayCards < 2.0) cons.push('Bir takımın kart ortalaması 2.0 altında');
         candidates.push({
           category: "kart",
           title: "TOPLAM SARI KART 4.5 ÜST",
           pct, odds: 1.95,
-          signal: (totalCardsExp - 4.0) * 10 + (homeCards + awayCards - 3.5) * 6,
-          reason: `${homeProfile.teamName} (${homeCards}) ve ${awayProfile.teamName} (${awayCards}) toplam ${(homeCards+awayCards).toFixed(1)} sarı kart ortalamasına sahip. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`
+          signal: (adjustedCardsExp - 4.0) * 10 + (homeCards + awayCards - 3.5) * 6 + foulBonus,
+          supportingFactors: sf,
+          pros, cons,
+          reason: `${homeProfile.teamName} (${homeCards}) ve ${awayProfile.teamName} (${awayCards}) toplam ${(homeCards+awayCards).toFixed(1)} kart ort.${totalFouls >= 13 ? ` Faul temposu yüksek (${totalFouls.toFixed(0)}).` : ''} ⚠️ Hakem profili kontrol edilmelidir.`
         });
       }
-      if (totalCardsExp >= 3.8 && homeCards >= 1.5 && awayCards >= 1.5) {
-        const pct = Math.min(85, Math.round(totalCardsExp * 16));
+      if (adjustedCardsExp >= 3.8 && homeCards >= 1.5 && awayCards >= 1.5) {
+        let sf = 2;
+        if (totalFouls >= 12) sf++;
+        const pct = Math.min(87, Math.round(adjustedCardsExp * 16));
+        const pros = [`Kart beklentisi ${adjustedCardsExp.toFixed(1)}`];
+        const cons = [];
+        if (totalFouls >= 12) pros.push(`Faul ortalaması (${totalFouls.toFixed(0)})`);
+        if (adjustedCardsExp < 4.0) cons.push('Beklenti 4.0 altında, sınıra yakın');
         candidates.push({
           category: "kart",
           title: "TOPLAM SARI KART 3.5 ÜST",
           pct, odds: 1.72,
-          signal: (totalCardsExp - 3.0) * 8 + (homeCards + awayCards - 3.0) * 5,
-          reason: `İki takımın toplam kart ortalaması ${(homeCards+awayCards).toFixed(1)}. 3.5 üst eğilimi mevcut. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`
+          signal: (adjustedCardsExp - 3.0) * 8 + (homeCards + awayCards - 3.0) * 5 + foulBonus,
+          supportingFactors: sf,
+          pros, cons,
+          reason: `Toplam kart beklentisi ${adjustedCardsExp.toFixed(1)}.${totalFouls >= 12 ? ` Faul yoğunluğu (${totalFouls.toFixed(0)}) sinyali destekliyor.` : ''}`
         });
       }
-      // Kart düşükse ALT
-      if (totalCardsExp < 3.2) {
-        const pLow = Math.min(82, Math.round((4.0 - totalCardsExp) * 20));
+      if (adjustedCardsExp < 3.2) {
+        const pLow = Math.min(82, Math.round((4.0 - adjustedCardsExp) * 20));
+        const pros = [`Düşük kart ort. (${(homeCards+awayCards).toFixed(1)})`];
+        const cons = [];
+        if (totalFouls >= 10) cons.push(`Faul ortalaması orta seviyede (${totalFouls.toFixed(0)})`);
+        if (selectedMatchMode === "cup") cons.push('Kupa maçları tansiyon artırabilir');
         candidates.push({
           category: "kart",
           title: "TOPLAM SARI KART 3.5 ALT",
           pct: pLow, odds: 1.80,
-          signal: (3.5 - totalCardsExp) * 12,
-          reason: `Takımların kart ortalaması düşük (${homeCards} + ${awayCards} = ${(homeCards+awayCards).toFixed(1)}). Sakin maç beklentisi.`
+          signal: (3.5 - adjustedCardsExp) * 12,
+          supportingFactors: totalFouls < 10 ? 3 : 2,
+          pros, cons,
+          reason: `Takımların kart ortalaması düşük (${homeCards} + ${awayCards} = ${(homeCards+awayCards).toFixed(1)}). ${totalFouls < 10 ? 'Düşük faul temposu destekliyor.' : ''}`
         });
       }
     }
 
-    // ── KATEGORI 2: KORNER BAHİSLERİ ──
+    // ── KATEGORI 2: KORNER BAHİSLERİ (Engine 6.0) ──
     if (cornersReliable) {
       if (totalCornersExp >= 10.0) {
         const pct = Math.min(84, Math.round(totalCornersExp * 7.5));
@@ -1641,6 +1790,9 @@ document.addEventListener("DOMContentLoaded", () => {
           title: "TOPLAM KORNER 9.5 ÜST",
           pct, odds: 1.90,
           signal: (totalCornersExp - 9.0) * 18 + (homeCorners + awayCorners - 9.0) * 12,
+          supportingFactors: 4,
+          pros: [`Beklenen korner: ${totalCornersExp}`, `Ev (${homeCorners}) + Dep (${awayCorners}) kanat temposu`],
+          cons: [totalCornersExp < 10.5 ? '10.0 sınırına yakın' : ''],
           reason: `${homeProfile.teamName} ${homeCorners} + ${awayProfile.teamName} ${awayCorners} korner ortalamasıyla toplam ${totalCornersExp} beklenen korner. 9.5 üst için net sinyal.`
         });
       } else if (totalCornersExp >= 9.0) {
@@ -1650,6 +1802,9 @@ document.addEventListener("DOMContentLoaded", () => {
           title: "TOPLAM KORNER 8.5 ÜST",
           pct, odds: 1.75,
           signal: (totalCornersExp - 8.0) * 16,
+          supportingFactors: 3,
+          pros: [`Toplam korner beklentisi ${totalCornersExp}`, 'Kanat organizasyonları güçlü'],
+          cons: [],
           reason: `Maç başına beklenen korner sayısı ${totalCornersExp} — 8.5 üst için iyi görünüm.`
         });
       } else if (totalCornersExp < 8.5) {
@@ -1659,142 +1814,215 @@ document.addEventListener("DOMContentLoaded", () => {
           title: "TOPLAM KORNER 8.5 ALT",
           pct: pLow, odds: 1.75,
           signal: (8.5 - totalCornersExp) * 14,
+          supportingFactors: 3,
+          pros: [`Düşük korner ortalamaları (${(homeCorners+awayCorners).toFixed(1)})`, 'Merkezi oyun tercihi'],
+          cons: [totalCornersExp > 8.0 ? '8.5 sınırına yakın' : ''],
           reason: `İki takımın ortalama kornerleri düşük (${homeCorners} + ${awayCorners}). Defansif/kontrollü maç beklentisi.`
         });
       }
     }
 
-    // ── KATEGORI 3: GOL BAHİSLERİ ──
-    // 2.5 Üst
+    // ── KATEGORI 3: GOL BAHİSLERİ (Engine 6.0: Sıkılaştırılmış Filtreler + Clean Sheet) ──
+    // 2.5 Üst — Eşikler yükseltildi: %58+, xG ≥ 2.50, avgOver25 ≥ 52%, hücum gücü kontrolü
     const over25Signal = (avgOver25Comb - 45) * 0.7 + (totalXG - 2.0) * 18 + (probs.pOver25 - 50) * 0.6;
-    if (probs.pOver25 >= 54 && totalXG >= 2.35 && avgOver25Comb >= 48) {
+    if (probs.pOver25 >= 58 && totalXG >= 2.50 && avgOver25Comb >= 52 && homeAttack >= 1.10 && awayAttack >= 0.95) {
+      let sf = 3;
+      const pros = [`xG toplamı ${totalXG.toFixed(2)}`, `2.5Ü ort. %${avgOver25Comb}`];
+      const cons = [];
+      if (homeCleanSheet >= 40 || awayCleanSheet >= 40) { cons.push(`Yüksek clean sheet (Ev %${homeCleanSheet} / Dep %${awayCleanSheet})`); }
+      else { sf++; pros.push('Düşük clean sheet oranları'); }
+      if (homeFormTrend > 0 || awayFormTrend > 0) { sf++; pros.push('Yükselen form trendi'); }
       candidates.push({
         category: "gol",
         title: "TOPLAM GOL 2.5 ÜST",
         pct: probs.pOver25,
         odds: parseFloat(Math.max(1.68, Math.min(2.10, (100/probs.pOver25)*0.94)).toFixed(2)),
         signal: Math.min(100, Math.max(0, over25Signal)),
-        reason: `${hSeason} sezonu: Ev ${hStats.avgGoalsScored} / Dep ${aStats.avgGoalsScored} gol ortalaması. xG toplamı ${totalXG.toFixed(2)} ile yüksek gol beklentisi.`
+        supportingFactors: sf,
+        pros, cons,
+        reason: `xG toplamı ${totalXG.toFixed(2)}, 2.5Ü ort. %${avgOver25Comb}. ${homeProfile.teamName} ${hStats.avgGoalsScored} / ${awayProfile.teamName} ${aStats.avgGoalsScored} gol ort. ile gollü maç beklentisi güçlü.`
       });
     }
-    // 2.5 Alt
+    // 2.5 Alt — Eşikler: %56+, xG ≤ 2.20, avgOver25 ≤ 48%, clean sheet desteği
     const pUnder25 = 100 - probs.pOver25;
     const under25Signal = (65 - avgOver25Comb) * 0.8 + (2.8 - totalXG) * 15 + (pUnder25 - 50) * 0.5;
-    if (pUnder25 >= 52 && totalXG <= 2.40 && avgOver25Comb <= 52) {
+    if (pUnder25 >= 56 && totalXG <= 2.20 && avgOver25Comb <= 48) {
+      let sf = 3;
+      const pros = [`Düşük xG (${totalXG.toFixed(2)})`, `2.5Ü ort. sadece %${avgOver25Comb}`];
+      const cons = [];
+      if (homeCleanSheet >= 20 && awayCleanSheet >= 20) { sf++; pros.push(`Güçlü savunmalar (CS: Ev %${homeCleanSheet} / Dep %${awayCleanSheet})`); }
+      if (homeAttack >= 1.5 || awayAttack >= 1.5) cons.push(`Bir tarafın gol ortalaması yüksek`);
       candidates.push({
         category: "gol",
         title: "TOPLAM GOL 2.5 ALT",
         pct: pUnder25,
         odds: parseFloat(Math.max(1.68, Math.min(2.10, (100/pUnder25)*0.94)).toFixed(2)),
         signal: Math.min(100, Math.max(0, under25Signal)),
-        reason: `Savunma ağırlıklı karşılaşma; ${homeProfile.teamName} (${hStats.avgGoalsConceded} yenilen) ve ${awayProfile.teamName} düşük gol beklentisiyle düşük skorlu öngörülüyor.`
+        supportingFactors: sf,
+        pros, cons,
+        reason: `Savunma odaklı maç. xG ${totalXG.toFixed(2)}, clean sheet oranları Ev %${homeCleanSheet} / Dep %${awayCleanSheet}. Düşük skor tahmini.`
       });
     }
-    // KG Var
+    // KG Var — Eşikler: %58+, avgBtts ≥ 52%, clean sheet ≤ 45%
     const bttsSignal = (avgBttsCombined - 42) * 0.9 + (homeAttack > 1.0 ? 14 : 0) + (awayAttack > 0.9 ? 12 : 0)
       + (homeDef > 1.1 ? 8 : 0) + (awayDef > 1.0 ? 8 : 0) + (probs.pBTTS - 50) * 0.7;
-    if (probs.pBTTS >= 54 && avgBttsCombined >= 48 && homeAttack > 0.95 && awayAttack > 0.85) {
+    if (probs.pBTTS >= 58 && avgBttsCombined >= 52 && homeAttack > 0.95 && awayAttack > 0.85 && homeCleanSheet <= 45 && awayCleanSheet <= 45) {
+      let sf = 3;
+      const pros = [`KG Var ort. %${avgBttsCombined}`, `Her iki taraf gol üretebilir`];
+      const cons = [];
+      if (homeCleanSheet >= 30) cons.push(`Ev sahibi CS %${homeCleanSheet}`);
+      if (awayCleanSheet >= 30) cons.push(`Deplasman CS %${awayCleanSheet}`);
+      if (homeAttack >= 1.2 && awayAttack >= 1.0) { sf++; pros.push('Her iki hücum potansiyeli güçlü'); }
       candidates.push({
         category: "gol",
         title: "KARŞILIKLI GOL VAR (KG VAR)",
         pct: probs.pBTTS,
         odds: parseFloat(Math.max(1.62, Math.min(1.92, (100/probs.pBTTS)*0.94)).toFixed(2)),
         signal: Math.min(100, Math.max(0, bttsSignal)),
-        reason: `${homeProfile.teamName} %${homeBtts} / ${awayProfile.teamName} %${awayBtts} KG Var oranları ve gol üretkenliği her iki tarafın kaleye gideceğine işaret ediyor.`
+        supportingFactors: sf,
+        pros, cons,
+        reason: `KG Var ort. %${avgBttsCombined}. ${homeProfile.teamName} %${homeBtts} / ${awayProfile.teamName} %${awayBtts}. Clean sheet düşük (Ev %${homeCleanSheet} / Dep %${awayCleanSheet}).`
       });
     }
-    // KG Yok
+    // KG Yok — Clean sheet desteği eklendi
     const pBttsNo = 100 - probs.pBTTS;
     const bttsNoSignal = (55 - avgBttsCombined) * 0.9 + (homeDef < 1.0 ? 12 : 0) + (awayDef < 0.95 ? 12 : 0) + (pBttsNo - 45) * 0.6;
     if (pBttsNo >= 50 && avgBttsCombined <= 50 && !(homeAttack > 1.5 && awayAttack > 1.3)) {
+      let sf = 2;
+      const pros = [`KG Yok ort. %${100 - Math.round(avgBttsCombined)}`];
+      const cons = [];
+      if (homeCleanSheet >= 30) { sf++; pros.push(`Ev sahibi CS %${homeCleanSheet}`); }
+      if (awayCleanSheet >= 30) { sf++; pros.push(`Deplasman CS %${awayCleanSheet}`); }
+      if (homeAttack >= 1.3) cons.push(`Ev sahibi gol ort. yüksek (${homeAttack.toFixed(1)})`);
       candidates.push({
         category: "gol",
         title: "KARŞILIKLI GOL YOK (KG YOK)",
         pct: pBttsNo,
         odds: parseFloat(Math.max(1.55, Math.min(1.85, (100/pBttsNo)*0.94)).toFixed(2)),
         signal: Math.min(100, Math.max(0, bttsNoSignal)),
-        reason: `${homeProfile.teamName} %${100-homeBtts} / ${awayProfile.teamName} %${100-awayBtts} KG Yok oranı. En az bir taraf gol bulamayabilir.`
+        supportingFactors: sf,
+        pros, cons,
+        reason: `En az bir taraf gol bulamayabilir. Clean sheet: Ev %${homeCleanSheet} / Dep %${awayCleanSheet}. KG Yok geçmişi güçlü.`
       });
     }
     // 3.5 Üst
     if (probs.pOver35 >= 28 && totalXG >= 3.0 && homeAttack >= 1.5 && awayAttack >= 1.3) {
       const sig = (totalXG - 2.8) * 20 + (avgOver25Comb - 50) * 0.8 + (probs.pOver35 - 25) * 0.8;
+      const pros = [`xG ${totalXG.toFixed(2)}`, `Yüksek hücum gücü`];
+      const cons = [];
+      if (homeCleanSheet >= 30 || awayCleanSheet >= 30) cons.push('Yüksek clean sheet riski');
       candidates.push({
         category: "gol",
         title: "TOPLAM GOL 3.5 ÜST",
         pct: probs.pOver35,
         odds: parseFloat(Math.max(1.95, Math.min(2.80, (100/probs.pOver35)*0.94)).toFixed(2)),
         signal: Math.min(100, Math.max(0, sig)),
-        reason: `Hücum ağırlıklı karşılaşma. xG toplamı ${totalXG.toFixed(2)} ile 4+ gollü geçme ihtimali yüksek.`
+        supportingFactors: 3,
+        pros, cons,
+        reason: `Hücum ağırlıklı maç. xG ${totalXG.toFixed(2)}, ev sahibi ${homeAttack.toFixed(1)} / deplasman ${awayAttack.toFixed(1)} gol ort. ile 4+ gol potansiyeli.`
       });
     }
     // Ev takımı 1.5 Üst
     const home15 = Math.round((1 - Math.exp(-probs.xG_home) * (1 + probs.xG_home)) * 100);
     if (probs.xG_home >= 1.55 && home15 >= 53 && homeAttack >= 1.2) {
+      const pros = [`xG ${probs.xG_home}`, `Gol ort. ${hStats.avgGoalsScored}`];
+      const cons = [];
+      if (awayCleanSheet >= 35) cons.push(`Deplasman CS %${awayCleanSheet}`);
       candidates.push({
         category: "gol",
         title: `${homeProfile.teamName.toUpperCase()} 1.5 GOL ÜSTÜ`,
         pct: Math.min(82, Math.max(53, home15)),
         odds: parseFloat(Math.max(1.65, Math.min(2.15, (100/Math.max(50,home15))*0.93)).toFixed(2)),
         signal: (homeAttack - 1.0)*30 + (probs.xG_home - 1.2)*22 + (home15-48)*0.6 + homeMom*12,
-        reason: `${homeProfile.teamName} iç sahada ${probs.xG_home} xG ve ${hStats.avgGoalsScored} sezon ortalamasıyla 2+ gol potansiyeli taşıyor.`
+        supportingFactors: awayCleanSheet < 30 ? 4 : 3,
+        pros, cons,
+        reason: `${homeProfile.teamName} iç sahada xG ${probs.xG_home}, gol ort. ${hStats.avgGoalsScored}. Rakip CS %${awayCleanSheet}.`
       });
     }
     // Deplasman 1.5 Üst
     const away15 = Math.round((1 - Math.exp(-probs.xG_away) * (1 + probs.xG_away)) * 100);
     if (probs.xG_away >= 1.45 && away15 >= 50 && awayAttack >= 1.1 && awayEdge >= -5) {
+      const pros = [`xG ${probs.xG_away}`, `Gol ort. ${aStats.avgGoalsScored}`];
+      const cons = [];
+      if (homeCleanSheet >= 35) cons.push(`Ev sahibi CS %${homeCleanSheet}`);
       candidates.push({
         category: "gol",
         title: `${awayProfile.teamName.toUpperCase()} 1.5 GOL ÜSTÜ`,
         pct: Math.min(80, Math.max(50, away15)),
         odds: parseFloat(Math.max(1.75, Math.min(2.40, (100/Math.max(44,away15))*0.93)).toFixed(2)),
         signal: (awayAttack - 0.9)*28 + (probs.xG_away - 1.1)*20 + (away15-46)*0.6 + awayMom*12,
-        reason: `${awayProfile.teamName} deplasmanda ${probs.xG_away} xG ile ${aStats.avgGoalsScored} gol ortalamasını destekliyor.`
+        supportingFactors: homeCleanSheet < 30 ? 4 : 3,
+        pros, cons,
+        reason: `${awayProfile.teamName} deplasmanda xG ${probs.xG_away}, gol ort. ${aStats.avgGoalsScored}. Rakip CS %${homeCleanSheet}.`
       });
     }
 
-    // ── KATEGORI 4: MAÇ TARAF BAHİSLERİ ──
+    // ── KATEGORI 4: MAÇ TARAF BAHİSLERİ (Engine 6.0: Venue + Form Trend + Implied Prob) ──
     // Ev sahibi favori
-    if (homeEdge >= 16 && probs.xG_home >= probs.xG_away + 0.20 && hAdv.wWinPct >= 44) {
-      const sig = homeEdge * 0.6 + (hAdv.wWinPct - 40)*0.4 + homeMom*15;
+    const homeVenuePct = hAdv.venueWinPct || hAdv.wWinPct;
+    if (homeEdge >= 14 && probs.xG_home >= probs.xG_away + 0.15 && homeVenuePct >= 42) {
+      let sf = 3;
+      const pros = [`İç saha galibiyeti %${homeVenuePct}`, `xG üstünlüğü (${probs.xG_home} vs ${probs.xG_away})`];
+      const cons = [];
+      if (homeMom > 0) { sf++; pros.push('Pozitif form momentumu'); }
+      if (homeFormTrend > 0) { sf++; pros.push('Yükselen form trendi'); }
+      if (awayCleanSheet >= 35) cons.push(`Deplasman clean sheet %${awayCleanSheet}`);
+      const sig = homeEdge * 0.6 + (homeVenuePct - 40)*0.4 + homeMom*15 + (homeFormTrend > 0 ? 8 : 0);
       const estOdds = parseFloat(Math.max(1.62, Math.min(2.20, (100/probs.pHomeWin)*0.94)).toFixed(2));
       candidates.push({
         category: "taraf",
         title: `MAÇ SONUCU 1 (${homeProfile.teamName.toUpperCase()} KAZANIR)`,
         pct: probs.pHomeWin, odds: estOdds,
         signal: Math.min(100, sig),
-        reason: `${hSeason} sezonu: ${homeProfile.teamName} iç sahada %${hAdv.wWinPct} galibiyet oranı ve ${probs.xG_home} xG üstünlüğüyle net favori.`
+        supportingFactors: sf,
+        pros, cons,
+        reason: `${hSeason} sezonu: ${homeProfile.teamName} iç sahada %${homeVenuePct} galibiyet ve ${probs.xG_home} xG üstünlüğüyle net favori.`
       });
     }
     // Deplasman favori
-    if (awayEdge >= 12 && probs.xG_away >= probs.xG_home + 0.20 && aAdv.wWinPct >= 40) {
-      const sig = awayEdge * 0.6 + (aAdv.wWinPct - 38)*0.4 + awayMom*15;
+    const awayVenuePct = aAdv.venueWinPct || aAdv.wWinPct;
+    if (awayEdge >= 10 && probs.xG_away >= probs.xG_home + 0.15 && awayVenuePct >= 38) {
+      let sf = 3;
+      const pros = [`Deplasman galibiyeti %${awayVenuePct}`, `xG üstünlüğü (${probs.xG_away} vs ${probs.xG_home})`];
+      const cons = [];
+      if (awayMom > 0) { sf++; pros.push('Pozitif deplasman ivmesi'); }
+      if (awayFormTrend > 0) { sf++; pros.push('Yükselen form trendi'); }
+      if (homeCleanSheet >= 35) cons.push(`Ev sahibi clean sheet %${homeCleanSheet}`);
+      const sig = awayEdge * 0.6 + (awayVenuePct - 38)*0.4 + awayMom*15 + (awayFormTrend > 0 ? 8 : 0);
       const estOdds = parseFloat(Math.max(1.72, Math.min(2.60, (100/probs.pAwayWin)*0.94)).toFixed(2));
       candidates.push({
         category: "taraf",
         title: `MAÇ SONUCU 2 (${awayProfile.teamName.toUpperCase()} KAZANIR)`,
         pct: probs.pAwayWin, odds: estOdds,
         signal: Math.min(100, sig),
-        reason: `${aSeason} sezonu: ${awayProfile.teamName} deplasmanda %${aAdv.wWinPct} galibiyet oranı ve ${probs.xG_away} xG ile güçlü aday.`
+        supportingFactors: sf,
+        pros, cons,
+        reason: `${aSeason} sezonu: ${awayProfile.teamName} deplasmanda %${awayVenuePct} galibiyet ve ${probs.xG_away} xG ile güçlü aday.`
       });
     }
     // 1-X Çifte Şans
-    if (probs.pHomeWin >= 36 && probs.p1X >= 63 && homeEdge >= 0 && probs.pAwayWin <= 34) {
+    if (probs.pHomeWin >= 35 && probs.p1X >= 62 && homeEdge >= -5 && probs.pAwayWin <= 36) {
       candidates.push({
         category: "taraf",
         title: `ÇİFTE ŞANS 1-X (${homeProfile.teamName.toUpperCase()} KAZANIR VEYA BERABERLİK)`,
         pct: probs.p1X, odds: 1.38,
         signal: (probs.p1X - 58)*0.9 + homeEdge*0.3,
-        reason: `${homeProfile.teamName} iç saha avantajı; ev sahibi ya da beraberlik ile sonuçlanması %${probs.p1X} olasılıkla güvenli tercih.`
+        supportingFactors: 4,
+        pros: [`Ev sahibi yenilmeme %${probs.p1X}`, 'İç saha direnci'],
+        cons: [],
+        reason: `${homeProfile.teamName} iç saha avantajı; ev sahibi ya da beraberlik olasılığı %${probs.p1X} ile güvenli tercih.`
       });
     }
     // X-2 Çifte Şans
-    if (probs.pAwayWin >= 32 && probs.pX2 >= 60 && awayEdge >= 0 && probs.pHomeWin <= 36) {
+    if (probs.pAwayWin >= 32 && probs.pX2 >= 60 && awayEdge >= -5 && probs.pHomeWin <= 38) {
       candidates.push({
         category: "taraf",
         title: `ÇİFTE ŞANS X-2 (${awayProfile.teamName.toUpperCase()} KAZANIR VEYA BERABERLİK)`,
         pct: probs.pX2, odds: 1.45,
         signal: (probs.pX2 - 56)*0.9 + awayEdge*0.3,
+        supportingFactors: 4,
+        pros: [`Deplasman yenilmeme %${probs.pX2}`, 'Deplasman direnci'],
+        cons: [],
         reason: `${awayProfile.teamName} deplasman direnci; deplasman ya da beraberlik olasılığı %${probs.pX2}.`
       });
     }
@@ -1804,23 +2032,34 @@ document.addEventListener("DOMContentLoaded", () => {
       if (probs.pHomeWin >= probs.pAwayWin + 8) {
         candidates.push({ category:"taraf", title:`MAÇ SONUCU 1 (${homeProfile.teamName.toUpperCase()} KAZANIR)`,
           pct:probs.pHomeWin, odds:parseFloat(Math.max(1.62, Math.min(2.20,(100/probs.pHomeWin)*0.94)).toFixed(2)),
-          signal:28, reason:`${homeProfile.teamName} simulasyon sonuçlarına göre en güçlü galibiyet adayı (%${probs.pHomeWin}).` });
+          signal:28, supportingFactors: 2, pros: ['Simülasyon favorisi'], cons: ['Sıkı sınırları karşılamıyor'],
+          reason:`${homeProfile.teamName} simülasyon sonuçlarına göre en güçlü galibiyet adayı (%${probs.pHomeWin}).` });
       } else if (probs.pAwayWin >= probs.pHomeWin + 8) {
         candidates.push({ category:"taraf", title:`MAÇ SONUCU 2 (${awayProfile.teamName.toUpperCase()} KAZANIR)`,
           pct:probs.pAwayWin, odds:parseFloat(Math.max(1.72, Math.min(2.55,(100/probs.pAwayWin)*0.94)).toFixed(2)),
-          signal:28, reason:`${awayProfile.teamName} simulasyon sonuçlarına göre en güçlü deplasman adayı (%${probs.pAwayWin}).` });
+          signal:28, supportingFactors: 2, pros: ['Simülasyon favorisi'], cons: ['Sıkı sınırları karşılamıyor'],
+          reason:`${awayProfile.teamName} simülasyon sonuçlarına göre en güçlü deplasman adayı (%${probs.pAwayWin}).` });
       } else if (probs.pOver25 >= 55) {
         candidates.push({ category:"gol", title:"TOPLAM GOL 2.5 ÜST", pct:probs.pOver25,
           odds:parseFloat(Math.max(1.68,Math.min(2.10,(100/probs.pOver25)*0.94)).toFixed(2)),
-          signal:26, reason:`xG toplamı ${totalXG.toFixed(2)} ile gollü karşılaşma bekleniyor.` });
+          signal:26, supportingFactors: 2, pros: [`xG toplamı ${totalXG.toFixed(2)}`], cons: ['Dengeli tempo'],
+          reason:`xG toplamı ${totalXG.toFixed(2)} ile gollü karşılaşma bekleniyor.` });
       } else {
         candidates.push({ category:"gol", title:"TOPLAM GOL 2.5 ALT", pct:100-probs.pOver25,
-          odds:1.80, signal:24, reason:"Dengeli güç, düşük tempo — 2.5 Alt öne çıkıyor." });
+          odds:1.80, signal:24, supportingFactors: 2, pros: ['Dengeli güç'], cons: ['Düşük hücum temposu'],
+          reason:"Dengeli güç, kontrollü oyun — 2.5 Alt öne çıkıyor." });
       }
     }
 
-    // En yüksek sinyal değerine sahip adayı seç
-    candidates.sort((a, b) => b.signal - a.signal);
+    // Engine 6.0: Calculate Research Score for each candidate & Composite Rank
+    candidates.forEach(c => {
+      c.researchScore = calcResearchScore(c);
+      // Composite score: 65% Research Score + 35% Signal Strength
+      c.compositeScore = Math.round((c.researchScore * 0.65) + ((c.signal || 50) * 0.35));
+    });
+
+    // En yüksek composite skora göre sırala
+    candidates.sort((a, b) => b.compositeScore - a.compositeScore);
     const bestPick = candidates[0];
     currentAIPick = bestPick;
 
@@ -1929,9 +2168,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (aiScorePrediction) aiScorePrediction.textContent = scorePred;
 
     // Taktik grid — kategori etiketi ekle
+    // Taktik grid — Research Score ve derin analiz metrikleri
     const catIcon = { kart:"🟨", korner:"🚩", gol:"⚽", taraf:"🏆" }[bestPick.category] || "📊";
     if (aiTacticalGrid) {
-      const signalBar = Math.round(bestPick.signal || 50);
+      const rScore = bestPick.researchScore || 70;
+      const rScoreClass = rScore >= 75 ? 'score-strong' : (rScore >= 60 ? 'score-medium' : 'score-risky');
+      const rScoreLabel = rScore >= 75 ? 'GÜÇLÜ ÖNERİ' : (rScore >= 60 ? 'DENGELİ' : 'RİSKLİ');
+
       aiTacticalGrid.innerHTML = `
         <div class="tactical-card">
           <div class="tactical-card-title"><i class="fa-solid fa-bullseye"></i> Gol Beklentisi (xG)</div>
@@ -1939,23 +2182,25 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="tactical-card-desc">Dixon-Coles Simülasyonu</div>
         </div>
         <div class="tactical-card">
-          <div class="tactical-card-title"><i class="fa-solid fa-signal"></i> Sinyal Gücü</div>
-          <div class="tactical-card-val">${catIcon} ${signalBar}/100</div>
-          <div class="tactical-card-desc">Kategori: ${bestPick.category.toUpperCase()}</div>
+          <div class="tactical-card-title"><i class="fa-solid fa-microscope"></i> Research Score</div>
+          <div class="tactical-card-val"><span class="research-score-badge ${rScoreClass}">%${rScore}</span></div>
+          <div class="tactical-card-desc">${rScoreLabel} (${bestPick.supportingFactors || 3} Faktör Onaylı)</div>
         </div>
         <div class="tactical-card">
-          <div class="tactical-card-title"><i class="fa-solid fa-flag"></i> Beklenen Korner / Kart</div>
+          <div class="tactical-card-title"><i class="fa-solid fa-gauge-high"></i> Maç Dinamikleri</div>
           <div class="tactical-card-val">${probs.expCorners} K / ${probs.expCards} Kart</div>
-          <div class="tactical-card-desc">Maç Temposu</div>
+          <div class="tactical-card-desc">${totalFouls > 0 ? `Faul Temposu: ${totalFouls.toFixed(0)}` : 'Saha İçi Tansiyon'}</div>
         </div>`;
     }
 
     // =============================================
     // Gemini 3.8 Flash AI Deep Analysis (High-Speed & Streaming)
     // =============================================
-    // 1. Heuristic instant tactical preview (0ms delay)
-    const instantTacticalText = `${homeProfile.teamName} takımının iç saha temposu (${hStats.avgShots || 12.5} şut/maç) karşısında ${awayProfile.teamName} geçiş savunmasıyla direnç göstermeyi hedefleyecektir. İki takımın xG dengesi (${probs.xG_home} vs ${probs.xG_away}) maçın gidişatındaki ana eksendir.`;
-    const instantRiskText = `Toplam beklenen kart ortalaması ${probs.expCards || '3.8'} ve korner beklentisi ${probs.expCorners || '9.2'}. Disiplin tansiyonu, hakem kararları ve ilk yarı skor dengesi ana risk unsurlarıdır.`;
+    // 1. Heuristic instant tactical preview (0ms delay) - Engine 6.0 deep research
+    const prosText = bestPick.pros && bestPick.pros.length ? ` Destekleyen Faktörler: ${bestPick.pros.join(', ')}.` : '';
+    const instantTacticalText = `${homeProfile.teamName} iç saha performansı (${hAdv.venueWinPct ? `%${hAdv.venueWinPct} galibiyet, ` : ''}${hStats.avgShots || 12.5} şut/maç) karşısında ${awayProfile.teamName} (${aAdv.venueWinPct ? `dış saha %${aAdv.venueWinPct} galibiyet, ` : ''}${probs.xG_away} xG) direnci test edilecektir.${prosText}`;
+    const csText = (homeCleanSheet > 0 || awayCleanSheet > 0) ? ` Clean sheet oranları (Ev %${homeCleanSheet} / Dep %${awayCleanSheet}).` : '';
+    const instantRiskText = `Toplam beklenen kart ${probs.expCards || '3.8'}, korner ${probs.expCorners || '9.2'}${totalFouls > 0 ? ` ve faul ${totalFouls.toFixed(0)}` : ''}.${csText} ${bestPick.cons && bestPick.cons.filter(Boolean).length ? `Risk: ${bestPick.cons.filter(Boolean).join(', ')}.` : 'Hakem kararları ve ilk gol dakikası ana risk unsurlarıdır.'}`;
 
     if (geminiTacticalDetails) geminiTacticalDetails.classList.remove('hidden');
     if (geminiTacticalText) geminiTacticalText.textContent = instantTacticalText;
@@ -2009,6 +2254,7 @@ document.addEventListener("DOMContentLoaded", () => {
       aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> Gemini 3.8 Flash AI derinleştiriyor...</span>`;
     }
 
+    // Engine 6.0: Enhanced payload with all deep research fields
     const payload = {
       homeTeam: homeProfile.teamName,
       awayTeam: awayProfile.teamName,
@@ -2026,6 +2272,15 @@ document.addEventListener("DOMContentLoaded", () => {
       awayGoalsConceded: aStats.avgGoalsConceded,
       expCorners: probs.expCorners,
       expCards: probs.expCards,
+      homeCleanSheet: homeCleanSheet,
+      awayCleanSheet: awayCleanSheet,
+      homeHtGoalPct: homeHtGoalPct,
+      awayHtGoalPct: awayHtGoalPct,
+      homeFouls: homeFouls,
+      awayFouls: awayFouls,
+      homeVenueWinPct: hAdv.venueWinPct,
+      awayVenueWinPct: aAdv.venueWinPct,
+      researchScore: bestPick.researchScore,
       suggestedBet: bestPick.title,
       confidence: bestPick.pct
     };
@@ -2049,11 +2304,11 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         // Fallback to local engine
         if (aiModelBadge) {
-          aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 5.0 (Yerel)`;
+          aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
           aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
         }
         if (aiExplanationTitle) {
-          aiExplanationTitle.textContent = 'Engine 5.0 AI Analiz Raporu & Gerekçesi';
+          aiExplanationTitle.textContent = 'Engine 6.0 AI Analiz Raporu & Gerekçesi';
         }
         if (aiExplanationText) {
           aiExplanationText.textContent = bestPick.reason;
@@ -2064,10 +2319,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (err.name === 'AbortError') return;
       console.warn('[Gemini Frontend Fetch Fallback]', err);
       if (aiModelBadge) {
-        aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 5.0 (Yerel)`;
+        aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
       }
       if (aiExplanationTitle) {
-        aiExplanationTitle.textContent = 'Engine 5.0 AI Analiz Raporu & Gerekçesi';
+        aiExplanationTitle.textContent = 'Engine 6.0 AI Analiz Raporu & Gerekçesi';
       }
       if (aiExplanationText) {
         aiExplanationText.textContent = bestPick.reason;
@@ -2086,9 +2341,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const expCorners = parseFloat((parseFloat(h.avgCorners || 0) + parseFloat(a.avgCorners || 0)).toFixed(1));
     const expCards = parseFloat((parseFloat(h.avgYellowCards || 0) + parseFloat(a.avgYellowCards || 0)).toFixed(1));
+    const totalFouls = parseFloat(h.avgFouls || 0) + parseFloat(a.avgFouls || 0);
+    const homeCleanSheet = h.cleanSheetPct || 0;
+    const awayCleanSheet = a.cleanSheetPct || 0;
 
-    function makeBet(cat, name, pct, reason) {
+    function makeBet(cat, name, pct, reason, pros = [], cons = []) {
       const evData = calcEVandOdds(pct);
+      const categoryWeight = { kart: 0.93, taraf: 0.74, korner: 0.64, gol: 0.56, iyms: 0.70 };
+      const f1 = Math.min(100, (pct / 80) * 100) * 0.30;
+      const f2 = (categoryWeight[cat] || 0.60) * 100 * 0.25;
+      const f3 = (evData.isValueBet ? 100 : 55) * 0.20;
+      const f4 = Math.min(100, (pros.filter(Boolean).length || 1) * 25) * 0.25;
+      const researchScore = Math.round(f1 + f2 + f3 + f4);
+
       return {
         category: cat,
         name: name,
@@ -2097,53 +2362,124 @@ document.addEventListener("DOMContentLoaded", () => {
         fairOdds: evData.fairOdds,
         evPct: evData.evPct,
         isValueBet: evData.isValueBet,
+        researchScore,
+        pros: pros.filter(Boolean),
+        cons: cons.filter(Boolean),
         reason: reason
       };
     }
 
     currentPossibleBets = [
-      makeBet("gol", "Karşılıklı Gol Var (KG Var)", quant.pBTTS, `Dixon-Coles matrisinde iki takımın da gol atma ihtimali %${quant.pBTTS}. (Adil Oran: ${calcEVandOdds(quant.pBTTS).fairOdds})`),
-      makeBet("gol", "Karşılıklı Gol Yok (KG Yok)", quant.pBTTSNo, `En az bir takımın kalesini gole kapatma veya skor üretememe olasılığı %${quant.pBTTSNo}.`),
-      makeBet("gol", "Toplam Gol 1.5 Üst", quant.pOver15, `Karşılaşmada en az 2 gol çıkma ihtimali %${quant.pOver15}.`),
-      makeBet("gol", "Toplam Gol 2.5 Üst", quant.pOver25, `Dixon-Coles beklenen gol toplamı (${quant.totalExpGoals}) ile 2.5 Üst olasılığı %${quant.pOver25}.`),
-      makeBet("gol", "Toplam Gol 2.5 Alt", quant.pUnder25, `Düşük tempolu skor senaryosunda 2.5 Alt kalma olasılığı %${quant.pUnder25}.`),
-      makeBet("gol", `${homeProfile.teamName} 1.5 Gol Üstü`, quant.pHome15, `${homeProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pHome15}.`),
-      makeBet("gol", `${awayProfile.teamName} 1.5 Gol Üstü`, quant.pAway15, `${awayProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pAway15}.`),
-      makeBet("taraf", `Maç Sonucu 1 (${homeProfile.teamName})`, quant.pHomeWin, `Dixon-Coles ve zaman ağırlıklı form ile ev sahibi galibiyeti %${quant.pHomeWin}.`),
-      makeBet("taraf", `Maç Sonucu 2 (${awayProfile.teamName})`, quant.pAwayWin, `Deplasman ekibinin zafer olasılığı %${quant.pAwayWin}.`),
-      makeBet("taraf", `Çifte Şans 1-X (${homeProfile.teamName})`, quant.p1X, `Ev sahibinin sahadan puanla ayrılma olasılığı %${quant.p1X}.`),
-      makeBet("taraf", `Çifte Şans X-2 (${awayProfile.teamName})`, quant.pX2, `Deplasman ekibinin yenilmeme olasılığı %${quant.pX2}.`),
-      makeBet("iyms", "İlk Yarı 0.5 Gol Üstü", quant.pIYOver05, `İlk 45 dakikada en az 1 gol olma ihtimali %${quant.pIYOver05}.`),
-      makeBet("iyms", "İlk Yarı Beraberlik (İY X)", quant.pIYDraw, `İlk yarının eşitlikle tamamlanma olasılığı %${quant.pIYDraw}.`),
-      makeBet("iyms", `İlk Yarı 1 (${homeProfile.teamName})`, quant.pIYHome, `Ev sahibinin ilk yarıyı önde kapatma olasılığı %${quant.pIYHome}.`)
+      makeBet("gol", "Karşılıklı Gol Var (KG Var)", quant.pBTTS,
+        `Dixon-Coles matrisinde iki takımın da gol atma ihtimali %${quant.pBTTS}. (Adil Oran: ${calcEVandOdds(quant.pBTTS).fairOdds})`,
+        [`KG Var simülasyonu %${quant.pBTTS}`, `Ev ort. ${h.avgGoalsScored} / Dep ort. ${a.avgGoalsScored} gol`, (homeCleanSheet <= 40 && awayCleanSheet <= 40) ? 'Clean sheet oranları düşük' : ''],
+        [(homeCleanSheet > 40 || awayCleanSheet > 40) ? `Yüksek savunma direnci (Ev %${homeCleanSheet} / Dep %${awayCleanSheet} CS)` : '']),
+      makeBet("gol", "Karşılıklı Gol Yok (KG Yok)", quant.pBTTSNo,
+        `En az bir takımın kalesini gole kapatma veya skor üretememe olasılığı %${quant.pBTTSNo}.`,
+        [`Kalesini kapatma/skorsuzluk %${quant.pBTTSNo}`, (homeCleanSheet >= 30 || awayCleanSheet >= 30) ? `Clean sheet: Ev %${homeCleanSheet} / Dep %${awayCleanSheet}` : ''],
+        []),
+      makeBet("gol", "Toplam Gol 1.5 Üst", quant.pOver15,
+        `Karşılaşmada en az 2 gol çıkma ihtimali %${quant.pOver15}.`,
+        [`En az 2 gol çıkma ihtimali %${quant.pOver15}`, `Toplam xG: ${quant.totalExpGoals}`],
+        []),
+      makeBet("gol", "Toplam Gol 2.5 Üst", quant.pOver25,
+        `Dixon-Coles beklenen gol toplamı (${quant.totalExpGoals}) ile 2.5 Üst olasılığı %${quant.pOver25}.`,
+        [`Toplam beklenen gol ${quant.totalExpGoals}`, `2.5Ü geçmişi: Ev %${h.over25Pct} / Dep %${a.over25Pct}`],
+        [quant.totalExpGoals < 2.5 ? 'Beklenen gol 2.5 sınırına yakın' : '']),
+      makeBet("gol", "Toplam Gol 2.5 Alt", quant.pUnder25,
+        `Düşük tempolu skor senaryosunda 2.5 Alt kalma olasılığı %${quant.pUnder25}.`,
+        [`2.5 Alt kalma ihtimali %${quant.pUnder25}`, (homeCleanSheet >= 25 && awayCleanSheet >= 25) ? `Güçlü savunmalar (Ev %${homeCleanSheet} / Dep %${awayCleanSheet} CS)` : ''],
+        [quant.totalExpGoals > 2.3 ? 'xG toplamı sınıra yakın' : '']),
+      makeBet("gol", `${homeProfile.teamName} 1.5 Gol Üstü`, quant.pHome15,
+        `${homeProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pHome15}.`,
+        [`Ev sahibi beklenen gol: ${quant.lambda} xG`, `İç sahada ${h.avgGoalsScored || '1.5'} gol ortalaması`],
+        [awayCleanSheet >= 35 ? `Rakip deplasmanda %${awayCleanSheet} maçta gol yemedi` : '']),
+      makeBet("gol", `${awayProfile.teamName} 1.5 Gol Üstü`, quant.pAway15,
+        `${awayProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pAway15}.`,
+        [`Deplasman beklenen gol: ${quant.mu} xG`, `Deplasmanda ${a.avgGoalsScored || '1.2'} gol ortalaması`],
+        [homeCleanSheet >= 35 ? `Rakip evinde %${homeCleanSheet} maçta gol yemedi` : '']),
+      makeBet("taraf", `Maç Sonucu 1 (${homeProfile.teamName})`, quant.pHomeWin,
+        `Dixon-Coles ve zaman ağırlıklı form ile ev sahibi galibiyeti %${quant.pHomeWin}.`,
+        [`Ev galibiyeti %${quant.pHomeWin}`, `xG üstünlüğü (${quant.lambda} vs ${quant.mu})`, h.winPct ? `Galibiyet oranı %${h.winPct}` : ''],
+        [quant.pDraw >= 25 ? `Beraberlik ihtimali %${quant.pDraw}` : '']),
+      makeBet("taraf", `Maç Sonucu 2 (${awayProfile.teamName})`, quant.pAwayWin,
+        `Deplasman ekibinin zafer olasılığı %${quant.pAwayWin}.`,
+        [`Deplasman zafer olasılığı %${quant.pAwayWin}`, `xG üstünlüğü (${quant.mu} vs ${quant.lambda})`, a.winPct ? `Galibiyet oranı %${a.winPct}` : ''],
+        [quant.pDraw >= 25 ? `Beraberlik ihtimali %${quant.pDraw}` : '']),
+      makeBet("taraf", `Çifte Şans 1-X (${homeProfile.teamName})`, quant.p1X,
+        `Ev sahibinin sahadan puanla ayrılma olasılığı %${quant.p1X}.`,
+        [`Ev sahibi yenilmeme %${quant.p1X}`, 'İç saha avantajı'],
+        []),
+      makeBet("taraf", `Çifte Şans X-2 (${awayProfile.teamName})`, quant.pX2,
+        `Deplasman ekibinin yenilmeme olasılığı %${quant.pX2}.`,
+        [`Deplasman puan alma %${quant.pX2}`, 'Deplasman direnci'],
+        []),
+      makeBet("iyms", "İlk Yarı 0.5 Gol Üstü", quant.pIYOver05,
+        `İlk 45 dakikada en az 1 gol olma ihtimali %${quant.pIYOver05}.`,
+        [`İY 0.5 Üst %${quant.pIYOver05}`, (h.htOver05Pct || a.htOver05Pct) ? `İY gol geçmişi: Ev %${h.htOver05Pct || 0} / Dep %${a.htOver05Pct || 0}` : ''],
+        []),
+      makeBet("iyms", "İlk Yarı Beraberlik (İY X)", quant.pIYDraw,
+        `İlk yarının eşitlikle tamamlanma olasılığı %${quant.pIYDraw}.`,
+        [`İlk yarı eşitlik ihtimali %${quant.pIYDraw}`, 'Dengeli açılış temposu'],
+        []),
+      makeBet("iyms", `İlk Yarı 1 (${homeProfile.teamName})`, quant.pIYHome,
+        `Ev sahibinin ilk yarıyı önde kapatma olasılığı %${quant.pIYHome}.`,
+        [`Ev sahibi ilk yarı üstünlüğü %${quant.pIYHome}`, 'Erken baskı ihtimali'],
+        [])
     ];
 
     if (homeProfile.cardsReliable && awayProfile.cardsReliable && h.avgYellowCards !== null && a.avgYellowCards !== null) {
+      const p35U = Math.round(Math.min(0.95, Math.max(0.05, 1 - calcPoissonCumulative(expCards, 3))) * 100);
+      const p35A = Math.round(Math.min(0.95, Math.max(0.05, calcPoissonCumulative(expCards, 3))) * 100);
+      const p45U = Math.round(Math.min(0.95, Math.max(0.05, 1 - calcPoissonCumulative(expCards, 4))) * 100);
+      const p45A = Math.round(Math.min(0.95, Math.max(0.05, calcPoissonCumulative(expCards, 4))) * 100);
+
       currentPossibleBets.push(
-        makeBet("kart", "Toplam Sarı Kart 3.5 Üst", Math.round(Math.min(0.95, Math.max(0.05, 1 - calcPoissonCumulative(expCards, 3))) * 100), `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Üst %${Math.round((1 - calcPoissonCumulative(expCards, 3)) * 100)}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`),
-        makeBet("kart", "Toplam Sarı Kart 3.5 Alt", Math.round(Math.min(0.95, Math.max(0.05, calcPoissonCumulative(expCards, 3))) * 100), `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Alt %${Math.round(calcPoissonCumulative(expCards, 3) * 100)}.`),
-        makeBet("kart", "Toplam Sarı Kart 4.5 Üst", Math.round(Math.min(0.95, Math.max(0.05, 1 - calcPoissonCumulative(expCards, 4))) * 100), `Toplam kart beklentisi ${expCards}. 4.5 Üst %${Math.round((1 - calcPoissonCumulative(expCards, 4)) * 100)}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`),
-        makeBet("kart", "Toplam Sarı Kart 4.5 Alt", Math.round(Math.min(0.95, Math.max(0.05, calcPoissonCumulative(expCards, 4))) * 100), `Disiplin istatistiklerine göre 4.5 Alt %${Math.round(calcPoissonCumulative(expCards, 4) * 100)}.`)
+        makeBet("kart", "Toplam Sarı Kart 3.5 Üst", p35U,
+          `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Üst %${p35U}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`,
+          [`Kart beklentisi: ${expCards}`, totalFouls > 0 ? `Faul temposu: ${totalFouls.toFixed(0)}` : ''],
+          [expCards < 3.8 ? '3.5 sınırına yakın' : '']),
+        makeBet("kart", "Toplam Sarı Kart 3.5 Alt", p35A,
+          `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Alt %${p35A}.`,
+          [`Düşük kart ortalaması (${expCards})`, totalFouls < 10 ? 'Düşük faul temposu' : ''],
+          [expCards > 3.2 ? '3.5 sınırına yakın' : '']),
+        makeBet("kart", "Toplam Sarı Kart 4.5 Üst", p45U,
+          `Toplam kart beklentisi ${expCards}. 4.5 Üst %${p45U}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`,
+          [`Yüksek kart beklentisi (${expCards})`, totalFouls >= 13 ? `Yüksek faul (${totalFouls.toFixed(0)})` : ''],
+          [expCards < 4.5 ? '4.5 sınırına yakın' : '']),
+        makeBet("kart", "Toplam Sarı Kart 4.5 Alt", p45A,
+          `Disiplin istatistiklerine göre 4.5 Alt %${p45A}.`,
+          [`Sakin maç beklentisi (%${p45A})`, `Kart ort. ${expCards}`],
+          [])
       );
     }
 
     if (homeProfile.cornersReliable && awayProfile.cornersReliable && h.avgCorners !== null && a.avgCorners !== null) {
+      const p85U = Math.min(95, Math.max(45, Math.round(expCorners * 9.2)));
+      const p95U = Math.min(90, Math.max(35, Math.round(expCorners * 8.2)));
       currentPossibleBets.push(
-        makeBet("korner", "Toplam Korner 8.5 Üst", Math.min(95, Math.max(45, Math.round(expCorners * 9.2))), `Son 5 maç verilerine göre toplam beklenen korner ${expCorners}.`),
-        makeBet("korner", "Toplam Korner 9.5 Üst", Math.min(90, Math.max(35, Math.round(expCorners * 8.2))), `Kanat hücumları ve şut temposuyla korner beklentisi.`)
+        makeBet("korner", "Toplam Korner 8.5 Üst", p85U,
+          `Son 5 maç verilerine göre toplam beklenen korner ${expCorners}.`,
+          [`Beklenen korner: ${expCorners}`, `Ev (${h.avgCorners || 4.8}) + Dep (${a.avgCorners || 4.8})`],
+          []),
+        makeBet("korner", "Toplam Korner 9.5 Üst", p95U,
+          `Kanat hücumları ve şut temposuyla korner beklentisi.`,
+          [`Beklenen korner: ${expCorners}`, 'Şut ve kanat organizasyonu'],
+          [expCorners < 10.0 ? '10.0 sınırına yakın' : ''])
       );
     }
 
     if (selectedMatchMode === "cup") {
       const cupData = calculateCupDynamics(homeProfile, awayProfile, selectedCupFormat);
       currentPossibleBets.push(
-        makeBet("taraf", `Turu Atlar (${homeProfile.teamName})`, cupData.homeQualifyPct, `${homeProfile.teamName} turu atlama olasılığı %${cupData.homeQualifyPct}.`),
-        makeBet("taraf", `Turu Atlar (${awayProfile.teamName})`, cupData.awayQualifyPct, `${awayProfile.teamName} turu atlama olasılığı %${cupData.awayQualifyPct}.`)
+        makeBet("taraf", `Turu Atlar (${homeProfile.teamName})`, cupData.homeQualifyPct, `${homeProfile.teamName} turu atlama olasılığı %${cupData.homeQualifyPct}.`, [`Tur atlama ihtimali %${cupData.homeQualifyPct}`]),
+        makeBet("taraf", `Turu Atlar (${awayProfile.teamName})`, cupData.awayQualifyPct, `${awayProfile.teamName} turu atlama olasılığı %${cupData.awayQualifyPct}.`, [`Tur atlama ihtimali %${cupData.awayQualifyPct}`])
       );
     }
 
     currentPossibleBets = currentPossibleBets.filter(b => b.pct >= 55);
-    currentPossibleBets.sort((a, b) => b.pct - a.pct);
+    // Sort by Research Score first, then pct
+    currentPossibleBets.sort((a, b) => ((b.researchScore || 0) * 0.6 + b.pct * 0.4) - ((a.researchScore || 0) * 0.6 + a.pct * 0.4));
 
     renderBetsGrid("all");
   }
@@ -2173,7 +2509,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     filtered.forEach(bet => {
       const card = document.createElement("div");
-      card.className = "bet-card";
+      const isStrong = (bet.researchScore || 0) >= 75;
+      card.className = `bet-card ${isStrong ? 'strong-pick' : ''}`;
 
       let statusClass = "prob-high";
       let fillClass = "prob-high-fill";
@@ -2185,17 +2522,33 @@ document.addEventListener("DOMContentLoaded", () => {
         fillClass = "prob-med-fill";
       }
 
+      const rScore = bet.researchScore || Math.round(bet.pct * 0.9);
+      const rScoreClass = rScore >= 75 ? 'score-strong' : (rScore >= 60 ? 'score-medium' : 'score-risky');
+
       const isInCoupon = couponItems_data.some(c => c.name === bet.name);
 
       // Check if already saved in MyBets
       const betId = `${homeTeamName}_${awayTeamName}_${bet.name}`;
       const isSaved = typeof AuthManager !== 'undefined' && AuthManager.getMyBets().some(b => b.betId === betId);
 
+      const hasFactors = (bet.pros && bet.pros.length > 0) || (bet.cons && bet.cons.length > 0);
+      const factorsHtml = hasFactors ? `
+        <div class="bet-research-details">
+          <div class="research-factors">
+            ${(bet.pros || []).map(p => `<div class="factor-pro"><i class="fa-solid fa-check"></i> ${p}</div>`).join('')}
+            ${(bet.cons || []).map(c => `<div class="factor-con"><i class="fa-solid fa-triangle-exclamation"></i> ${c}</div>`).join('')}
+          </div>
+        </div>
+      ` : '';
+
       card.innerHTML = `
         <div>
           <div class="bet-card-top">
             <span class="bet-category cat-${bet.category}">${bet.category}</span>
             ${bet.isValueBet && bet.evPct > 0 ? `<span class="ev-tag"><i class="fa-solid fa-bolt"></i> +${bet.evPct}% EV</span>` : ''}
+            <span class="research-score-badge ${rScoreClass}" title="Engine 6.0 Research Score">
+              <i class="fa-solid fa-microscope"></i> %${rScore}
+            </span>
             <span class="probability-badge ${statusClass}">%${bet.pct}</span>
           </div>
           <div class="bet-name">${bet.name}</div>
@@ -2206,6 +2559,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="probability-bar-fill ${fillClass}" style="width: ${bet.pct}%"></div>
           </div>
           <div class="bet-reason">${bet.reason}</div>
+          ${factorsHtml}
           <div class="bet-card-actions">
             <button class="btn-add-coupon ${isInCoupon ? 'in-coupon' : ''}" data-betname="${encodeURIComponent(bet.name)}" data-pct="${bet.pct}" data-cat="${bet.category}">
               <i class="fa-solid ${isInCoupon ? 'fa-check' : 'fa-plus'}"></i>

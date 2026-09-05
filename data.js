@@ -160,6 +160,16 @@ function generateTeamProfile(teamName, countryCode) {
 
   const advObj = (typeof ADVANCED_TEAM_STATS !== 'undefined') ? (ADVANCED_TEAM_STATS[slug] || ADVANCED_TEAM_STATS[teamName.toLowerCase().replace(/[^a-z0-9]/g, '')]) : null;
 
+  // Engine 6.0: Calculate clean sheet %, HT goal % and form trend from raw matches
+  const cleanSheetCount = formattedMatches.filter(m => m.goalsAgainst === 0).length;
+  const cleanSheetPct = Math.round((cleanSheetCount / n) * 100);
+  const htGoalCount = formattedMatches.filter(m => m.htGoals > 0).length;
+  const htOver05Pct = Math.round((htGoalCount / n) * 100);
+
+  // Engine 6.0: Venue-specific stats from ADVANCED_TEAM_STATS
+  const venueHome = advObj && advObj.homeStats ? advObj.homeStats : null;
+  const venueAway = advObj && advObj.awayStats ? advObj.awayStats : null;
+
   const statsObj = {
     avgGoalsScored, avgGoalsConceded, avgTotalGoalsPerMatch,
     avgShots: (avgShots !== null ? avgShots : (advObj && advObj.overall ? advObj.overall.avgShots : null)),
@@ -175,8 +185,16 @@ function generateTeamProfile(teamName, countryCode) {
     hasEnoughData: n >= 3,
     xg_per90: advObj ? advObj.xg_per90 : null,
     xga_per90: advObj ? advObj.xga_per90 : null,
+    xg_diff: advObj ? advObj.xg_diff : null,
     weightedAvgGoalsScored: advObj && advObj.overall ? advObj.overall.avgGoalsScored : null,
-    weightedAvgGoalsConceded: advObj && advObj.overall ? advObj.overall.avgGoalsConceded : null
+    weightedAvgGoalsConceded: advObj && advObj.overall ? advObj.overall.avgGoalsConceded : null,
+    // Engine 6.0: New deep analysis metrics
+    cleanSheetPct,
+    htOver05Pct,
+    avgFouls: advObj && advObj.overall ? (advObj.overall.avgFouls || null) : null,
+    impliedWinProb: advObj && advObj.overall ? (advObj.overall.impliedWinProb || null) : null,
+    avgWinOdds: advObj && advObj.overall ? (advObj.overall.avgWinOdds || null) : null,
+    possession: advObj ? (advObj.possession || null) : null
   };
 
   return {
@@ -189,7 +207,10 @@ function generateTeamProfile(teamName, countryCode) {
     cornersReliable: statsObj.cornersReliable,
     cardsReliable: statsObj.cardsReliable,
     shotsReliable: statsObj.shotsReliable,
-    stats: statsObj
+    stats: statsObj,
+    // Engine 6.0: Venue-specific stats for deep analysis
+    venueHomeStats: venueHome,
+    venueAwayStats: venueAway
   };
 }
 

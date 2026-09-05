@@ -75,7 +75,7 @@ const PredictionTracker = {
       categoryLabel: data.categoryLabel || 'Tahmin',
       odds: data.odds || 1.70,
       confidence: data.confidence || 75,
-      reason: data.reason || 'Dixon-Coles Quant Engine 5.0 taktik analizi.',
+      reason: data.reason || 'Dixon-Coles Quant Engine 6.0 taktik analizi.',
       status: 'PENDING', // Sonuc Bekleniyor
       outcome: null,     // WON veya LOST olacak
       recordedAt: new Date().toISOString(),

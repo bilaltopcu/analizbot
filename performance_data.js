@@ -8,7 +8,7 @@ window.AI_PERFORMANCE_DATA = {
     "wonMatches": 402,
     "lostMatches": 98,
     "lastUpdated": "05.09.2026 01:30",
-    "engineVersion": "Dixon-Coles Quant Engine 5.0 (Auto-Audited)"
+    "engineVersion": "Dixon-Coles Quant Engine 6.0 (Auto-Audited)"
   },
   "categories": {
     "kart": {

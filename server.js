@@ -40,7 +40,7 @@ function callSingleModel(model, promptText, apiKey, useThinkingZero) {
   return new Promise((resolve) => {
     const config = {
       temperature: 0.3,
-      maxOutputTokens: 320,
+      maxOutputTokens: 600,
       responseMimeType: "application/json"
     };
     if (useThinkingZero) {
@@ -366,31 +366,36 @@ const server = http.createServer((req, res) => {
           }));
         }
 
-        const promptText = `Sen uzman bir futbol analisti ve spor istatistikçisisin. Aşağıdaki maç istatistiklerini ve Dixon-Coles Poisson simülasyon çıktılarını inceleyerek profesyonel bir taktiksel analiz ve bahis gerekçelendirmesi üret.
+        const promptText = `Sen uzman bir futbol analisti, istatistikçi ve bahis araştırmacısısın. Aşağıdaki maç istatistiklerini ve Dixon-Coles Poisson simülasyon çıktılarını EN DERİNİNE KADAR araştırarak profesyonel bir taktiksel analiz, detaylı bahis gerekçelendirmesi ve risk değerlendirmesi üret.
 
 MAÇ BİLGİLERİ:
 - Ev Sahibi: ${payload.homeTeam || 'Ev Sahibi'}
 - Deplasman: ${payload.awayTeam || 'Deplasman'}
 - Ülke / Lig: ${payload.country || 'Genel'}
 
-Sayısal & İstatistiksel Veriler (Dixon-Coles Simulation Engine 5.0):
-- Beklenen Goller (xG): Ev Sahibi ${payload.xG_home || 1.2} - Deplasman ${payload.xG_away || 1.0}
-- Olasılıklar: Ev Galibiyeti %${payload.pHomeWin || 40}, Beraberlik %${payload.pDraw || 30}, Deplasman Galibiyeti %${payload.pAwayWin || 30}
+Sayısal & İstatistiksel Veriler (Dixon-Coles Simulation Engine 6.0):
+- Beklenen Goller (xG): Ev ${payload.xG_home || 1.2} - Dep ${payload.xG_away || 1.0}
+- Olasılıklar: Ev Galibiyeti %${payload.pHomeWin || 40}, Beraberlik %${payload.pDraw || 30}, Dep Galibiyeti %${payload.pAwayWin || 30}
 - 2.5 Üst Olasılığı: %${payload.pOver25 || 50} | KG Var Olasılığı: %${payload.pBTTS || 50}
-- Ev Sahibi Ort. Gol (Attığı/Yediği): ${payload.homeGoalsScored || '1.5'} / ${payload.homeGoalsConceded || '1.0'}
-- Deplasman Ort. Gol (Attığı/Yediği): ${payload.awayGoalsScored || '1.2'} / ${payload.awayGoalsConceded || '1.3'}
-- Beklenen Toplam Korner: ${payload.expCorners || '9.5'} | Beklenen Toplam Sarı Kart: ${payload.expCards || '4.2'}
-- Önerilen Ön İstatistiksel Bahis: ${payload.suggestedBet || 'KG Var'} (Güven: %${payload.confidence || 75})
+- Ev Sahibi Gol (Attığı/Yediği): ${payload.homeGoalsScored || '1.5'} / ${payload.homeGoalsConceded || '1.0'}
+- Deplasman Gol (Attığı/Yediği): ${payload.awayGoalsScored || '1.2'} / ${payload.awayGoalsConceded || '1.3'}
+- Beklenen Korner: ${payload.expCorners || '9.5'} | Beklenen Sarı Kart: ${payload.expCards || '4.2'}
+- Clean Sheet Oranları: Ev %${payload.homeCleanSheet || '—'} / Dep %${payload.awayCleanSheet || '—'}
+- İlk Yarı Gol Oranları: Ev %${payload.homeHtGoalPct || '—'} / Dep %${payload.awayHtGoalPct || '—'}
+- Faul Ortalamaları: Ev ${payload.homeFouls || '—'} / Dep ${payload.awayFouls || '—'}
+- İç Saha Galibiyet: %${payload.homeVenueWinPct || '—'} | Deplasman Galibiyet: %${payload.awayVenueWinPct || '—'}
+- Research Score: ${payload.researchScore || '—'}/100
+- Önerilen Bahis: ${payload.suggestedBet || 'KG Var'} (Güven: %${payload.confidence || 75})
 
 GÖREV:
-Aşağıdaki JSON formatında Türkçe yanıt döndür. Başka hiçbir açıklama metni ekleme.
+Her bahis önerisini en detayına kadar araştır. Destekleyen ve karşıt faktörleri ayrı ayrı listele. Aşağıdaki JSON formatında Türkçe yanıt döndür. Başka hiçbir açıklama metni ekleme.
 JSON Şeması:
 {
-  "tacticalScenario": "Maçın muhtemel taktiksel akışı, tempo ve saha içi dinamikleri hakkında 2 cümlelik net analiz.",
-  "bestBetRationale": "Seçilen en uygun bahsin istatistiksel ve taktiksel nedenleri (1-2 cümle).",
-  "riskAssessment": "Maçın dikkat edilmesi gereken temel risk faktörleri (1 cümle).",
+  "tacticalScenario": "Maçın muhtemel taktiksel akışı, tempo, baskı yönü ve saha içi dinamikleri hakkında 3-4 cümlelik derinlemesine analiz.",
+  "bestBetRationale": "Seçilen bahsin istatistiksel ve taktiksel nedenleri, destekleyen 3-4 faktör ve neden bu bahsin değerli olduğu (2-3 cümle).",
+  "riskAssessment": "Maçın dikkat edilmesi gereken temel risk faktörleri, karşıt istatistikler ve sürpriz senaryoları (2 cümle).",
   "confidenceScore": 85,
-  "matchAnalysisSummary": "Genel sonuç özeti ve maçın gidişat tahmini."
+  "matchAnalysisSummary": "Genel sonuç özeti, maçın gidişat tahmini ve alternatif senaryo."
 }`;
 
         const geminiResult = await callGeminiApi(promptText, apiKey);
