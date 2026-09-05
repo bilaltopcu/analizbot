@@ -2345,14 +2345,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeCleanSheet = h.cleanSheetPct || 0;
     const awayCleanSheet = a.cleanSheetPct || 0;
 
-    function makeBet(cat, name, pct, reason, pros = [], cons = []) {
+    function makeBet(cat, name, pct, reason) {
       const evData = calcEVandOdds(pct);
       const categoryWeight = { kart: 0.93, taraf: 0.74, korner: 0.64, gol: 0.56, iyms: 0.70 };
-      const f1 = Math.min(100, (pct / 80) * 100) * 0.30;
-      const f2 = (categoryWeight[cat] || 0.60) * 100 * 0.25;
-      const f3 = (evData.isValueBet ? 100 : 55) * 0.20;
-      const f4 = Math.min(100, (pros.filter(Boolean).length || 1) * 25) * 0.25;
-      const researchScore = Math.round(f1 + f2 + f3 + f4);
+      const f1 = Math.min(100, (pct / 80) * 100) * 0.40;
+      const f2 = (categoryWeight[cat] || 0.60) * 100 * 0.35;
+      const f3 = (evData.isValueBet ? 100 : 55) * 0.25;
+      const researchScore = Math.round(f1 + f2 + f3);
 
       return {
         category: cat,
@@ -2363,69 +2362,25 @@ document.addEventListener("DOMContentLoaded", () => {
         evPct: evData.evPct,
         isValueBet: evData.isValueBet,
         researchScore,
-        pros: pros.filter(Boolean),
-        cons: cons.filter(Boolean),
         reason: reason
       };
     }
 
     currentPossibleBets = [
-      makeBet("gol", "Karşılıklı Gol Var (KG Var)", quant.pBTTS,
-        `Dixon-Coles matrisinde iki takımın da gol atma ihtimali %${quant.pBTTS}. (Adil Oran: ${calcEVandOdds(quant.pBTTS).fairOdds})`,
-        [`KG Var simülasyonu %${quant.pBTTS}`, `Ev ort. ${h.avgGoalsScored} / Dep ort. ${a.avgGoalsScored} gol`, (homeCleanSheet <= 40 && awayCleanSheet <= 40) ? 'Clean sheet oranları düşük' : ''],
-        [(homeCleanSheet > 40 || awayCleanSheet > 40) ? `Yüksek savunma direnci (Ev %${homeCleanSheet} / Dep %${awayCleanSheet} CS)` : '']),
-      makeBet("gol", "Karşılıklı Gol Yok (KG Yok)", quant.pBTTSNo,
-        `En az bir takımın kalesini gole kapatma veya skor üretememe olasılığı %${quant.pBTTSNo}.`,
-        [`Kalesini kapatma/skorsuzluk %${quant.pBTTSNo}`, (homeCleanSheet >= 30 || awayCleanSheet >= 30) ? `Clean sheet: Ev %${homeCleanSheet} / Dep %${awayCleanSheet}` : ''],
-        []),
-      makeBet("gol", "Toplam Gol 1.5 Üst", quant.pOver15,
-        `Karşılaşmada en az 2 gol çıkma ihtimali %${quant.pOver15}.`,
-        [`En az 2 gol çıkma ihtimali %${quant.pOver15}`, `Toplam xG: ${quant.totalExpGoals}`],
-        []),
-      makeBet("gol", "Toplam Gol 2.5 Üst", quant.pOver25,
-        `Dixon-Coles beklenen gol toplamı (${quant.totalExpGoals}) ile 2.5 Üst olasılığı %${quant.pOver25}.`,
-        [`Toplam beklenen gol ${quant.totalExpGoals}`, `2.5Ü geçmişi: Ev %${h.over25Pct} / Dep %${a.over25Pct}`],
-        [quant.totalExpGoals < 2.5 ? 'Beklenen gol 2.5 sınırına yakın' : '']),
-      makeBet("gol", "Toplam Gol 2.5 Alt", quant.pUnder25,
-        `Düşük tempolu skor senaryosunda 2.5 Alt kalma olasılığı %${quant.pUnder25}.`,
-        [`2.5 Alt kalma ihtimali %${quant.pUnder25}`, (homeCleanSheet >= 25 && awayCleanSheet >= 25) ? `Güçlü savunmalar (Ev %${homeCleanSheet} / Dep %${awayCleanSheet} CS)` : ''],
-        [quant.totalExpGoals > 2.3 ? 'xG toplamı sınıra yakın' : '']),
-      makeBet("gol", `${homeProfile.teamName} 1.5 Gol Üstü`, quant.pHome15,
-        `${homeProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pHome15}.`,
-        [`Ev sahibi beklenen gol: ${quant.lambda} xG`, `İç sahada ${h.avgGoalsScored || '1.5'} gol ortalaması`],
-        [awayCleanSheet >= 35 ? `Rakip deplasmanda %${awayCleanSheet} maçta gol yemedi` : '']),
-      makeBet("gol", `${awayProfile.teamName} 1.5 Gol Üstü`, quant.pAway15,
-        `${awayProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pAway15}.`,
-        [`Deplasman beklenen gol: ${quant.mu} xG`, `Deplasmanda ${a.avgGoalsScored || '1.2'} gol ortalaması`],
-        [homeCleanSheet >= 35 ? `Rakip evinde %${homeCleanSheet} maçta gol yemedi` : '']),
-      makeBet("taraf", `Maç Sonucu 1 (${homeProfile.teamName})`, quant.pHomeWin,
-        `Dixon-Coles ve zaman ağırlıklı form ile ev sahibi galibiyeti %${quant.pHomeWin}.`,
-        [`Ev galibiyeti %${quant.pHomeWin}`, `xG üstünlüğü (${quant.lambda} vs ${quant.mu})`, h.winPct ? `Galibiyet oranı %${h.winPct}` : ''],
-        [quant.pDraw >= 25 ? `Beraberlik ihtimali %${quant.pDraw}` : '']),
-      makeBet("taraf", `Maç Sonucu 2 (${awayProfile.teamName})`, quant.pAwayWin,
-        `Deplasman ekibinin zafer olasılığı %${quant.pAwayWin}.`,
-        [`Deplasman zafer olasılığı %${quant.pAwayWin}`, `xG üstünlüğü (${quant.mu} vs ${quant.lambda})`, a.winPct ? `Galibiyet oranı %${a.winPct}` : ''],
-        [quant.pDraw >= 25 ? `Beraberlik ihtimali %${quant.pDraw}` : '']),
-      makeBet("taraf", `Çifte Şans 1-X (${homeProfile.teamName})`, quant.p1X,
-        `Ev sahibinin sahadan puanla ayrılma olasılığı %${quant.p1X}.`,
-        [`Ev sahibi yenilmeme %${quant.p1X}`, 'İç saha avantajı'],
-        []),
-      makeBet("taraf", `Çifte Şans X-2 (${awayProfile.teamName})`, quant.pX2,
-        `Deplasman ekibinin yenilmeme olasılığı %${quant.pX2}.`,
-        [`Deplasman puan alma %${quant.pX2}`, 'Deplasman direnci'],
-        []),
-      makeBet("iyms", "İlk Yarı 0.5 Gol Üstü", quant.pIYOver05,
-        `İlk 45 dakikada en az 1 gol olma ihtimali %${quant.pIYOver05}.`,
-        [`İY 0.5 Üst %${quant.pIYOver05}`, (h.htOver05Pct || a.htOver05Pct) ? `İY gol geçmişi: Ev %${h.htOver05Pct || 0} / Dep %${a.htOver05Pct || 0}` : ''],
-        []),
-      makeBet("iyms", "İlk Yarı Beraberlik (İY X)", quant.pIYDraw,
-        `İlk yarının eşitlikle tamamlanma olasılığı %${quant.pIYDraw}.`,
-        [`İlk yarı eşitlik ihtimali %${quant.pIYDraw}`, 'Dengeli açılış temposu'],
-        []),
-      makeBet("iyms", `İlk Yarı 1 (${homeProfile.teamName})`, quant.pIYHome,
-        `Ev sahibinin ilk yarıyı önde kapatma olasılığı %${quant.pIYHome}.`,
-        [`Ev sahibi ilk yarı üstünlüğü %${quant.pIYHome}`, 'Erken baskı ihtimali'],
-        [])
+      makeBet("gol", "Karşılıklı Gol Var (KG Var)", quant.pBTTS, `Dixon-Coles matrisinde iki takımın da gol atma ihtimali %${quant.pBTTS}. (Adil Oran: ${calcEVandOdds(quant.pBTTS).fairOdds})`),
+      makeBet("gol", "Karşılıklı Gol Yok (KG Yok)", quant.pBTTSNo, `En az bir takımın kalesini gole kapatma veya skor üretememe olasılığı %${quant.pBTTSNo}.`),
+      makeBet("gol", "Toplam Gol 1.5 Üst", quant.pOver15, `Karşılaşmada en az 2 gol çıkma ihtimali %${quant.pOver15}.`),
+      makeBet("gol", "Toplam Gol 2.5 Üst", quant.pOver25, `Dixon-Coles beklenen gol toplamı (${quant.totalExpGoals}) ile 2.5 Üst olasılığı %${quant.pOver25}.`),
+      makeBet("gol", "Toplam Gol 2.5 Alt", quant.pUnder25, `Düşük tempolu skor senaryosunda 2.5 Alt kalma olasılığı %${quant.pUnder25}.`),
+      makeBet("gol", `${homeProfile.teamName} 1.5 Gol Üstü`, quant.pHome15, `${homeProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pHome15}.`),
+      makeBet("gol", `${awayProfile.teamName} 1.5 Gol Üstü`, quant.pAway15, `${awayProfile.teamName} takımının en az 2 gol atma olasılığı %${quant.pAway15}.`),
+      makeBet("taraf", `Maç Sonucu 1 (${homeProfile.teamName})`, quant.pHomeWin, `Dixon-Coles ve zaman ağırlıklı form ile ev sahibi galibiyeti %${quant.pHomeWin}.`),
+      makeBet("taraf", `Maç Sonucu 2 (${awayProfile.teamName})`, quant.pAwayWin, `Deplasman ekibinin zafer olasılığı %${quant.pAwayWin}.`),
+      makeBet("taraf", `Çifte Şans 1-X (${homeProfile.teamName})`, quant.p1X, `Ev sahibinin sahadan puanla ayrılma olasılığı %${quant.p1X}.`),
+      makeBet("taraf", `Çifte Şans X-2 (${awayProfile.teamName})`, quant.pX2, `Deplasman ekibinin yenilmeme olasılığı %${quant.pX2}.`),
+      makeBet("iyms", "İlk Yarı 0.5 Gol Üstü", quant.pIYOver05, `İlk 45 dakikada en az 1 gol olma ihtimali %${quant.pIYOver05}.`),
+      makeBet("iyms", "İlk Yarı Beraberlik (İY X)", quant.pIYDraw, `İlk yarının eşitlikle tamamlanma olasılığı %${quant.pIYDraw}.`),
+      makeBet("iyms", `İlk Yarı 1 (${homeProfile.teamName})`, quant.pIYHome, `Ev sahibinin ilk yarıyı önde kapatma olasılığı %${quant.pIYHome}.`)
     ];
 
     if (homeProfile.cardsReliable && awayProfile.cardsReliable && h.avgYellowCards !== null && a.avgYellowCards !== null) {
@@ -2435,22 +2390,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const p45A = Math.round(Math.min(0.95, Math.max(0.05, calcPoissonCumulative(expCards, 4))) * 100);
 
       currentPossibleBets.push(
-        makeBet("kart", "Toplam Sarı Kart 3.5 Üst", p35U,
-          `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Üst %${p35U}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`,
-          [`Kart beklentisi: ${expCards}`, totalFouls > 0 ? `Faul temposu: ${totalFouls.toFixed(0)}` : ''],
-          [expCards < 3.8 ? '3.5 sınırına yakın' : '']),
-        makeBet("kart", "Toplam Sarı Kart 3.5 Alt", p35A,
-          `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Alt %${p35A}.`,
-          [`Düşük kart ortalaması (${expCards})`, totalFouls < 10 ? 'Düşük faul temposu' : ''],
-          [expCards > 3.2 ? '3.5 sınırına yakın' : '']),
-        makeBet("kart", "Toplam Sarı Kart 4.5 Üst", p45U,
-          `Toplam kart beklentisi ${expCards}. 4.5 Üst %${p45U}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`,
-          [`Yüksek kart beklentisi (${expCards})`, totalFouls >= 13 ? `Yüksek faul (${totalFouls.toFixed(0)})` : ''],
-          [expCards < 4.5 ? '4.5 sınırına yakın' : '']),
-        makeBet("kart", "Toplam Sarı Kart 4.5 Alt", p45A,
-          `Disiplin istatistiklerine göre 4.5 Alt %${p45A}.`,
-          [`Sakin maç beklentisi (%${p45A})`, `Kart ort. ${expCards}`],
-          [])
+        makeBet("kart", "Toplam Sarı Kart 3.5 Üst", p35U, `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Üst %${p35U}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`),
+        makeBet("kart", "Toplam Sarı Kart 3.5 Alt", p35A, `İki takımın toplam kart beklentisi ${expCards}. Poisson 3.5 Alt %${p35A}.`),
+        makeBet("kart", "Toplam Sarı Kart 4.5 Üst", p45U, `Toplam kart beklentisi ${expCards}. 4.5 Üst %${p45U}. ⚠️ Hakem profili & maç tansiyonu kontrol edilmelidir.`),
+        makeBet("kart", "Toplam Sarı Kart 4.5 Alt", p45A, `Disiplin istatistiklerine göre 4.5 Alt %${p45A}.`)
       );
     }
 
@@ -2458,22 +2401,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const p85U = Math.min(95, Math.max(45, Math.round(expCorners * 9.2)));
       const p95U = Math.min(90, Math.max(35, Math.round(expCorners * 8.2)));
       currentPossibleBets.push(
-        makeBet("korner", "Toplam Korner 8.5 Üst", p85U,
-          `Son 5 maç verilerine göre toplam beklenen korner ${expCorners}.`,
-          [`Beklenen korner: ${expCorners}`, `Ev (${h.avgCorners || 4.8}) + Dep (${a.avgCorners || 4.8})`],
-          []),
-        makeBet("korner", "Toplam Korner 9.5 Üst", p95U,
-          `Kanat hücumları ve şut temposuyla korner beklentisi.`,
-          [`Beklenen korner: ${expCorners}`, 'Şut ve kanat organizasyonu'],
-          [expCorners < 10.0 ? '10.0 sınırına yakın' : ''])
+        makeBet("korner", "Toplam Korner 8.5 Üst", p85U, `Son 5 maç verilerine göre toplam beklenen korner ${expCorners}.`),
+        makeBet("korner", "Toplam Korner 9.5 Üst", p95U, `Kanat hücumları ve şut temposuyla korner beklentisi.`)
       );
     }
 
     if (selectedMatchMode === "cup") {
       const cupData = calculateCupDynamics(homeProfile, awayProfile, selectedCupFormat);
       currentPossibleBets.push(
-        makeBet("taraf", `Turu Atlar (${homeProfile.teamName})`, cupData.homeQualifyPct, `${homeProfile.teamName} turu atlama olasılığı %${cupData.homeQualifyPct}.`, [`Tur atlama ihtimali %${cupData.homeQualifyPct}`]),
-        makeBet("taraf", `Turu Atlar (${awayProfile.teamName})`, cupData.awayQualifyPct, `${awayProfile.teamName} turu atlama olasılığı %${cupData.awayQualifyPct}.`, [`Tur atlama ihtimali %${cupData.awayQualifyPct}`])
+        makeBet("taraf", `Turu Atlar (${homeProfile.teamName})`, cupData.homeQualifyPct, `${homeProfile.teamName} turu atlama olasılığı %${cupData.homeQualifyPct}.`),
+        makeBet("taraf", `Turu Atlar (${awayProfile.teamName})`, cupData.awayQualifyPct, `${awayProfile.teamName} turu atlama olasılığı %${cupData.awayQualifyPct}.`)
       );
     }
 
@@ -2509,8 +2446,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     filtered.forEach(bet => {
       const card = document.createElement("div");
-      const isStrong = (bet.researchScore || 0) >= 75;
-      card.className = `bet-card ${isStrong ? 'strong-pick' : ''}`;
+      card.className = "bet-card";
 
       let statusClass = "prob-high";
       let fillClass = "prob-high-fill";
@@ -2522,33 +2458,17 @@ document.addEventListener("DOMContentLoaded", () => {
         fillClass = "prob-med-fill";
       }
 
-      const rScore = bet.researchScore || Math.round(bet.pct * 0.9);
-      const rScoreClass = rScore >= 75 ? 'score-strong' : (rScore >= 60 ? 'score-medium' : 'score-risky');
-
       const isInCoupon = couponItems_data.some(c => c.name === bet.name);
 
       // Check if already saved in MyBets
       const betId = `${homeTeamName}_${awayTeamName}_${bet.name}`;
       const isSaved = typeof AuthManager !== 'undefined' && AuthManager.getMyBets().some(b => b.betId === betId);
 
-      const hasFactors = (bet.pros && bet.pros.length > 0) || (bet.cons && bet.cons.length > 0);
-      const factorsHtml = hasFactors ? `
-        <div class="bet-research-details">
-          <div class="research-factors">
-            ${(bet.pros || []).map(p => `<div class="factor-pro"><i class="fa-solid fa-check"></i> ${p}</div>`).join('')}
-            ${(bet.cons || []).map(c => `<div class="factor-con"><i class="fa-solid fa-triangle-exclamation"></i> ${c}</div>`).join('')}
-          </div>
-        </div>
-      ` : '';
-
       card.innerHTML = `
         <div>
           <div class="bet-card-top">
             <span class="bet-category cat-${bet.category}">${bet.category}</span>
             ${bet.isValueBet && bet.evPct > 0 ? `<span class="ev-tag"><i class="fa-solid fa-bolt"></i> +${bet.evPct}% EV</span>` : ''}
-            <span class="research-score-badge ${rScoreClass}" title="Engine 6.0 Research Score">
-              <i class="fa-solid fa-microscope"></i> %${rScore}
-            </span>
             <span class="probability-badge ${statusClass}">%${bet.pct}</span>
           </div>
           <div class="bet-name">${bet.name}</div>
@@ -2559,7 +2479,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="probability-bar-fill ${fillClass}" style="width: ${bet.pct}%"></div>
           </div>
           <div class="bet-reason">${bet.reason}</div>
-          ${factorsHtml}
           <div class="bet-card-actions">
             <button class="btn-add-coupon ${isInCoupon ? 'in-coupon' : ''}" data-betname="${encodeURIComponent(bet.name)}" data-pct="${bet.pct}" data-cat="${bet.category}">
               <i class="fa-solid ${isInCoupon ? 'fa-check' : 'fa-plus'}"></i>
