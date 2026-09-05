@@ -43,15 +43,26 @@
   padding: 0;
 }
 
+html {
+  height: 100%;
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-body);
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #edf2fc 100%);
   background-attachment: fixed;
   color: var(--text-primary);
+  min-height: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
   position: relative;
   line-height: 1.5;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Decorative Background Subtle Glow */
@@ -93,11 +104,18 @@ body {
   position: relative;
   z-index: 1;
   max-width: 1200px;
+  width: 100%;
+  flex: 1 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
-  padding: 24px 20px 60px 20px;
-  padding-top: max(24px, env(safe-area-inset-top));
-  padding-left: max(20px, env(safe-area-inset-left));
-  padding-right: max(20px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 10px 20px;
+  padding-top: max(20px, env(safe-area-inset-top, 20px));
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+  padding-left: max(16px, env(safe-area-inset-left, 16px));
+  padding-right: max(16px, env(safe-area-inset-right, 16px));
 }
 
 /* Panels and Cards (Crisp Clean White) */
@@ -1152,9 +1170,12 @@ body {
 
 .app-footer {
   text-align: center;
-  margin-top: 40px;
+  margin-top: auto;
+  padding: 18px 0 4px 0;
+  margin-bottom: 0;
   font-size: 12px;
   color: var(--text-muted);
+  width: 100%;
 }
 
 @keyframes fadeIn {
@@ -3284,6 +3305,44 @@ body {
    PWA Install Modal & UI Styles
    ========================================================================== */
 
+/* Header Fullscreen Button */
+.btn-fullscreen-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #ffffff;
+  color: var(--accent-blue);
+  border: 1.5px solid #cbd5e1;
+  padding: 7px 14px;
+  border-radius: 30px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-fullscreen-header:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+  border-color: var(--accent-blue);
+  background: #f8fafc;
+}
+
+.btn-fullscreen-header.is-fullscreen {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-fullscreen-header i {
+  font-size: 13px;
+  transition: transform 0.2s ease;
+}
+
 /* Header Install Button */
 .btn-pwa-header {
   display: inline-flex;
@@ -3646,7 +3705,11 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 @media (min-width: 641px) and (max-width: 1024px), (min-width: 641px) and (.device-tablet) {
   .app-container {
     max-width: 100%;
-    padding: 16px 20px 48px 20px;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 16px 20px 10px 20px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
   }
 
   /* Header on Tablet */
@@ -3766,10 +3829,22 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
    ========================================================================== */
 @media (max-width: 640px), (.device-mobile) {
   .app-container {
-    padding: 12px 14px 50px 14px;
-    padding-top: max(26px, calc(env(safe-area-inset-top, 0px) + 16px));
-    padding-left: max(14px, env(safe-area-inset-left, 14px));
-    padding-right: max(14px, env(safe-area-inset-right, 14px));
+    padding: 10px 12px 8px 12px;
+    padding-top: max(18px, calc(env(safe-area-inset-top, 0px) + 10px));
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+    padding-left: max(10px, env(safe-area-inset-left, 10px));
+    padding-right: max(10px, env(safe-area-inset-right, 10px));
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .app-footer {
+    margin-top: auto;
+    padding: 14px 0 2px 0;
+    margin-bottom: 0;
+    font-size: 11px;
   }
 
   /* --- Mobile App Header --- */
@@ -3838,6 +3913,15 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
+  }
+
+  .btn-fullscreen-header {
+    padding: 6px 11px;
+    font-size: 11.5px;
+    font-weight: 700;
+    gap: 5px;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
   }
 
   .btn-pwa-header {
@@ -4663,9 +4747,9 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 }
 
 /* ==========================================================================
-   5. PWA STANDALONE MODE (Installed Web App on Phone / Tablet)
+   5. PWA STANDALONE & FULLSCREEN MODE (Installed Web App on Phone / Tablet)
    ========================================================================== */
-@media all and (display-mode: standalone), (.display-standalone) {
+@media all and (display-mode: standalone), (display-mode: fullscreen), (.display-standalone) {
   body {
     user-select: none;
     -webkit-user-select: none;
@@ -4673,8 +4757,10 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   }
 
   .app-container {
-    padding-top: max(28px, calc(env(safe-area-inset-top, 0px) + 16px));
-    padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+    padding-top: max(20px, calc(env(safe-area-inset-top, 0px) + 12px));
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   /* In installed standalone app, hide the install header button */
@@ -4682,6 +4768,21 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   #pwaInstallModal {
     display: none !important;
   }
+}
+
+/* Native Fullscreen Styles */
+:fullscreen, :-webkit-full-screen, :-moz-full-screen, :-ms-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #edf2fc 100%);
+}
+
+:fullscreen .app-container,
+:-webkit-full-screen .app-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
 }
 
 /* ==========================================================================

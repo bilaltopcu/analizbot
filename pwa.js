@@ -13,6 +13,7 @@
   const isStandalone = () => {
     return (
       window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
       window.navigator.standalone === true ||
       document.referrer.includes('android-app://')
     );
@@ -234,9 +235,88 @@
     }
   }
 
+  // ─── Tam Ekran (Fullscreen) Yöneticisi ───
+  function initFullscreenManager() {
+    const btn = document.getElementById('fullscreenToggleBtn');
+    if (!btn) return;
+    const icon = document.getElementById('fullscreenIcon');
+    const label = document.getElementById('fullscreenLabel');
+
+    const isFullscreen = () => {
+      return !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    };
+
+    const updateUI = () => {
+      const fs = isFullscreen();
+      if (fs) {
+        btn.classList.add('is-fullscreen');
+        if (icon) icon.className = 'fa-solid fa-compress';
+        if (label) label.textContent = 'Normal';
+        btn.setAttribute('title', 'Tam Ekrandan Çık');
+      } else {
+        btn.classList.remove('is-fullscreen');
+        if (icon) icon.className = 'fa-solid fa-expand';
+        if (label) label.textContent = 'Tam Ekran';
+        btn.setAttribute('title', 'Tam Ekrana Geç');
+      }
+    };
+
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        if (!isFullscreen()) {
+          const docEl = document.documentElement;
+          if (docEl.requestFullscreen) {
+            await docEl.requestFullscreen();
+          } else if (docEl.webkitRequestFullscreen) {
+            await docEl.webkitRequestFullscreen();
+          } else if (docEl.mozRequestFullScreen) {
+            await docEl.mozRequestFullScreen();
+          } else if (docEl.msRequestFullscreen) {
+            await docEl.msRequestFullscreen();
+          } else {
+            // iOS Safari veya Fullscreen API destegi olmayan ortamlar
+            if (isIOS() && !isStandalone()) {
+              showModal();
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+        } else {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            await document.webkitExitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            await document.mozCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+            await document.msExitFullscreen();
+          }
+        }
+      } catch (err) {
+        console.warn('[Fullscreen] Hatası:', err);
+      }
+      setTimeout(updateUI, 120);
+    });
+
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+      document.addEventListener(evt, updateUI);
+    });
+
+    updateUI();
+  }
+
   // Baslangic Kurulumu
   function initPWA() {
     const els = getElements();
+
+    // Tam ekran kontrolcusunu her durumda baslat
+    initFullscreenManager();
 
     // Zaten yukluyse veya standalone moddaysa butonlari ve pop-up'i gizle
     if (isStandalone()) {

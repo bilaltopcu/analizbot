@@ -10,8 +10,14 @@
   <meta name="theme-color" content="#f1f5f9">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GOLANALIZ AI">
+  <meta name="fullscreen" content="yes">
+  <meta name="full-screen" content="yes">
+  <meta name="browsermode" content="application">
+  <meta name="screen-orientation" content="portrait">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="x5-page-mode" content="app">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
   <link rel="shortcut icon" href="favicon.ico">
@@ -33,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=2.4.0">
+  <link rel="stylesheet" href="style.css?v=2.5.0">
 </head>
 <body>
 
@@ -71,6 +77,11 @@
           </div>
         </div>
         <div class="header-actions">
+          <!-- Fullscreen Toggle Header Button -->
+          <button type="button" class="btn-fullscreen-header" id="fullscreenToggleBtn" title="Tam Ekrana Geç" aria-label="Tam Ekran">
+            <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
+            <span class="fullscreen-label" id="fullscreenLabel">Tam Ekran</span>
+          </button>
           <!-- PWA Install Header Button -->
           <button class="btn-pwa-header hidden" id="pwaHeaderInstallBtn" title="GOLANALIZ AI Uygulamasını Yükle">
             <i class="fa-solid fa-mobile-screen-button"></i>
@@ -444,22 +455,22 @@
         </div>
       </section>
 
-    </div>
-
-    <!-- ═══ REKLAM ALANI 6: Sayfa Sonu Leaderboard / Billboard (GOLANALIZ AI Platform Tanıtımı) ═══ -->
-    <div class="ad-slot ad-slot-billboard" id="adSlotFooterBillboard">
-      <div class="ad-promo-container" style="flex-direction: row; flex-wrap: wrap; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 16px; text-align: left;">
-          <i class="fa-solid fa-shield-halved" style="font-size: 32px; color: var(--accent-green);"></i>
-          <div>
-            <span class="ad-promo-badge"><i class="fa-solid fa-crown"></i> GOLANALIZ AI PLATFORM</span>
-            <h4 class="ad-promo-title" style="margin: 0; justify-content: flex-start;">GOLANALIZ AI — Profesyonel Futbol Analiz ve İddaa Tahmin Platformu</h4>
+      <!-- ═══ REKLAM ALANI 6: Sayfa Sonu Leaderboard / Billboard (GOLANALIZ AI Platform Tanıtımı) ═══ -->
+      <div class="ad-slot ad-slot-billboard" id="adSlotFooterBillboard">
+        <div class="ad-promo-container" style="flex-direction: row; flex-wrap: wrap; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 16px; text-align: left;">
+            <i class="fa-solid fa-shield-halved" style="font-size: 32px; color: var(--accent-green);"></i>
+            <div>
+              <span class="ad-promo-badge"><i class="fa-solid fa-crown"></i> GOLANALIZ AI PLATFORM</span>
+              <h4 class="ad-promo-title" style="margin: 0; justify-content: flex-start;">GOLANALIZ AI — Profesyonel Futbol Analiz ve İddaa Tahmin Platformu</h4>
+            </div>
           </div>
+          <a href="#" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;" class="ad-promo-btn btn-green-glow">
+            <i class="fa-solid fa-arrow-up"></i> Yeni Analiz Başlat
+          </a>
         </div>
-        <a href="#" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;" class="ad-promo-btn btn-green-glow">
-          <i class="fa-solid fa-arrow-up"></i> Yeni Analiz Başlat
-        </a>
       </div>
+
     </div>
 
     <!-- App Footer -->
