@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=2.5.0">
+  <link rel="stylesheet" href="style.css?v=2.6.0">
 </head>
 <body>
 
@@ -274,6 +274,24 @@
         </div>
       </div>
 
+      <!-- ═══ BEKLENEN DEĞERLER (Expected Metrics: Beklenen Gol, Beklenen Korner, Beklenen Kart, Beklenen Faul) ═══ -->
+      <section class="expected-metrics-section glass-panel" id="expectedMetricsSection">
+        <div class="section-title-box flex-between">
+          <div>
+            <h3><i class="fa-solid fa-chart-line" style="color: var(--accent-cyan);"></i> Karşılaşma Simülasyonu: Beklenen Değerler (Expected Metrics)</h3>
+            <p>Dixon-Coles matematiksel dağılımı, zaman ağırlıklı xG ve 2026-2027 sezonu verileriyle simüle edilen maç beklentileri</p>
+          </div>
+          <div class="exp-sim-badge">
+            <span class="pulse-indicator"></span>
+            <span>Simülasyon Çıktısı</span>
+          </div>
+        </div>
+
+        <div class="expected-cards-grid" id="expectedCardsGrid">
+          <!-- Dinamik olarak JS tarafından doldurulur -->
+        </div>
+      </section>
+
       <!-- Stats Comparison Grid -->
       <section class="stats-analysis-section glass-panel">
         <div class="section-title-box">
@@ -368,6 +386,25 @@
                 <div class="score-prediction">
                   <span>Adil Oran:</span>
                   <strong id="aiFairOddsValue">1.72</strong>
+                </div>
+              </div>
+
+              <!-- AI Expected Metrics Summary Strip -->
+              <div class="ai-expected-summary-strip" id="aiExpectedSummaryStrip">
+                <div class="exp-summary-pill">
+                  <i class="fa-solid fa-futbol" style="color: #10b981;"></i>
+                  <span>Beklenen Gol:</span>
+                  <strong id="aiExpGoalsSummary">—</strong>
+                </div>
+                <div class="exp-summary-pill">
+                  <i class="fa-solid fa-flag" style="color: #0284c7;"></i>
+                  <span>Beklenen Korner:</span>
+                  <strong id="aiExpCornersSummary">—</strong>
+                </div>
+                <div class="exp-summary-pill">
+                  <i class="fa-solid fa-clone" style="color: #f59e0b;"></i>
+                  <span>Beklenen Kart:</span>
+                  <strong id="aiExpCardsSummary">—</strong>
                 </div>
               </div>
             </div>

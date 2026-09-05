@@ -1102,10 +1102,12 @@ document.addEventListener("DOMContentLoaded", () => {
     bannerHomeLogo.onerror = () => { bannerHomeLogo.onerror = null; bannerHomeLogo.src = createFallbackSvgDataUrl(homeProfile.teamName); };
     bannerAwayLogo.onerror = () => { bannerAwayLogo.onerror = null; bannerAwayLogo.src = createFallbackSvgDataUrl(awayProfile.teamName); };
 
-
     // Form Strips (Sadece 2026-2027 Sezonu - Maksimum 5 Maç)
     renderFormStrip(homeFormStrip, homeProfile.matches);
     renderFormStrip(awayFormStrip, awayProfile.matches);
+
+    // Render Expected Metrics Panel (Beklenen Değerler: xG, Korner, Kart, Faul)
+    renderExpectedMetricsSection();
 
     // Detailed Stats Rows (2026-2027 Sezonu)
     renderStatsList();
@@ -1138,6 +1140,236 @@ document.addEventListener("DOMContentLoaded", () => {
       badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || '2026-2027'}): ${m.score} vs ${m.opponent}`;
       container.appendChild(badge);
     });
+  }
+
+  // ── Render Expected Metrics Section (Beklenen Değerler: xG, xCorners, xCards, xFouls) ──
+  function renderExpectedMetricsSection() {
+    const grid = document.getElementById("expectedCardsGrid");
+    if (!grid || !homeProfile || !awayProfile) return;
+
+    const probs = calculateMatchProbabilities();
+    if (!probs) return;
+
+    const h = homeProfile.stats;
+    const a = awayProfile.stats;
+    const homeName = homeProfile.teamName;
+    const awayName = awayProfile.teamName;
+
+    // 1. Beklenen Gol (xG)
+    const homeXg = typeof probs.xG_home === 'number' ? probs.xG_home : (parseFloat(probs.lambda) || 1.45);
+    const awayXg = typeof probs.xG_away === 'number' ? probs.xG_away : (parseFloat(probs.mu) || 1.15);
+    const totalXg = typeof probs.totalExpGoals === 'number' ? probs.totalExpGoals : parseFloat((homeXg + awayXg).toFixed(2));
+    const xgHomePct = Math.min(90, Math.max(10, Math.round((homeXg / (homeXg + awayXg)) * 100)));
+    const xgAwayPct = 100 - xgHomePct;
+
+    let xgBadge = "Dengeli Hücum";
+    let xgBadgeClass = "exp-badge-cyan";
+    let xgNote = "Karşılıklı gol ve 2-3 gol aralığı muhtemel.";
+    if (totalXg >= 3.0) {
+      xgBadge = "Yüksek Gol Beklentisi";
+      xgBadgeClass = "exp-badge-emerald";
+      xgNote = `%${probs.pOver25 || 62} ihtimalle 2.5 Üst eğilimli dinamik maç.`;
+    } else if (totalXg >= 2.5) {
+      xgBadge = "2.5 Üst Eğilimli";
+      xgBadgeClass = "exp-badge-emerald";
+      xgNote = "Hücum üretkenliği yüksek, pozisyon zenginliği bekleniyor.";
+    } else if (totalXg < 2.1) {
+      xgBadge = "Düşük Gol / Savunma";
+      xgBadgeClass = "exp-badge-amber";
+      xgNote = "Taktiksel disiplin ve savunma öncelikli oyun kurgusu.";
+    }
+
+    // 2. Beklenen Korner (xCorners)
+    const hCornerAvg = parseFloat(h.avgCorners || 4.8);
+    const aCornerAvg = parseFloat(a.avgCorners || 4.4);
+    const totalCorners = parseFloat((hCornerAvg + aCornerAvg).toFixed(1));
+    const cornerHomePct = Math.min(90, Math.max(10, Math.round((hCornerAvg / (hCornerAvg + aCornerAvg)) * 100)));
+    const cornerAwayPct = 100 - cornerHomePct;
+
+    let cornerBadge = "8.5 Barajı";
+    let cornerBadgeClass = "exp-badge-cyan";
+    let cornerNote = "Standart kanat aksiyonları ve dengeli korner temposu.";
+    if (totalCorners >= 10.2) {
+      cornerBadge = "9.5 & 10.5 Üst Potansiyeli";
+      cornerBadgeClass = "exp-badge-emerald";
+      cornerNote = "Yoğun kanat bindirmeleri ve yüksek korner hacmi.";
+    } else if (totalCorners >= 9.0) {
+      cornerBadge = "8.5 / 9.5 Üst Eğilimi";
+      cornerBadgeClass = "exp-badge-cyan";
+      cornerNote = "Ceza sahası çevresinde aktif şut ve orta etkinliği.";
+    } else if (totalCorners < 7.8) {
+      cornerBadge = "8.5 Alt Eğilimli";
+      cornerBadgeClass = "exp-badge-amber";
+      cornerNote = "Merkezden gelişen hücumlar, düşük korner beklentisi.";
+    }
+
+    // 3. Beklenen Kart (xCards)
+    const isCup = selectedMatchMode === "cup";
+    const cardMultiplier = isCup ? (selectedCupFormat === "single" || selectedCupFormat === "final" ? 1.20 : 1.12) : 1.0;
+    const hCardAvg = parseFloat((parseFloat(h.avgYellowCards || 1.9) * cardMultiplier).toFixed(1));
+    const aCardAvg = parseFloat((parseFloat(a.avgYellowCards || 1.9) * cardMultiplier).toFixed(1));
+    const totalCards = parseFloat((hCardAvg + aCardAvg).toFixed(1));
+    const cardHomePct = Math.min(90, Math.max(10, Math.round((hCardAvg / (hCardAvg + aCardAvg)) * 100)));
+    const cardAwayPct = 100 - cardHomePct;
+
+    let cardBadge = "Dengeli Mücadele";
+    let cardBadgeClass = "exp-badge-cyan";
+    let cardNote = "Kontrollü ikili mücadeleler, standart hakem kart eşiği.";
+    if (totalCards >= 4.8 || isCup) {
+      cardBadge = isCup ? "Kupa Eleme Sertliği" : "Yüksek Kart & Tansiyon";
+      cardBadgeClass = "exp-badge-crimson";
+      cardNote = isCup ? "Eleme usulü kupa stresine bağlı yüksek faul ve kart riski." : "Sert ikili mücadeleler ve 4.5 Kart Üstü riski.";
+    } else if (totalCards >= 3.8) {
+      cardBadge = "3.5 Kart Üstü Riski";
+      cardBadgeClass = "exp-badge-amber";
+      cardNote = "Tempolu orta saha baskısı ve taktik faul eğilimi.";
+    } else if (totalCards < 3.2) {
+      cardBadge = "Temiz & Centilmen";
+      cardBadgeClass = "exp-badge-emerald";
+      cardNote = "Düşük faul sayısı ve sakin maç akışı.";
+    }
+
+    // 4. Beklenen Faul & Tempo (xFouls)
+    const hFouls = parseFloat((parseFloat(h.avgFouls || 11.5) * cardMultiplier).toFixed(1));
+    const aFouls = parseFloat((parseFloat(a.avgFouls || 12.0) * cardMultiplier).toFixed(1));
+    const totalFouls = parseFloat((hFouls + aFouls).toFixed(1));
+    const foulHomePct = Math.min(90, Math.max(10, Math.round((hFouls / (hFouls + aFouls)) * 100)));
+    const foulAwayPct = 100 - foulHomePct;
+
+    let foulBadge = "Normal Tempo";
+    let foulBadgeClass = "exp-badge-cyan";
+    let foulNote = "Orta saha mücadelesi dengeli, oyun akışı stabil.";
+    if (totalFouls >= 26.0) {
+      foulBadge = "Agresif Baskı";
+      foulBadgeClass = "exp-badge-crimson";
+      foulNote = "Sık duran oyun, yoğun pres ve taktiksel faul sıklığı.";
+    } else if (totalFouls >= 22.0) {
+      foulBadge = "Yüksek Mücadele";
+      foulBadgeClass = "exp-badge-amber";
+      foulNote = "Tempolu ikili mücadeleler ve sert pres.";
+    } else if (totalFouls < 19.0) {
+      foulBadge = "Akıcı & Hızlı Tempo";
+      foulBadgeClass = "exp-badge-emerald";
+      foulNote = "Topun oyunda kalma süresi yüksek, akıcı karşılaşma.";
+    }
+
+    grid.innerHTML = `
+      <!-- Beklenen Gol (xG) -->
+      <div class="expected-card exp-card-goals">
+        <div class="exp-card-header">
+          <div class="exp-card-icon"><i class="fa-solid fa-futbol"></i></div>
+          <div class="exp-card-title-group">
+            <span class="exp-card-label">Beklenen Gol (xG)</span>
+            <span class="exp-card-badge ${xgBadgeClass}">${xgBadge}</span>
+          </div>
+        </div>
+        <div class="exp-hero-metric">
+          <span class="exp-hero-num">${totalXg}</span>
+          <span class="exp-hero-unit">Toplam xG</span>
+        </div>
+        <div class="exp-split-container">
+          <div class="exp-split-labels">
+            <span class="split-home" title="${homeName}"><i class="fa-solid fa-house"></i> Ev: <strong>${homeXg}</strong></span>
+            <span class="split-away" title="${awayName}">Dep: <strong>${awayXg}</strong> <i class="fa-solid fa-plane-departure"></i></span>
+          </div>
+          <div class="exp-split-bar">
+            <div class="exp-bar-home" style="width: ${xgHomePct}%;"></div>
+            <div class="exp-bar-away" style="width: ${xgAwayPct}%;"></div>
+          </div>
+        </div>
+        <div class="exp-card-footer">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>${xgNote}</span>
+        </div>
+      </div>
+
+      <!-- Beklenen Korner (xCorners) -->
+      <div class="expected-card exp-card-corners">
+        <div class="exp-card-header">
+          <div class="exp-card-icon"><i class="fa-solid fa-flag"></i></div>
+          <div class="exp-card-title-group">
+            <span class="exp-card-label">Beklenen Korner (xCorners)</span>
+            <span class="exp-card-badge ${cornerBadgeClass}">${cornerBadge}</span>
+          </div>
+        </div>
+        <div class="exp-hero-metric">
+          <span class="exp-hero-num">${totalCorners}</span>
+          <span class="exp-hero-unit">Toplam Korner</span>
+        </div>
+        <div class="exp-split-container">
+          <div class="exp-split-labels">
+            <span class="split-home" title="${homeName}"><i class="fa-solid fa-house"></i> Ev: <strong>${hCornerAvg}</strong></span>
+            <span class="split-away" title="${awayName}">Dep: <strong>${aCornerAvg}</strong> <i class="fa-solid fa-plane-departure"></i></span>
+          </div>
+          <div class="exp-split-bar">
+            <div class="exp-bar-home bar-cyan" style="width: ${cornerHomePct}%;"></div>
+            <div class="exp-bar-away bar-cyan-light" style="width: ${cornerAwayPct}%;"></div>
+          </div>
+        </div>
+        <div class="exp-card-footer">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>${cornerNote}</span>
+        </div>
+      </div>
+
+      <!-- Beklenen Kart (xCards) -->
+      <div class="expected-card exp-card-cards">
+        <div class="exp-card-header">
+          <div class="exp-card-icon"><i class="fa-solid fa-clone"></i></div>
+          <div class="exp-card-title-group">
+            <span class="exp-card-label">Beklenen Kart (xCards)</span>
+            <span class="exp-card-badge ${cardBadgeClass}">${cardBadge}</span>
+          </div>
+        </div>
+        <div class="exp-hero-metric">
+          <span class="exp-hero-num">${totalCards}</span>
+          <span class="exp-hero-unit">Toplam Kart</span>
+        </div>
+        <div class="exp-split-container">
+          <div class="exp-split-labels">
+            <span class="split-home" title="${homeName}"><i class="fa-solid fa-house"></i> Ev: <strong>${hCardAvg}</strong></span>
+            <span class="split-away" title="${awayName}">Dep: <strong>${aCardAvg}</strong> <i class="fa-solid fa-plane-departure"></i></span>
+          </div>
+          <div class="exp-split-bar">
+            <div class="exp-bar-home bar-amber" style="width: ${cardHomePct}%;"></div>
+            <div class="exp-bar-away bar-amber-light" style="width: ${cardAwayPct}%;"></div>
+          </div>
+        </div>
+        <div class="exp-card-footer">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>${cardNote}</span>
+        </div>
+      </div>
+
+      <!-- Beklenen Faul & Tempo (xFouls) -->
+      <div class="expected-card exp-card-fouls">
+        <div class="exp-card-header">
+          <div class="exp-card-icon"><i class="fa-solid fa-bolt"></i></div>
+          <div class="exp-card-title-group">
+            <span class="exp-card-label">Beklenen Faul & Tempo</span>
+            <span class="exp-card-badge ${foulBadgeClass}">${foulBadge}</span>
+          </div>
+        </div>
+        <div class="exp-hero-metric">
+          <span class="exp-hero-num">${totalFouls}</span>
+          <span class="exp-hero-unit">Toplam Faul</span>
+        </div>
+        <div class="exp-split-container">
+          <div class="exp-split-labels">
+            <span class="split-home" title="${homeName}"><i class="fa-solid fa-house"></i> Ev: <strong>${hFouls}</strong></span>
+            <span class="split-away" title="${awayName}">Dep: <strong>${aFouls}</strong> <i class="fa-solid fa-plane-departure"></i></span>
+          </div>
+          <div class="exp-split-bar">
+            <div class="exp-bar-home bar-violet" style="width: ${foulHomePct}%;"></div>
+            <div class="exp-bar-away bar-violet-light" style="width: ${foulAwayPct}%;"></div>
+          </div>
+        </div>
+        <div class="exp-card-footer">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>${foulNote}</span>
+        </div>
+      </div>
+    `;
   }
 
   // Render Line-by-Line Stats
@@ -1647,6 +1879,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const aiTacticalGrid= document.getElementById("aiTacticalGrid");
     const aiMainProbVal = document.getElementById("aiMainProbVal");
     if (aiXgValue) aiXgValue.textContent = `Ev ${probs.xG_home} - ${probs.xG_away} Dep`;
+
+    const aiExpGoalsSummary = document.getElementById("aiExpGoalsSummary");
+    const aiExpCornersSummary = document.getElementById("aiExpCornersSummary");
+    const aiExpCardsSummary = document.getElementById("aiExpCardsSummary");
+    if (aiExpGoalsSummary) aiExpGoalsSummary.textContent = `${probs.totalExpGoals || (probs.xG_home + probs.xG_away).toFixed(2)} xG`;
+    if (aiExpCornersSummary) aiExpCornersSummary.textContent = `${probs.expCorners} Korner`;
+    if (aiExpCardsSummary) aiExpCardsSummary.textContent = `${probs.expCards} Kart`;
 
     const totalXG        = probs.xG_home + probs.xG_away;
     const homeAttack     = parseFloat(hStats.avgGoalsScored)   || 1.2;
