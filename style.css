@@ -3511,6 +3511,57 @@ body {
   color: var(--text-secondary);
 }
 
+/* Expected Corner Statistics Table (Açıklamasız, Direkt Alt Alta İstatistik Tablosu) */
+.exp-corner-table {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: #f8fafc;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-top: 2px;
+}
+
+.exp-corner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding: 3px 0;
+  border-bottom: 1px dashed rgba(226, 232, 240, 0.9);
+}
+
+.exp-corner-row:last-child {
+  border-bottom: none;
+}
+
+.exp-corner-row .cstat-name {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.exp-corner-row .cstat-name i {
+  font-size: 10px;
+  color: #0284c7;
+  width: 12px;
+  text-align: center;
+}
+
+.exp-corner-row .cstat-val {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-feature-settings: "tnum";
+}
+
+.exp-corner-row .cstat-val.cstat-green { color: #047857; }
+.exp-corner-row .cstat-val.cstat-cyan { color: #0284c7; }
+.exp-corner-row .cstat-val.cstat-amber { color: #b45309; }
+.exp-corner-row .cstat-val.cstat-muted { color: var(--text-muted); }
+
 /* AI Result Card Expected Summary Strip */
 .ai-expected-summary-strip {
   display: flex;

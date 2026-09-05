@@ -1142,6 +1142,147 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ── Researched Expected Corners (xCorners) Engine ──
+  // Takımların korner kazanma ve verme dinamikleri, şut baskısı ve saha avantajı ile modellenir
+  function calculateResearchedCorners(hProf, aProf) {
+    if (!hProf || !aProf) return null;
+    const h = hProf.stats || {};
+    const a = aProf.stats || {};
+    const leagueAvgTeamCorner = 4.85;
+
+    function getTeamCornerMetrics(teamName, isHomeTeam, fallbackAvg) {
+      const slug = (typeof slugifyTeam === 'function') ? slugifyTeam(teamName) : teamName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const matchIndex = (typeof TEAM_MATCHES_INDEX !== 'undefined') ? TEAM_MATCHES_INDEX : {};
+      const matches = matchIndex[slug] || [];
+      
+      let wonVenue = [], concVenue = [];
+      let wonAll = [], concAll = [];
+      let shotsVenue = [], shotsAll = [];
+
+      matches.forEach(m => {
+        const isH = (typeof matchTeamNames === 'function') ? matchTeamNames(m[2], teamName) : (m[2] === teamName);
+        const hc = m[10], ac = m[11], hs = m[6], as = m[7];
+        if (hc !== null && ac !== null && !isNaN(hc) && !isNaN(ac)) {
+          const w = isH ? hc : ac;
+          const c = isH ? ac : hc;
+          wonAll.push(w);
+          concAll.push(c);
+          if (isHomeTeam && isH) {
+            wonVenue.push(w);
+            concVenue.push(c);
+          } else if (!isHomeTeam && !isH) {
+            wonVenue.push(w);
+            concVenue.push(c);
+          }
+        }
+        if (hs !== null && as !== null && !isNaN(hs) && !isNaN(as)) {
+          const s = isH ? hs : as;
+          shotsAll.push(s);
+          if (isHomeTeam && isH) shotsVenue.push(s);
+          else if (!isHomeTeam && !isH) shotsVenue.push(s);
+        }
+      });
+
+      const avgCalc = (arr, defVal) => arr.length ? arr.reduce((x, y) => x + y, 0) / arr.length : defVal;
+      const baseAvg = parseFloat(fallbackAvg) || leagueAvgTeamCorner;
+      const avgWonAll = avgCalc(wonAll, baseAvg);
+      const avgConcAll = avgCalc(concAll, leagueAvgTeamCorner);
+      const avgWonVenue = avgCalc(wonVenue, avgWonAll);
+      const avgConcVenue = avgCalc(concVenue, avgConcAll);
+      const avgShots = avgCalc(shotsVenue.length ? shotsVenue : shotsAll, 12.0);
+
+      // Empirical Bayes regresyonu: Aşırı uçları lig ortalamasına regrese eder
+      const sampleWeightWon = wonAll.length / (wonAll.length + 8);
+      const sampleWeightConc = concAll.length / (concAll.length + 8);
+      
+      const regressedWon = (avgWonAll * sampleWeightWon) + (leagueAvgTeamCorner * (1 - sampleWeightWon));
+      const regressedConc = (avgConcAll * sampleWeightConc) + (leagueAvgTeamCorner * (1 - sampleWeightConc));
+      
+      const finalWon = (avgWonVenue * 0.60) + (regressedWon * 0.40);
+      const finalConc = (avgConcVenue * 0.60) + (regressedConc * 0.40);
+
+      return {
+        finalWon,
+        finalConc,
+        avgWonAll: parseFloat(avgWonAll.toFixed(1)),
+        avgConcAll: parseFloat(avgConcAll.toFixed(1)),
+        avgShots
+      };
+    }
+
+    const hC = getTeamCornerMetrics(hProf.teamName, true, h.avgCorners);
+    const aC = getTeamCornerMetrics(aProf.teamName, false, a.avgCorners);
+
+    // Şut yoğunluğu çarpanı (daha fazla şut = daha çok engellenen top ve korner)
+    const hShotPressure = Math.min(1.18, Math.max(0.85, Math.pow(hC.avgShots / 12.0, 0.30)));
+    const aShotPressure = Math.min(1.18, Math.max(0.85, Math.pow(aC.avgShots / 11.5, 0.30)));
+
+    // İç saha baskı faktörü
+    const homeAdvantage = 1.06;
+    const awayAdvantage = 0.94;
+
+    // Researched Expected Corners (xCorners)
+    let lambdaHome = ( (hC.finalWon / leagueAvgTeamCorner) * (aC.finalConc / leagueAvgTeamCorner) * leagueAvgTeamCorner ) * homeAdvantage * hShotPressure;
+    let lambdaAway = ( (aC.finalWon / leagueAvgTeamCorner) * (hC.finalConc / leagueAvgTeamCorner) * leagueAvgTeamCorner ) * awayAdvantage * aShotPressure;
+
+    lambdaHome = parseFloat(Math.min(9.2, Math.max(2.0, lambdaHome)).toFixed(1));
+    lambdaAway = parseFloat(Math.min(8.8, Math.max(1.8, lambdaAway)).toFixed(1));
+    const totalCorners = parseFloat((lambdaHome + lambdaAway).toFixed(1));
+    const iyCorners = parseFloat((totalCorners * 0.45).toFixed(1));
+
+    // Poisson kümülatif fonksiyonu
+    function calcCornerPoissonCdf(l, k) {
+      if (l <= 0) return 1;
+      let s = 0, term = Math.exp(-l);
+      s += term;
+      for (let i = 1; i <= k; i++) {
+        term *= (l / i);
+        s += term;
+      }
+      return s;
+    }
+
+    const pOver85  = Math.min(96, Math.max(5, Math.round((1 - calcCornerPoissonCdf(totalCorners, 8)) * 100)));
+    const pOver95  = Math.min(94, Math.max(4, Math.round((1 - calcCornerPoissonCdf(totalCorners, 9)) * 100)));
+    const pOver105 = Math.min(90, Math.max(3, Math.round((1 - calcCornerPoissonCdf(totalCorners, 10)) * 100)));
+    const pUnder85 = 100 - pOver85;
+    const pUnder95 = 100 - pOver95;
+
+    const cornerHomePct = Math.min(85, Math.max(15, Math.round((lambdaHome / totalCorners) * 100)));
+    const cornerAwayPct = 100 - cornerHomePct;
+
+    let cornerBadge = "8.5 Barajı";
+    let cornerBadgeClass = "exp-badge-cyan";
+    if (totalCorners >= 10.2) {
+      cornerBadge = "9.5 & 10.5 Üst Potansiyeli";
+      cornerBadgeClass = "exp-badge-emerald";
+    } else if (totalCorners >= 9.0) {
+      cornerBadge = "8.5 / 9.5 Üst Eğilimi";
+      cornerBadgeClass = "exp-badge-cyan";
+    } else if (totalCorners < 7.8) {
+      cornerBadge = "8.5 Alt Eğilimli";
+      cornerBadgeClass = "exp-badge-amber";
+    }
+
+    return {
+      expHome: lambdaHome,
+      expAway: lambdaAway,
+      totalCorners,
+      iyCorners,
+      pOver85,
+      pOver95,
+      pOver105,
+      pUnder85,
+      pUnder95,
+      cornerHomePct,
+      cornerAwayPct,
+      cornerBadge,
+      cornerBadgeClass,
+      hRawAvg: hC.avgWonAll,
+      aRawAvg: aC.avgWonAll
+    };
+  }
+
   // ── Render Expected Metrics Section (Beklenen Değerler: xG, xCorners, xCards, xFouls) ──
   function renderExpectedMetricsSection() {
     const grid = document.getElementById("expectedCardsGrid");
@@ -1179,29 +1320,21 @@ document.addEventListener("DOMContentLoaded", () => {
       xgNote = "Taktiksel disiplin ve savunma öncelikli oyun kurgusu.";
     }
 
-    // 2. Beklenen Korner (xCorners)
-    const hCornerAvg = parseFloat(h.avgCorners || 4.8);
-    const aCornerAvg = parseFloat(a.avgCorners || 4.4);
-    const totalCorners = parseFloat((hCornerAvg + aCornerAvg).toFixed(1));
-    const cornerHomePct = Math.min(90, Math.max(10, Math.round((hCornerAvg / (hCornerAvg + aCornerAvg)) * 100)));
-    const cornerAwayPct = 100 - cornerHomePct;
-
-    let cornerBadge = "8.5 Barajı";
-    let cornerBadgeClass = "exp-badge-cyan";
-    let cornerNote = "Standart kanat aksiyonları ve dengeli korner temposu.";
-    if (totalCorners >= 10.2) {
-      cornerBadge = "9.5 & 10.5 Üst Potansiyeli";
-      cornerBadgeClass = "exp-badge-emerald";
-      cornerNote = "Yoğun kanat bindirmeleri ve yüksek korner hacmi.";
-    } else if (totalCorners >= 9.0) {
-      cornerBadge = "8.5 / 9.5 Üst Eğilimi";
-      cornerBadgeClass = "exp-badge-cyan";
-      cornerNote = "Ceza sahası çevresinde aktif şut ve orta etkinliği.";
-    } else if (totalCorners < 7.8) {
-      cornerBadge = "8.5 Alt Eğilimli";
-      cornerBadgeClass = "exp-badge-amber";
-      cornerNote = "Merkezden gelişen hücumlar, düşük korner beklentisi.";
-    }
+    // 2. Beklenen Korner (xCorners - Araştırılmış Model)
+    const cornerRes = calculateResearchedCorners(homeProfile, awayProfile) || {
+      expHome: parseFloat(h.avgCorners || 4.8),
+      expAway: parseFloat(a.avgCorners || 4.4),
+      totalCorners: parseFloat((parseFloat(h.avgCorners || 4.8) + parseFloat(a.avgCorners || 4.4)).toFixed(1)),
+      iyCorners: 4.2,
+      pOver85: 65,
+      pOver95: 50,
+      pOver105: 35,
+      pUnder85: 35,
+      cornerHomePct: 53,
+      cornerAwayPct: 47,
+      cornerBadge: "8.5 Barajı",
+      cornerBadgeClass: "exp-badge-cyan"
+    };
 
     // 3. Beklenen Kart (xCards)
     const isCup = selectedMatchMode === "cup";
@@ -1283,32 +1416,59 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
-      <!-- Beklenen Korner (xCorners) -->
+      <!-- Beklenen Korner (xCorners) - İstatistik Tablosu Formatında (Açıklamasız, Direkt Alt Alta) -->
       <div class="expected-card exp-card-corners">
         <div class="exp-card-header">
           <div class="exp-card-icon"><i class="fa-solid fa-flag"></i></div>
           <div class="exp-card-title-group">
             <span class="exp-card-label">Beklenen Korner (xCorners)</span>
-            <span class="exp-card-badge ${cornerBadgeClass}">${cornerBadge}</span>
+            <span class="exp-card-badge ${cornerRes.cornerBadgeClass}">${cornerRes.cornerBadge}</span>
           </div>
         </div>
         <div class="exp-hero-metric">
-          <span class="exp-hero-num">${totalCorners}</span>
+          <span class="exp-hero-num">${cornerRes.totalCorners}</span>
           <span class="exp-hero-unit">Toplam Korner</span>
         </div>
         <div class="exp-split-container">
           <div class="exp-split-labels">
-            <span class="split-home" title="${homeName}"><i class="fa-solid fa-house"></i> Ev: <strong>${hCornerAvg}</strong></span>
-            <span class="split-away" title="${awayName}">Dep: <strong>${aCornerAvg}</strong> <i class="fa-solid fa-plane-departure"></i></span>
+            <span class="split-home" title="${homeName}"><i class="fa-solid fa-house"></i> Ev: <strong>${cornerRes.expHome}</strong></span>
+            <span class="split-away" title="${awayName}">Dep: <strong>${cornerRes.expAway}</strong> <i class="fa-solid fa-plane-departure"></i></span>
           </div>
           <div class="exp-split-bar">
-            <div class="exp-bar-home bar-cyan" style="width: ${cornerHomePct}%;"></div>
-            <div class="exp-bar-away bar-cyan-light" style="width: ${cornerAwayPct}%;"></div>
+            <div class="exp-bar-home bar-cyan" style="width: ${cornerRes.cornerHomePct}%;"></div>
+            <div class="exp-bar-away bar-cyan-light" style="width: ${cornerRes.cornerAwayPct}%;"></div>
           </div>
         </div>
-        <div class="exp-card-footer">
-          <i class="fa-solid fa-chart-pie"></i>
-          <span>${cornerNote}</span>
+        <!-- İstatistik Tablosu (Açıklama Yerine Direkt Alt Alta İstatistikler) -->
+        <div class="exp-corner-table">
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-house-chimney"></i> Ev Sahibi Beklenen</span>
+            <span class="cstat-val">${cornerRes.expHome} Korner</span>
+          </div>
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-plane-departure"></i> Deplasman Beklenen</span>
+            <span class="cstat-val">${cornerRes.expAway} Korner</span>
+          </div>
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-stopwatch"></i> İlk Yarı Beklenen (İY)</span>
+            <span class="cstat-val">${cornerRes.iyCorners} Korner</span>
+          </div>
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-chart-line"></i> 8.5 Korner Üst</span>
+            <span class="cstat-val ${cornerRes.pOver85 >= 60 ? 'cstat-green' : 'cstat-cyan'}">%${cornerRes.pOver85}</span>
+          </div>
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-chart-line"></i> 9.5 Korner Üst</span>
+            <span class="cstat-val ${cornerRes.pOver95 >= 50 ? 'cstat-green' : 'cstat-cyan'}">%${cornerRes.pOver95}</span>
+          </div>
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-chart-line"></i> 10.5 Korner Üst</span>
+            <span class="cstat-val ${cornerRes.pOver105 >= 45 ? 'cstat-green' : 'cstat-muted'}">%${cornerRes.pOver105}</span>
+          </div>
+          <div class="exp-corner-row">
+            <span class="cstat-name"><i class="fa-solid fa-shield-halved"></i> 8.5 Korner Alt</span>
+            <span class="cstat-val ${cornerRes.pUnder85 >= 50 ? 'cstat-amber' : 'cstat-muted'}">%${cornerRes.pUnder85}</span>
+          </div>
         </div>
       </div>
 
@@ -1378,6 +1538,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!statsList || !homeProfile || !awayProfile) return;
     const hStats = homeProfile.stats;
     const aStats = awayProfile.stats;
+    const probs = calculateMatchProbabilities();
 
     const hSeasonLabel = homeProfile.dataSeasonLabel || '2026-2027 Sezonu';
     const aSeasonLabel = awayProfile.dataSeasonLabel || '2026-2027 Sezonu';
@@ -1430,6 +1591,13 @@ document.addEventListener("DOMContentLoaded", () => {
         awayDisplay: fmtVal(aStats.avgCorners, "", " Korner"),
         rawHome: parseFloat(hStats.avgCorners) || 0,
         rawAway: parseFloat(aStats.avgCorners) || 0 },
+      ...(probs && probs.cornerData ? [{
+        title: "🚩 Beklenen Korner (xCorners)",
+        homeDisplay: `${probs.cornerData.expHome} Korner`,
+        awayDisplay: `${probs.cornerData.expAway} Korner`,
+        rawHome: probs.cornerData.expHome,
+        rawAway: probs.cornerData.expAway
+      }] : []),
       { title:`🟨 Sarı Kart Ortalaması${cardsNote}`,
         homeDisplay: fmtVal(hStats.avgYellowCards, "", " Kart/Maç"),
         awayDisplay: fmtVal(aStats.avgYellowCards, "", " Kart/Maç"),
@@ -1774,7 +1942,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const h = homeProfile.stats;
     const a = awayProfile.stats;
 
-    const expCorners = (parseFloat(h.avgCorners || 4.8) + parseFloat(a.avgCorners || 4.8)).toFixed(1);
+    const cornerRes = calculateResearchedCorners(homeProfile, awayProfile);
+    const expCorners = cornerRes ? cornerRes.totalCorners.toFixed(1) : (parseFloat(h.avgCorners || 4.8) + parseFloat(a.avgCorners || 4.8)).toFixed(1);
     const expCards   = (parseFloat(h.avgYellowCards || 1.9) + parseFloat(a.avgYellowCards || 1.9)).toFixed(1);
     const expFouls   = (parseFloat(h.avgFouls || 0) + parseFloat(a.avgFouls || 0)).toFixed(1);
 
@@ -1810,6 +1979,7 @@ document.addEventListener("DOMContentLoaded", () => {
       xG_home: quant.lambda,
       xG_away: quant.mu,
       expCorners,
+      cornerData: cornerRes,
       expCards,
       expFouls,
       hAdv,
@@ -2026,43 +2196,44 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // ── KATEGORI 2: KORNER BAHİSLERİ (Engine 6.0) ──
+    // ── KATEGORI 2: KORNER BAHİSLERİ (Engine 6.0: Researched Corners) ──
+    const cData = probs.cornerData;
     if (cornersReliable) {
-      if (totalCornersExp >= 10.0) {
-        const pct = Math.min(84, Math.round(totalCornersExp * 7.5));
+      if (totalCornersExp >= 9.8) {
+        const pct = cData ? cData.pOver95 : Math.min(84, Math.round(totalCornersExp * 7.5));
         candidates.push({
           category: "korner",
           title: "TOPLAM KORNER 9.5 ÜST",
           pct, odds: 1.90,
           signal: (totalCornersExp - 9.0) * 18 + (homeCorners + awayCorners - 9.0) * 12,
           supportingFactors: 4,
-          pros: [`Beklenen korner: ${totalCornersExp}`, `Ev (${homeCorners}) + Dep (${awayCorners}) kanat temposu`],
-          cons: [totalCornersExp < 10.5 ? '10.0 sınırına yakın' : ''],
-          reason: `${homeProfile.teamName} ${homeCorners} + ${awayProfile.teamName} ${awayCorners} korner ortalamasıyla toplam ${totalCornersExp} beklenen korner. 9.5 üst için net sinyal.`
+          pros: [`Beklenen korner: ${totalCornersExp}`, `Kanat temposu ve şut baskısı`, `Poisson 9.5Ü: %${pct}`],
+          cons: [totalCornersExp < 10.2 ? '10.0 sınırına yakın' : ''],
+          reason: `Takımların korner kazanma ve savunma dinamikleri araştırmasına göre beklenen korner ${totalCornersExp} (Ev ${cData ? cData.expHome : homeCorners} / Dep ${cData ? cData.expAway : awayCorners}). 9.5 Üst için güçlü istatistiksel sinyal.`
         });
-      } else if (totalCornersExp >= 9.0) {
-        const pct = Math.min(80, Math.round(totalCornersExp * 8.0));
+      } else if (totalCornersExp >= 8.8) {
+        const pct = cData ? cData.pOver85 : Math.min(80, Math.round(totalCornersExp * 8.0));
         candidates.push({
           category: "korner",
           title: "TOPLAM KORNER 8.5 ÜST",
           pct, odds: 1.75,
           signal: (totalCornersExp - 8.0) * 16,
           supportingFactors: 3,
-          pros: [`Toplam korner beklentisi ${totalCornersExp}`, 'Kanat organizasyonları güçlü'],
+          pros: [`Toplam korner beklentisi ${totalCornersExp}`, 'Kanat organizasyonları aktif', `8.5Ü Olasılığı %${pct}`],
           cons: [],
-          reason: `Maç başına beklenen korner sayısı ${totalCornersExp} — 8.5 üst için iyi görünüm.`
+          reason: `Maç başına araştırılan beklenen korner ${totalCornersExp} (Ev ${cData ? cData.expHome : homeCorners} / Dep ${cData ? cData.expAway : awayCorners}) — 8.5 Üst için değer sunuyor.`
         });
       } else if (totalCornersExp < 8.5) {
-        const pLow = Math.min(78, Math.round((9.5 - totalCornersExp) * 10));
+        const pLow = cData ? cData.pUnder85 : Math.min(78, Math.round((9.5 - totalCornersExp) * 10));
         candidates.push({
           category: "korner",
           title: "TOPLAM KORNER 8.5 ALT",
           pct: pLow, odds: 1.75,
           signal: (8.5 - totalCornersExp) * 14,
           supportingFactors: 3,
-          pros: [`Düşük korner ortalamaları (${(homeCorners+awayCorners).toFixed(1)})`, 'Merkezi oyun tercihi'],
+          pros: [`Düşük korner beklentisi (${totalCornersExp})`, 'Merkezi oyun tercihi', `8.5A Olasılığı %${pLow}`],
           cons: [totalCornersExp > 8.0 ? '8.5 sınırına yakın' : ''],
-          reason: `İki takımın ortalama kornerleri düşük (${homeCorners} + ${awayCorners}). Defansif/kontrollü maç beklentisi.`
+          reason: `İki takımın kontrollü kanat organizasyonları ve korner savunmaları araştırmasına göre beklenen korner ${totalCornersExp}. 8.5 Alt potansiyeli yüksek.`
         });
       }
     }
@@ -2643,12 +2814,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (homeProfile.cornersReliable && awayProfile.cornersReliable && h.avgCorners !== null && a.avgCorners !== null) {
-      const p85U = Math.min(95, Math.max(45, Math.round(expCorners * 9.2)));
-      const p95U = Math.min(90, Math.max(35, Math.round(expCorners * 8.2)));
+      const cRes = calculateResearchedCorners(homeProfile, awayProfile);
+      const p85U = cRes ? cRes.pOver85 : Math.min(95, Math.max(45, Math.round(expCorners * 9.2)));
+      const p95U = cRes ? cRes.pOver95 : Math.min(90, Math.max(35, Math.round(expCorners * 8.2)));
+      const p85A = cRes ? cRes.pUnder85 : (100 - p85U);
       currentPossibleBets.push(
-        makeBet("korner", "Toplam Korner 8.5 Üst", p85U, `2026-2027 sezonu verilerine göre toplam beklenen korner ${expCorners}.`),
-        makeBet("korner", "Toplam Korner 9.5 Üst", p95U, `Kanat hücumları ve şut temposuyla korner beklentisi.`)
+        makeBet("korner", "Toplam Korner 8.5 Üst", p85U, `Detaylı korner modellemesine göre toplam beklenen korner ${expCorners}. 8.5 Üst olasılığı %${p85U}.`),
+        makeBet("korner", "Toplam Korner 9.5 Üst", p95U, `Kanat hücumları ve şut temposu araştırmasıyla 9.5 Üst olasılığı %${p95U}.`)
       );
+      if (p85A >= 55) {
+        currentPossibleBets.push(
+          makeBet("korner", "Toplam Korner 8.5 Alt", p85A, `Kontrollü kanat savunmaları ve düşük korner beklentisi (${expCorners}). 8.5 Alt olasılığı %${p85A}.`)
+        );
+      }
     }
 
     if (selectedMatchMode === "cup") {
