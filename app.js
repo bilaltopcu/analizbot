@@ -1344,75 +1344,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const rows = [
-      {
-        homeDisplay: `${hShots} Şut`,
-        title: `🎯 Beklenen Şut (Toplam: ${totalExpShots})`,
-        awayDisplay: `${aShots} Şut`
-      },
-      {
-        homeDisplay: `${hSot} İsabet`,
-        title: `🎯 Beklenen İsabetli Şut (Toplam: ${totalExpSot})`,
-        awayDisplay: `${aSot} İsabet`
-      },
-      {
-        homeDisplay: `${homeXg} xG`,
-        title: `⚽ Beklenen Gol (Toplam: ${totalXg} xG)`,
-        awayDisplay: `${awayXg} xG`
-      },
-      {
-        homeDisplay: `${iyHomeXg} xG`,
-        title: `🕐 İlk Yarı Beklenen Gol (İY xG)`,
-        awayDisplay: `${iyAwayXg} xG`
-      },
-      {
-        homeDisplay: `${cornerRes.expHome} Korner`,
-        title: `🚩 Beklenen Korner (xCorners)`,
-        awayDisplay: `${cornerRes.expAway} Korner`
-      },
-      {
-        homeDisplay: `${iyHomeCorners} Korner`,
-        title: `⏱️ İlk Yarı Beklenen Korner`,
-        awayDisplay: `${iyAwayCorners} Korner`
-      },
-      {
-        homeDisplay: `${hCardAvg} Kart`,
-        title: `🟨 Sarı Kart Beklentisi`,
-        awayDisplay: `${aCardAvg} Kart`
-      },
-      {
-        homeDisplay: `${hFouls} Faul`,
-        title: `⚡ Beklenen Faul`,
-        awayDisplay: `${aFouls} Faul`
-      },
-      {
-        homeDisplay: `%${probs.homeCleanSheetPct || 33}`,
-        title: `🛡️ Kalesini Gole Kapatma (Clean Sheet)`,
-        awayDisplay: `%${probs.awayCleanSheetPct || 33}`
-      },
-      {
-        homeDisplay: `%${probs.pBTTS}`,
-        title: `⚡ KG Var (Karşılıklı Gol) Oranı`,
-        awayDisplay: `%${probs.pBTTSNo}`
-      },
-      {
-        homeDisplay: `%${probs.pOver25}`,
-        title: `📈 2.5 Üst Gol Oranı`,
-        awayDisplay: `%${probs.pUnder25}`
-      },
-      {
-        homeDisplay: `%${probs.pHomeWin}`,
-        title: `🏆 En Olası Skor: ${likelyScore}`,
-        awayDisplay: `%${probs.pAwayWin}`
-      }
+      { name: "🎯 Beklenen Toplam Şut", val: `${totalExpShots} Şut` },
+      { name: "🎯 Beklenen İsabetli Şut", val: `${totalExpSot} İsabet` },
+      { name: "⚽ Beklenen Toplam Gol (xG)", val: `${totalXg} xG` },
+      { name: "🕐 İlk Yarı Beklenen Gol (İY xG)", val: `${iyTotalXg} xG` },
+      { name: "🚩 Beklenen Toplam Korner (xCorners)", val: `${cornerRes.totalCorners} Korner` },
+      { name: "⏱️ İlk Yarı Beklenen Korner", val: `${cornerRes.iyCorners} Korner` },
+      { name: "🟨 Beklenen Toplam Kart", val: `${totalCards} Kart` },
+      { name: "⚡ Beklenen Toplam Faul", val: `${totalFouls} Faul` },
+      { name: "🔄 Karşılıklı Gol (KG Var)", val: `%${probs.pBTTS}` },
+      { name: "📈 2.5 Gol Üst Olasılığı", val: `%${probs.pOver25}` },
+      { name: "🏆 En Olası Maç Skoru", val: likelyScore }
     ];
 
     container.innerHTML = rows.map(r => `
       <div class="stat-row">
-        <div class="stat-label-bar">
-          <span class="home-val">${r.homeDisplay}</span>
-          <span class="stat-title">${r.title}</span>
-          <span class="away-val">${r.awayDisplay}</span>
-        </div>
+        <span class="exp-stat-name">${r.name}</span>
+        <span class="exp-stat-val">${r.val}</span>
       </div>
     `).join("");
   }
