@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=3.3.0">
+  <link rel="stylesheet" href="style.css?v=3.4.0">
 </head>
 <body>
 
@@ -391,20 +391,26 @@
 
               <!-- AI Expected Metrics Summary Strip -->
               <div class="ai-expected-summary-strip" id="aiExpectedSummaryStrip">
-                <div class="exp-summary-pill">
-                  <i class="fa-solid fa-futbol" style="color: #10b981;"></i>
-                  <span>Beklenen Gol:</span>
-                  <strong id="aiExpGoalsSummary">—</strong>
+                <div class="exp-summary-pill exp-pill-goals">
+                  <div class="exp-pill-content">
+                    <i class="fa-solid fa-futbol exp-pill-icon" style="color: #059669;"></i>
+                    <span class="exp-pill-label">Beklenen Gol:</span>
+                  </div>
+                  <strong id="aiExpGoalsSummary" class="exp-pill-val">—</strong>
                 </div>
-                <div class="exp-summary-pill">
-                  <i class="fa-solid fa-flag" style="color: #0284c7;"></i>
-                  <span>Beklenen Korner:</span>
-                  <strong id="aiExpCornersSummary">—</strong>
+                <div class="exp-summary-pill exp-pill-corners">
+                  <div class="exp-pill-content">
+                    <i class="fa-solid fa-flag exp-pill-icon" style="color: #0284c7;"></i>
+                    <span class="exp-pill-label">Beklenen Korner:</span>
+                  </div>
+                  <strong id="aiExpCornersSummary" class="exp-pill-val">—</strong>
                 </div>
-                <div class="exp-summary-pill">
-                  <i class="fa-solid fa-clone" style="color: #f59e0b;"></i>
-                  <span>Beklenen Kart:</span>
-                  <strong id="aiExpCardsSummary">—</strong>
+                <div class="exp-summary-pill exp-pill-cards">
+                  <div class="exp-pill-content">
+                    <i class="fa-solid fa-clone exp-pill-icon" style="color: #d97706;"></i>
+                    <span class="exp-pill-label">Beklenen Kart:</span>
+                  </div>
+                  <strong id="aiExpCardsSummary" class="exp-pill-val">—</strong>
                 </div>
               </div>
             </div>

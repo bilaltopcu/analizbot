@@ -1358,9 +1358,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     container.innerHTML = rows.map((r, idx) => `
-      <div class="expected-row stat-row" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px 16px; margin-bottom:${idx === rows.length - 1 ? '0' : '9px'}; box-shadow:0 1px 3px rgba(15,23,42,0.03);">
-        <span class="exp-stat-name" style="font-size:12.5px; font-weight:600; color:#0f172a; display:flex; align-items:center; gap:8px;">${r.name}</span>
-        <span class="exp-stat-val" style="font-family:var(--font-heading); font-size:13.5px; font-weight:700; color:#0284c7; white-space:nowrap;">${r.val}</span>
+      <div class="expected-row stat-row" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; padding:11px 16px; margin-bottom:${idx === rows.length - 1 ? '0' : '9px'}; box-shadow:0 1px 4px rgba(15,23,42,0.04);">
+        <span class="exp-stat-name" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13.5px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">${r.name}</span>
+        <span class="exp-stat-val" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:14.5px; font-weight:800; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 10px; border-radius:8px; white-space:nowrap;">${r.val}</span>
       </div>
     `).join("");
   }
