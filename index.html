@@ -274,25 +274,7 @@
         </div>
       </div>
 
-      <!-- ═══ BEKLENEN DEĞERLER (Expected Metrics: Beklenen Gol, Beklenen Korner, Beklenen Kart, Beklenen Faul) ═══ -->
-      <section class="expected-metrics-section glass-panel" id="expectedMetricsSection">
-        <div class="section-title-box flex-between">
-          <div>
-            <h3><i class="fa-solid fa-chart-line" style="color: var(--accent-cyan);"></i> Karşılaşma Simülasyonu: Beklenen Değerler (Expected Metrics)</h3>
-            <p>Dixon-Coles matematiksel dağılımı, zaman ağırlıklı xG ve 2026-2027 sezonu verileriyle simüle edilen maç beklentileri</p>
-          </div>
-          <div class="exp-sim-badge">
-            <span class="pulse-indicator"></span>
-            <span>Simülasyon Çıktısı</span>
-          </div>
-        </div>
-
-        <div class="expected-cards-grid" id="expectedCardsGrid">
-          <!-- Dinamik olarak JS tarafından doldurulur -->
-        </div>
-      </section>
-
-      <!-- Stats Comparison Grid -->
+      <!-- ═══ AYRINTILI İSTATİSTİK KARŞILAŞTIRMASI (Stats Comparison Grid) ═══ -->
       <section class="stats-analysis-section glass-panel">
         <div class="section-title-box">
           <h3><i class="fa-solid fa-sliders"></i> 2026-2027 Sezonu Ayrıntılı İstatistik Karşılaştırması</h3>
@@ -301,6 +283,24 @@
 
         <div class="stats-list" id="statsList">
           <!-- Dynamically populated stat rows -->
+        </div>
+      </section>
+
+      <!-- ═══ BU KARŞILAŞMA İÇİN BEKLENEN İSTATİSTİKLER TABLOSU (Expected Metrics Table) ═══ -->
+      <section class="expected-metrics-section glass-panel" id="expectedMetricsSection">
+        <div class="section-title-box flex-between">
+          <div>
+            <h3><i class="fa-solid fa-chart-line" style="color: var(--accent-cyan);"></i> Bu Karşılaşma İçin Beklenen İstatistikler (Expected Metrics)</h3>
+            <p>Dixon-Coles matematiksel dağılımı, derin korner/kart modellemesi ve form verileriyle bu maç için öngörülen istatistik tablosu</p>
+          </div>
+          <div class="exp-sim-badge">
+            <span class="pulse-indicator"></span>
+            <span>Simülasyon Çıktısı</span>
+          </div>
+        </div>
+
+        <div class="expected-table-container" id="expectedTableContainer">
+          <!-- Dinamik olarak JS tarafından tablo satırları halinde alt alta doldurulur -->
         </div>
       </section>
 
