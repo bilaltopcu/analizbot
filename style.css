@@ -3324,7 +3324,7 @@ body {
 }
 
 /* ==========================================================================
-   Bu Maç İçin Beklenen İstatistikler Tablosu (Expected Metrics Table)
+   Bu Maç İçin Beklenen İstatistikler (Expected Metrics List)
    ========================================================================== */
 
 .expected-table-container {
@@ -3334,209 +3334,50 @@ body {
   margin-top: 16px;
 }
 
-.exp-metric-row {
-  display: grid;
-  grid-template-columns: 280px 1fr 240px;
-  align-items: center;
-  gap: 16px;
-  background: #ffffff;
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  padding: 12px 18px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
-}
-
-.exp-metric-row:hover {
-  transform: translateY(-1px);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.08);
-}
-
-/* Sol Sütun: Metrik Bilgisi */
-.exp-row-metric {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.exp-row-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.exp-row-icon.icon-goals   { background: rgba(16, 185, 129, 0.12); color: #059669; }
-.exp-row-icon.icon-corners { background: rgba(2, 132, 199, 0.12); color: #0284c7; }
-.exp-row-icon.icon-cards   { background: rgba(245, 158, 11, 0.12); color: #d97706; }
-.exp-row-icon.icon-fouls   { background: rgba(124, 58, 237, 0.12); color: #7c3aed; }
-.exp-row-icon.icon-ht      { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
-.exp-row-icon.icon-btts    { background: rgba(16, 185, 129, 0.12); color: #059669; }
-.exp-row-icon.icon-score   { background: rgba(234, 179, 8, 0.15); color: #b45309; }
-
-.exp-row-texts {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.exp-row-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.exp-row-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Orta Sütun: Takım Dağılım Çubuğu */
-.exp-row-split {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.exp-split-tags {
+.exp-stat-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.exp-split-tags .split-home strong {
-  color: #0284c7;
-}
-
-.exp-split-tags .split-away strong {
-  color: #475569;
-}
-
-.exp-split-progressbar {
-  height: 7px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-  display: flex;
-}
-
-.exp-split-progressbar .bar-home {
-  height: 100%;
-  background: linear-gradient(90deg, #0284c7, #0369a1);
-  transition: width 0.4s ease;
-}
-
-.exp-split-progressbar .bar-home.bar-green {
-  background: linear-gradient(90deg, #10b981, #059669);
-}
-
-.exp-split-progressbar .bar-home.bar-amber {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
-}
-
-.exp-split-progressbar .bar-home.bar-violet {
-  background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-}
-
-.exp-split-progressbar .bar-home.bar-cyan {
-  background: linear-gradient(90deg, #0284c7, #0369a1);
-}
-
-.exp-split-progressbar .bar-away {
-  height: 100%;
-  background: #cbd5e1;
-  transition: width 0.4s ease;
-}
-
-/* Sağ Sütun: O Maç İçin Beklenen İstatistik (Direkt Yanında!) */
-.exp-row-target {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 4px;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-sm);
-  padding: 8px 14px;
-  text-align: right;
+  border-radius: var(--radius-md);
+  padding: 13px 20px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
 }
 
-.exp-target-header {
+.exp-stat-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);
+}
+
+.exp-stat-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
-.exp-target-label {
-  font-size: 9.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
-
-.exp-target-val-box {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-}
-
-.exp-target-val {
+.exp-stat-val {
   font-family: var(--font-heading);
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--text-primary);
-  line-height: 1;
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  letter-spacing: 0.3px;
 }
 
-.exp-target-unit {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-@media (max-width: 900px) {
-  .exp-metric-row {
-    grid-template-columns: 220px 1fr 200px;
-    gap: 12px;
-    padding: 10px 14px;
+@media (max-width: 600px) {
+  .exp-stat-row {
+    padding: 11px 14px;
   }
-}
-
-@media (max-width: 680px) {
-  .exp-metric-row {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    padding: 12px;
+  .exp-stat-name {
+    font-size: 13px;
   }
-
-  .exp-row-target {
-    align-items: center;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 8px 12px;
-    text-align: left;
+  .exp-stat-val {
+    font-size: 15px;
   }
 }
 
