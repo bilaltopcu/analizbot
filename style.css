@@ -3,33 +3,45 @@
    ========================================================================== */
 
 :root {
-  --bg-dark: #f8fafc; /* subtle light gray */
+  --bg-dark: #f8fafc;
   --bg-card: #ffffff;
   --bg-card-hover: #f2f5f7;
-  --border-glass: #e2e8f0;
-  --border-glass-bright: #cbd5e1;
+  --bg-glass: #f8fafc;
+  --border-glass: #e8edf2;
+  --border-glass-bright: #cdd5df;
 
-  --accent-primary: #d4af37; /* gold */
-  --accent-secondary: #6b7280; /* neutral gray */
-  --accent-muted: #e5e7eb; /* light gray */
+  --accent-primary: #2563eb;
+  --accent-secondary: #64748b;
+  --accent-muted: #e5e7eb;
 
-  --text-primary: #111827; /* dark gray */
+  /* Anlamsal durum renkleri — sadece gerekli yerde kullanılır */
+  --accent-blue:    #2563eb;
+  --accent-cyan:    #0284c7;
+  --accent-violet:  #6d28d9;
+  --accent-emerald: #059669;
+  --accent-green:   #059669;
+  --accent-amber:   #d97706;
+  --accent-gold:    #b45309;
+  --accent-crimson: #dc2626;
+
+  --text-primary:   #111827;
   --text-secondary: #4b5563;
-  --text-muted: #6b7280;
+  --text-muted:     #9ca3af;
 
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-full: 9999px;
 
-  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 16px 48px rgba(15, 23, 42, 0.09);
 
-  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast:   0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -48,8 +60,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #edf2fc 100%);
-  background-attachment: fixed;
+  background: #ffffff;
   color: var(--text-primary);
   min-height: 100%;
   min-height: 100vh;
@@ -66,32 +77,32 @@ body {
 .glow-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(150px);
+  filter: blur(180px);
   z-index: 0;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.06;
 }
 
 .orb-1 {
-  width: 500px;
-  height: 500px;
-  background: #c7d2fe;
-  top: -100px;
-  left: -100px;
+  width: 600px;
+  height: 600px;
+  background: #bfdbfe;
+  top: -200px;
+  left: -200px;
 }
 
 .orb-2 {
-  width: 550px;
-  height: 550px;
-  background: #bae6fd;
-  top: 400px;
-  right: -150px;
+  width: 500px;
+  height: 500px;
+  background: #bfdbfe;
+  top: 500px;
+  right: -200px;
 }
 
 .orb-3 {
-  width: 450px;
-  height: 450px;
-  background: #a7f3d0;
+  width: 400px;
+  height: 400px;
+  background: #dbeafe;
   bottom: 0px;
   left: 20%;
 }
@@ -199,7 +210,7 @@ body {
 }
 
 .accent-text {
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -558,7 +569,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -568,7 +579,7 @@ body {
   color: #fff;
   justify-self: center;
   align-self: center;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
   margin-top: 25px;
 }
 
@@ -579,7 +590,7 @@ body {
 }
 
 .btn-primary-glow {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: #2563eb;
   color: #fff;
   border: none;
   padding: 14px 34px;
@@ -591,13 +602,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
   transition: var(--transition-normal);
 }
 
 .btn-primary-glow:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+  background: #1d4ed8;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
 }
 
 .btn-primary-glow:disabled {
@@ -819,11 +831,11 @@ body {
 .ai-result-card {
   margin-top: 24px;
   position: relative;
-  background: linear-gradient(135deg, #ecfdf5 0%, #f5f3ff 100%);
-  border: 1.5px solid #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+  border: 1.5px solid #6ee7b7;
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.12);
+  box-shadow: 0 6px 24px rgba(5, 150, 105, 0.08);
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -947,9 +959,9 @@ body {
   gap: 6px;
   font-size: 0.74rem;
   font-weight: 600;
-  color: #d8b4fe;
-  background: rgba(147, 51, 234, 0.18);
-  border: 1px solid rgba(147, 51, 234, 0.35);
+  color: #6d28d9;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
   padding: 2px 8px;
   border-radius: 12px;
   margin-left: 8px;
@@ -958,8 +970,8 @@ body {
 }
 
 @keyframes pulse-stream-glow {
-  from { opacity: 0.75; border-color: rgba(147, 51, 234, 0.3); }
-  to { opacity: 1; border-color: rgba(192, 132, 252, 0.65); box-shadow: 0 0 8px rgba(168, 85, 247, 0.25); }
+  from { opacity: 0.75; border-color: #ddd6fe; }
+  to   { opacity: 1;    border-color: #a78bfa; box-shadow: 0 0 6px rgba(109, 40, 217, 0.12); }
 }
 
 /* Gemini Tactical & Risk Analysis Details (Ultra Belirgin & Yüksek Kontrast) */
@@ -987,17 +999,17 @@ body {
 }
 
 .gemini-detail-card.tactical-card {
-  background: linear-gradient(135deg, #0b1528 0%, #172554 100%) !important;
-  border: 1.5px solid #3b82f6 !important;
-  border-left: 5px solid #2563eb !important;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2) !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+  border: 1.5px solid #bfdbfe !important;
+  border-left: 4px solid #2563eb !important;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08) !important;
 }
 
 .gemini-detail-card.risk-card {
-  background: linear-gradient(135deg, #1c1306 0%, #351f08 100%) !important;
-  border: 1.5px solid #f59e0b !important;
-  border-left: 5px solid #d97706 !important;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2) !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border: 1.5px solid #fde68a !important;
+  border-left: 4px solid #d97706 !important;
+  box-shadow: 0 2px 12px rgba(217, 119, 6, 0.08) !important;
 }
 
 .detail-card-header {
@@ -1012,30 +1024,29 @@ body {
 }
 
 .detail-card-header.tactical-header {
-  color: #60a5fa !important;
+  color: #1d4ed8 !important;
 }
 
 .detail-card-header.tactical-header i {
-  color: #38bdf8 !important;
+  color: #2563eb !important;
   font-size: 15px;
 }
 
 .detail-card-header.risk-header {
-  color: #fbbf24 !important;
+  color: #92400e !important;
 }
 
 .detail-card-header.risk-header i {
-  color: #f59e0b !important;
+  color: #d97706 !important;
   font-size: 15px;
 }
 
 .detail-card-text {
-  color: #f8fafc !important;
+  color: #374151 !important;
   font-size: 13.5px !important;
   line-height: 1.65 !important;
   font-weight: 500 !important;
   margin: 0 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -1069,7 +1080,7 @@ body {
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+  background: #2563eb;
   color: #fff;
 }
 
@@ -1261,8 +1272,8 @@ body {
 /* Native Esnek Band (728x90 / Native Strip) */
 .ad-slot-native-strip {
   border-style: solid;
-  border-color: rgba(0, 180, 216, 0.25);
-  background: linear-gradient(135deg, rgba(11, 15, 25, 0.95), rgba(18, 24, 38, 0.9));
+  border-color: #bfdbfe;
+  background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
 }
 .ad-slot-native-strip.ad-slot-visible {
   min-height: 90px;
@@ -1274,8 +1285,8 @@ body {
 /* In-Feed Native Reklam Kartı (Bahisler Panosu Öncesi) */
 .ad-slot-native-card {
   border-style: solid;
-  border-color: rgba(0, 255, 136, 0.2);
-  background: radial-gradient(circle at 50% 0%, rgba(0, 255, 136, 0.05), var(--bg-card));
+  border-color: #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
 }
 .ad-slot-native-card.ad-slot-visible {
   min-height: 140px;
@@ -1305,17 +1316,17 @@ body {
   font-weight: 600;
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  background: rgba(0, 180, 216, 0.15);
-  color: var(--accent-cyan);
-  border: 1px solid rgba(0, 180, 216, 0.3);
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
   letter-spacing: 0.3px;
   text-decoration: none;
   transition: all var(--transition-fast);
 }
 
 .sponsor-badge-pill:hover {
-  background: rgba(0, 180, 216, 0.3);
-  color: #fff;
+  background: #dbeafe;
+  color: #1d4ed8;
   transform: translateY(-1px);
 }
 
@@ -1330,7 +1341,7 @@ body {
   height: 100%;
   padding: 16px 24px;
   text-align: center;
-  background: radial-gradient(circle at 50% 0%, rgba(0, 255, 136, 0.08), rgba(11, 15, 25, 0.95));
+  background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
   border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
@@ -1347,16 +1358,16 @@ body {
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: var(--radius-full);
-  background: rgba(0, 255, 136, 0.15);
-  color: var(--accent-green);
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
 .ad-promo-title {
   font-family: 'Outfit', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: #111827;
   margin: 2px 0;
   display: flex;
   align-items: center;
@@ -1366,7 +1377,7 @@ body {
 
 .ad-promo-desc {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   max-width: 580px;
   line-height: 1.4;
   margin-bottom: 4px;
@@ -2238,7 +2249,7 @@ body {
 }
 
 .btn-auth-login {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+  background: #2563eb;
   color: #fff;
   border: none;
   padding: 8px 20px;
@@ -2250,13 +2261,14 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
   transition: var(--transition-normal);
 }
 
 .btn-auth-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+  background: #1d4ed8;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
 }
 
 .btn-user-action {
@@ -2286,11 +2298,11 @@ body {
 }
 
 .btn-user-action i.fa-bookmark {
-  color: var(--accent-violet);
+  color: #2563eb;
 }
 
 .mybets-count-badge {
-  background: var(--accent-violet);
+  background: #2563eb;
   color: #fff;
   font-size: 10px;
   font-weight: 900;
@@ -2319,7 +2331,7 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+  background: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2423,14 +2435,14 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+  background: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 26px;
   color: #fff;
   margin: 0 auto 14px auto;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
 }
 
 .auth-modal-header h2 {
@@ -2545,7 +2557,7 @@ body {
 }
 
 .btn-auth-submit {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+  background: #2563eb;
   color: #fff;
   border: none;
   padding: 14px;
@@ -2558,14 +2570,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
   transition: var(--transition-normal);
   margin-top: 4px;
 }
 
 .btn-auth-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+  background: #1d4ed8;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
 }
 
 /* Favorite Star Button */
@@ -2748,7 +2761,7 @@ body {
 }
 
 .mybets-modal-header h2 i {
-  color: var(--accent-violet);
+  color: #2563eb;
 }
 
 .mybets-modal-header p {
@@ -2829,8 +2842,8 @@ body {
   font-family: var(--font-heading);
   font-size: 11px;
   font-weight: 900;
-  color: var(--accent-violet);
-  background: #f5f3ff;
+  color: #2563eb;
+  background: #eff6ff;
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -2891,7 +2904,7 @@ body {
   font-family: var(--font-heading);
   font-size: 14px;
   font-weight: 800;
-  color: var(--accent-violet);
+  color: #2563eb;
 }
 
 .mybets-remove-btn {
@@ -2928,10 +2941,10 @@ body {
 .btn-save-mybet {
   flex: 1;
   padding: 7px 12px;
-  background: #f5f3ff;
-  border: 1px solid #ddd6fe;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   border-radius: var(--radius-sm);
-  color: var(--accent-violet);
+  color: #2563eb;
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 700;
@@ -2944,13 +2957,13 @@ body {
 }
 
 .btn-save-mybet:hover {
-  background: #ede9fe;
-  border-color: var(--accent-violet);
+  background: #dbeafe;
+  border-color: #2563eb;
 }
 
 .btn-save-mybet.is-saved {
-  background: var(--accent-violet);
-  border-color: var(--accent-violet);
+  background: #2563eb;
+  border-color: #2563eb;
   color: #fff;
 }
 
@@ -3310,14 +3323,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(2, 132, 199, 0.08);
-  border: 1px solid rgba(2, 132, 199, 0.25);
-  color: var(--accent-cyan);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
   padding: 5px 12px;
   border-radius: 9999px;
   font-size: 11.5px;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
 }
 
 /* ==========================================================================
@@ -3353,8 +3366,8 @@ body {
 .expected-table-container .expected-row:hover {
   background: #ffffff !important;
   transform: translateY(-1px);
-  border-color: var(--accent-cyan) !important;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08) !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08) !important;
 }
 
 .expected-table-container .exp-stat-name {
@@ -3370,7 +3383,7 @@ body {
   font-family: var(--font-heading) !important;
   font-size: 13.5px !important;
   font-weight: 700 !important;
-  color: var(--accent-cyan) !important;
+  color: #2563eb !important;
   letter-spacing: 0.2px !important;
   white-space: nowrap !important;
 }
@@ -3637,23 +3650,23 @@ body {
   justify-content: center;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  border-top: 1px dashed #cbd5e1;
 }
 
 .exp-summary-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #ffffff;
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 11.5px;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  border: 1px solid #e2e8f0;
 }
 
 .exp-summary-pill strong {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -3979,8 +3992,8 @@ body {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(100px);
-  background: #0f172a;
-  color: #ffffff;
+  background: #1e293b;
+  color: #f8fafc;
   padding: 12px 20px;
   border-radius: 30px;
   font-size: 14px;
@@ -3988,7 +4001,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
   z-index: 3000;
   opacity: 0;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -5163,7 +5176,7 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   width: 100vw;
   height: 100vh;
   overflow-y: auto;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #edf2fc 100%);
+  background: #ffffff;
 }
 
 :fullscreen .app-container,
@@ -5539,9 +5552,9 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 }
 
 .perf-tab-btn.active {
-  background: #0f172a;
+  background: #2563eb;
   color: white;
-  border-color: #0f172a;
+  border-color: #2563eb;
 }
 
 .perf-ledger-scroll {
@@ -5739,27 +5752,27 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   letter-spacing: 0.03em;
 }
 .research-score-badge.score-strong {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.10));
-  color: #fbbf24;
-  border: 1px solid rgba(234, 179, 8, 0.35);
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde68a;
 }
 .research-score-badge.score-medium {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(59, 130, 246, 0.08));
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.30);
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
 }
 .research-score-badge.score-risky {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.20), rgba(239, 68, 68, 0.08));
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.30);
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
 .bet-research-details {
   margin-top: 8px;
   padding: 8px 10px;
-  background: rgba(15, 23, 42, 0.5);
+  background: #f8fafc;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  border: 1px solid #e2e8f0;
 }
 .bet-research-details .research-factors {
   display: flex;
@@ -5769,15 +5782,15 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   line-height: 1.5;
 }
 .bet-research-details .factor-pro {
-  color: #4ade80;
+  color: #047857;
 }
 .bet-research-details .factor-con {
-  color: #fb923c;
+  color: #b45309;
 }
 
 .bet-card.strong-pick {
-  border: 1px solid rgba(234, 179, 8, 0.35);
-  box-shadow: 0 0 12px rgba(234, 179, 8, 0.08);
+  border: 1px solid #fde68a;
+  box-shadow: 0 2px 10px rgba(217, 119, 6, 0.08);
 }
 
 .bet-card-top .research-score-badge {
@@ -5791,8 +5804,8 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   margin-top: 10px;
 }
 .ai-research-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 10px;
   text-align: center;
@@ -5814,3 +5827,4 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   color: var(--text-secondary);
   margin-top: 2px;
 }
+
