@@ -3,22 +3,19 @@
    ========================================================================== */
 
 :root {
-  --bg-dark: #f1f5f9;
+  --bg-dark: #f8fafc; /* subtle light gray */
   --bg-card: #ffffff;
-  --bg-card-hover: #f8fafc;
+  --bg-card-hover: #f2f5f7;
   --border-glass: #e2e8f0;
   --border-glass-bright: #cbd5e1;
-  
-  --accent-cyan: #0284c7;
-  --accent-blue: #2563eb;
-  --accent-violet: #7c3aed;
-  --accent-emerald: #059669;
-  --accent-amber: #d97706;
-  --accent-crimson: #dc2626;
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  --accent-primary: #d4af37; /* gold */
+  --accent-secondary: #6b7280; /* neutral gray */
+  --accent-muted: #e5e7eb; /* light gray */
+
+  --text-primary: #111827; /* dark gray */
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
