@@ -1424,13 +1424,6 @@ document.addEventListener("DOMContentLoaded", () => {
         awayDisplay: fmtVal(aStats.avgCorners, "", " Korner"),
         rawHome: parseFloat(hStats.avgCorners) || 0,
         rawAway: parseFloat(aStats.avgCorners) || 0 },
-      ...(probs && probs.cornerData ? [{
-        title: "🚩 Beklenen Korner (xCorners)",
-        homeDisplay: `${probs.cornerData.expHome} Korner`,
-        awayDisplay: `${probs.cornerData.expAway} Korner`,
-        rawHome: probs.cornerData.expHome,
-        rawAway: probs.cornerData.expAway
-      }] : []),
       { title:`🟨 Sarı Kart Ortalaması${cardsNote}`,
         homeDisplay: fmtVal(hStats.avgYellowCards, "", " Kart/Maç"),
         awayDisplay: fmtVal(aStats.avgYellowCards, "", " Kart/Maç"),
