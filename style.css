@@ -761,6 +761,9 @@ body {
 
 .stat-title {
   color: var(--text-primary);
+  font-family: var(--font-heading), 'Outfit', sans-serif;
+  font-size: 13px !important;
+  font-weight: 700 !important;
 }
 
 .stat-progress-track {
@@ -3374,8 +3377,9 @@ body {
 }
 
 .expected-table-container .exp-stat-name {
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
+  font-family: var(--font-heading), 'Outfit', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
   color: var(--text-primary) !important;
   display: flex !important;
   align-items: center !important;
@@ -3400,6 +3404,9 @@ body {
   .expected-table-container .exp-stat-name {
     font-size: 11.5px !important;
     gap: 6px !important;
+  }
+  .stat-title {
+    font-size: 11.5px !important;
   }
   .expected-table-container .exp-stat-val {
     font-size: 12.5px !important;
@@ -4816,6 +4823,14 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   .stat-label-bar {
     font-size: 11.5px;
     margin-bottom: 6px;
+  }
+
+  .stat-title {
+    font-size: 11.5px !important;
+  }
+
+  .expected-table-container .exp-stat-name {
+    font-size: 11.5px !important;
   }
 
   .home-val, .away-val {

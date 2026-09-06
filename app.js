@@ -1359,7 +1359,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     container.innerHTML = rows.map((r, idx) => `
       <div class="expected-row stat-row" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; padding:11px 16px; margin-bottom:${idx === rows.length - 1 ? '0' : '9px'}; box-shadow:0 1px 4px rgba(15,23,42,0.04);">
-        <span class="exp-stat-name" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13.5px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">${r.name}</span>
+        <span class="exp-stat-name" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">${r.name}</span>
         <span class="exp-stat-val" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:14.5px; font-weight:800; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 10px; border-radius:8px; white-space:nowrap;">${r.val}</span>
       </div>
     `).join("");
@@ -1455,7 +1455,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.innerHTML = `
         <div class="stat-label-bar">
           <span class="home-val">${m.homeDisplay}</span>
-          <span class="stat-title">${m.title}</span>
+          <span class="stat-title" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13px; font-weight:700; color:#0f172a;">${m.title}</span>
           <span class="away-val">${m.awayDisplay}</span>
         </div>
         <div class="stat-progress-container">
