@@ -1294,7 +1294,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const h = homeProfile.stats || {};
     const a = awayProfile.stats || {};
 
-    // 1. Beklenen Şut & İsabetli Şut (Kullanıcının örneği: Beklenen Şut 27.3)
+    // 1. Beklenen Şut & İsabetli Şut
     const hShots = parseFloat(h.avgShots) || 13.5;
     const aShots = parseFloat(a.avgShots) || 12.5;
     const totalExpShots = parseFloat((hShots + aShots).toFixed(1));
@@ -1307,12 +1307,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeXg = typeof probs.xG_home === 'number' ? probs.xG_home : (parseFloat(probs.lambda) || 1.45);
     const awayXg = typeof probs.xG_away === 'number' ? probs.xG_away : (parseFloat(probs.mu) || 1.15);
     const totalXg = typeof probs.totalExpGoals === 'number' ? probs.totalExpGoals : parseFloat((homeXg + awayXg).toFixed(2));
-    const iyXg = parseFloat((totalXg * 0.45).toFixed(2));
+    const iyHomeXg = parseFloat((homeXg * 0.45).toFixed(2));
+    const iyAwayXg = parseFloat((awayXg * 0.45).toFixed(2));
+    const iyTotalXg = parseFloat((totalXg * 0.45).toFixed(2));
 
     // 3. Beklenen Korner (Araştırılmış Model)
-    const cornerRes = calculateResearchedCorners(homeProfile, awayProfile);
-    const totalCorners = cornerRes ? cornerRes.totalCorners : parseFloat((parseFloat(h.avgCorners || 4.8) + parseFloat(a.avgCorners || 4.4)).toFixed(1));
-    const iyCorners = cornerRes ? cornerRes.iyCorners : parseFloat((totalCorners * 0.45).toFixed(1));
+    const cornerRes = calculateResearchedCorners(homeProfile, awayProfile) || {
+      expHome: parseFloat(h.avgCorners || 4.8),
+      expAway: parseFloat(a.avgCorners || 4.4),
+      totalCorners: parseFloat((parseFloat(h.avgCorners || 4.8) + parseFloat(a.avgCorners || 4.4)).toFixed(1)),
+      iyCorners: 4.2
+    };
+    const iyHomeCorners = parseFloat((cornerRes.expHome * 0.45).toFixed(1));
+    const iyAwayCorners = parseFloat((cornerRes.expAway * 0.45).toFixed(1));
 
     // 4. Beklenen Kart
     const isCup = selectedMatchMode === "cup";
@@ -1328,30 +1335,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 6. En Olası Skor
     let likelyScore = "2 - 1";
+    let likelyPct = "12.5";
     if (probs.topScores && probs.topScores.length > 0) {
       likelyScore = probs.topScores[0].label;
+      likelyPct = (probs.topScores[0].prob * 100).toFixed(1);
     } else if (probs.mostLikelyScore) {
       likelyScore = probs.mostLikelyScore;
     }
 
     const rows = [
-      { name: "🎯 Beklenen Toplam Şut", val: totalExpShots },
-      { name: "🎯 Beklenen İsabetli Şut", val: totalExpSot },
-      { name: "⚽ Beklenen Toplam Gol (xG)", val: totalXg },
-      { name: "🕐 İlk Yarı Beklenen Gol (İY xG)", val: iyXg },
-      { name: "🚩 Beklenen Toplam Korner", val: totalCorners },
-      { name: "⏱️ İlk Yarı Beklenen Korner", val: iyCorners },
-      { name: "🟨 Beklenen Toplam Kart", val: totalCards },
-      { name: "⚡ Beklenen Toplam Faul", val: totalFouls },
-      { name: "🔄 Karşılıklı Gol (KG Var)", val: `%${probs.pBTTS}` },
-      { name: "📈 2.5 Gol Üst Olasılığı", val: `%${probs.pOver25}` },
-      { name: "🏆 En Olası Maç Skoru", val: likelyScore }
+      {
+        homeDisplay: `${hShots} Şut`,
+        title: `🎯 Beklenen Şut (Toplam: ${totalExpShots})`,
+        awayDisplay: `${aShots} Şut`
+      },
+      {
+        homeDisplay: `${hSot} İsabet`,
+        title: `🎯 Beklenen İsabetli Şut (Toplam: ${totalExpSot})`,
+        awayDisplay: `${aSot} İsabet`
+      },
+      {
+        homeDisplay: `${homeXg} xG`,
+        title: `⚽ Beklenen Gol (Toplam: ${totalXg} xG)`,
+        awayDisplay: `${awayXg} xG`
+      },
+      {
+        homeDisplay: `${iyHomeXg} xG`,
+        title: `🕐 İlk Yarı Beklenen Gol (İY xG)`,
+        awayDisplay: `${iyAwayXg} xG`
+      },
+      {
+        homeDisplay: `${cornerRes.expHome} Korner`,
+        title: `🚩 Beklenen Korner (xCorners)`,
+        awayDisplay: `${cornerRes.expAway} Korner`
+      },
+      {
+        homeDisplay: `${iyHomeCorners} Korner`,
+        title: `⏱️ İlk Yarı Beklenen Korner`,
+        awayDisplay: `${iyAwayCorners} Korner`
+      },
+      {
+        homeDisplay: `${hCardAvg} Kart`,
+        title: `🟨 Sarı Kart Beklentisi`,
+        awayDisplay: `${aCardAvg} Kart`
+      },
+      {
+        homeDisplay: `${hFouls} Faul`,
+        title: `⚡ Beklenen Faul`,
+        awayDisplay: `${aFouls} Faul`
+      },
+      {
+        homeDisplay: `%${probs.homeCleanSheetPct || 33}`,
+        title: `🛡️ Kalesini Gole Kapatma (Clean Sheet)`,
+        awayDisplay: `%${probs.awayCleanSheetPct || 33}`
+      },
+      {
+        homeDisplay: `%${probs.pBTTS}`,
+        title: `⚡ KG Var (Karşılıklı Gol) Oranı`,
+        awayDisplay: `%${probs.pBTTSNo}`
+      },
+      {
+        homeDisplay: `%${probs.pOver25}`,
+        title: `📈 2.5 Üst Gol Oranı`,
+        awayDisplay: `%${probs.pUnder25}`
+      },
+      {
+        homeDisplay: `%${probs.pHomeWin}`,
+        title: `🏆 En Olası Skor: ${likelyScore}`,
+        awayDisplay: `%${probs.pAwayWin}`
+      }
     ];
 
     container.innerHTML = rows.map(r => `
-      <div class="exp-stat-row">
-        <span class="exp-stat-name">${r.name}</span>
-        <span class="exp-stat-val">${r.val}</span>
+      <div class="stat-row">
+        <div class="stat-label-bar">
+          <span class="home-val">${r.homeDisplay}</span>
+          <span class="stat-title">${r.title}</span>
+          <span class="away-val">${r.awayDisplay}</span>
+        </div>
       </div>
     `).join("");
   }
