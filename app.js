@@ -924,6 +924,7 @@ document.addEventListener("DOMContentLoaded", () => {
       homeTriggerLogo.innerHTML = `<img src="${logoUrl}" alt="${teamName}" style="width:28px;height:28px;object-fit:contain;" onerror="this.onerror=null; this.src='${fallbackUrl}';">`;
       homeDropdown.classList.remove("open");
       homeDropdownMenu.classList.add("hidden");
+      if (homeBoxEl) homeBoxEl.classList.remove("is-active-dropdown");
       resetDropdownSearch("home");
     } else {
       awayTeamName = teamName;
@@ -931,11 +932,15 @@ document.addEventListener("DOMContentLoaded", () => {
       awayTriggerLogo.innerHTML = `<img src="${logoUrl}" alt="${teamName}" style="width:28px;height:28px;object-fit:contain;" onerror="this.onerror=null; this.src='${fallbackUrl}';">`;
       awayDropdown.classList.remove("open");
       awayDropdownMenu.classList.add("hidden");
+      if (awayBoxEl) awayBoxEl.classList.remove("is-active-dropdown");
       resetDropdownSearch("away");
     }
 
     checkCanCompare();
   }
+
+  const homeBoxEl = document.querySelector(".team-select-box.home-box");
+  const awayBoxEl = document.querySelector(".team-select-box.away-box");
 
   // Toggle Dropdown Menu
   if (homeDropdownTrigger) {
@@ -948,11 +953,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (awayDropdown) {
         awayDropdown.classList.remove("open");
         awayDropdownMenu.classList.add("hidden");
+        if (awayBoxEl) awayBoxEl.classList.remove("is-active-dropdown");
       }
 
       homeDropdown.classList.toggle("open");
       homeDropdownMenu.classList.toggle("hidden");
-      if (!homeDropdownMenu.classList.contains("hidden")) {
+      const isOpen = !homeDropdownMenu.classList.contains("hidden");
+      if (homeBoxEl) homeBoxEl.classList.toggle("is-active-dropdown", isOpen);
+
+      if (isOpen) {
         resetDropdownSearch("home");
         homeSearchInput.focus();
       }
@@ -969,11 +978,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (homeDropdown) {
         homeDropdown.classList.remove("open");
         homeDropdownMenu.classList.add("hidden");
+        if (homeBoxEl) homeBoxEl.classList.remove("is-active-dropdown");
       }
 
       awayDropdown.classList.toggle("open");
       awayDropdownMenu.classList.toggle("hidden");
-      if (!awayDropdownMenu.classList.contains("hidden")) {
+      const isOpen = !awayDropdownMenu.classList.contains("hidden");
+      if (awayBoxEl) awayBoxEl.classList.toggle("is-active-dropdown", isOpen);
+
+      if (isOpen) {
         resetDropdownSearch("away");
         awaySearchInput.focus();
       }
@@ -1036,11 +1049,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (homeDropdown && !homeDropdown.contains(e.target)) {
       homeDropdown.classList.remove("open");
       homeDropdownMenu.classList.add("hidden");
+      if (homeBoxEl) homeBoxEl.classList.remove("is-active-dropdown");
       if (homeOptionsList) homeOptionsList.scrollTop = 0;
     }
     if (awayDropdown && !awayDropdown.contains(e.target)) {
       awayDropdown.classList.remove("open");
       awayDropdownMenu.classList.add("hidden");
+      if (awayBoxEl) awayBoxEl.classList.remove("is-active-dropdown");
       if (awayOptionsList) awayOptionsList.scrollTop = 0;
     }
   });

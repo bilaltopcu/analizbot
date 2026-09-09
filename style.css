@@ -359,13 +359,25 @@ body {
   z-index: 50;
 }
 
+.team-select-box {
+  position: relative;
+  z-index: 10;
+}
+
+.team-select-box:has(.custom-dropdown.open),
+.team-select-box.has-open-dropdown,
+.team-select-box.home-box:has(.custom-dropdown.open),
+.team-select-box.home-box.is-active-dropdown {
+  z-index: 1200 !important;
+}
+
 .custom-dropdown {
   position: relative;
   width: 100%;
 }
 
 .custom-dropdown.open {
-  z-index: 1000;
+  z-index: 1300 !important;
 }
 
 .dropdown-trigger {
@@ -449,9 +461,9 @@ body {
   background: #ffffff;
   border: 1.5px solid var(--accent-blue);
   border-radius: var(--radius-md);
-  z-index: 1001;
+  z-index: 1500 !important;
   padding: 10px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);
   animation: fadeIn 0.25s ease-out;
 }
 
@@ -4801,7 +4813,24 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   .team-selectors-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    position: relative;
+  }
+
+  .team-select-box.home-box {
+    position: relative;
+    z-index: 20;
+  }
+
+  .team-select-box.away-box {
+    position: relative;
+    z-index: 10;
+  }
+
+  .team-select-box:has(.custom-dropdown.open),
+  .team-select-box.has-open-dropdown,
+  .team-select-box.is-active-dropdown {
+    z-index: 1500 !important;
   }
 
   .glass-card {
@@ -4827,6 +4856,8 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 
   .action-btn-wrapper {
     margin-top: 18px;
+    position: relative;
+    z-index: 1;
   }
 
   .btn-primary-glow {
