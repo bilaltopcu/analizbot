@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=3.4.0">
+  <link rel="stylesheet" href="style.css?v=4.1.0">
 </head>
 <body>
 
@@ -77,6 +77,30 @@
           </div>
         </div>
         <div class="header-actions">
+          <!-- Auth Action Buttons (Logged Out) -->
+          <div id="authLoggedOut" class="auth-header-group">
+            <button type="button" class="btn-user-action" id="headerLoginBtn" title="Giriş Yap / Kayıt Ol">
+              <i class="fa-solid fa-user"></i>
+              <span class="user-action-label">Giriş Yap</span>
+            </button>
+          </div>
+          <!-- Auth Action Buttons (Logged In) -->
+          <div id="authLoggedIn" class="auth-header-group hidden">
+            <button type="button" class="btn-user-action" id="headerFavoritesBtn" title="Favori Takımlarım">
+              <i class="fa-solid fa-star"></i>
+            </button>
+            <button type="button" class="btn-user-action" id="headerMyBetsBtn" title="Kaydedilen Bahislerim">
+              <i class="fa-solid fa-bookmark"></i>
+              <span class="mybets-count-badge hidden" id="myBetsCountBadge">0</span>
+            </button>
+            <div class="user-profile-pill">
+              <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+              <span class="user-email" id="headerUserEmail">user</span>
+            </div>
+            <button type="button" class="btn-logout" id="headerLogoutBtn" title="Çıkış Yap">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
           <!-- Fullscreen Toggle Header Button -->
           <button type="button" class="btn-fullscreen-header" id="fullscreenToggleBtn" title="Tam Ekrana Geç" aria-label="Tam Ekran">
             <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
@@ -375,6 +399,22 @@
             <div class="main-prediction-display">
               <div class="bet-headline" id="aiBetTitle">KG VAR & 2.5 GOL ÜSTÜ</div>
 
+              <!-- AI Score and Odds Bar -->
+              <div class="prediction-stats-row">
+                <div class="score-prediction">
+                  <span>En Olası Skor:</span>
+                  <strong id="aiScorePrediction">—</strong>
+                </div>
+                <div class="score-prediction">
+                  <span>Piyasa Oranı:</span>
+                  <strong id="aiOddsValue" style="color: var(--accent-emerald);">—</strong>
+                </div>
+                <div class="score-prediction">
+                  <span>Adil Oran:</span>
+                  <strong id="aiFairOddsValue" style="color: var(--accent-blue);">—</strong>
+                </div>
+              </div>
+
               <!-- AI Expected Metrics Summary Strip -->
               <div class="ai-expected-summary-strip" id="aiExpectedSummaryStrip">
                 <div class="exp-summary-pill exp-pill-goals">
@@ -398,6 +438,11 @@
                   </div>
                   <strong id="aiExpCardsSummary" class="exp-pill-val">—</strong>
                 </div>
+              </div>
+
+              <!-- AI Tactical Grid Metrics -->
+              <div class="ai-tactical-grid" id="aiTacticalGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 14px;">
+                <!-- Populated dynamically via JS -->
               </div>
             </div>
 
@@ -769,7 +814,7 @@
   <script src="performance_data.js"></script>
   <script src="prediction_tracker.js"></script>
   <script src="auth.js"></script>
-  <script src="app.js?v=3.5.0"></script>
+  <script src="app.js?v=4.1.0"></script>
   <script src="pwa.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
