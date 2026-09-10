@@ -96,20 +96,17 @@
   }
 
   // Ilk yukleme aninda calistir
-  detectAndApplyDeviceClasses();
-  window.addEventListener('resize', detectAndApplyDeviceClasses);
-  window.addEventListener('orientationchange', () => setTimeout(detectAndApplyDeviceClasses, 150));
+  // Resize listener with debounce to prevent layout thrashing
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(detectAndApplyDeviceClasses, 100);
+  }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(detectAndApplyDeviceClasses, 150), { passive: true });
 
   // ─── Mobil Cihazlarda Büyütme/Küçültme (Pinch-to-zoom & Double-tap zoom) Engelleme ───
   function preventMobileZoom() {
-    // 1. Çoklu parmak (pinch zoom) engelleme
-    document.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches.length > 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-
-    // 2. iOS Safari gesture zoom engelleme
+    // iOS Safari gesture zoom engelleme (Compositor scroll thread'ini etkilemez)
     document.addEventListener('gesturestart', (e) => {
       e.preventDefault();
     }, { passive: false });
@@ -118,19 +115,6 @@
     }, { passive: false });
     document.addEventListener('gestureend', (e) => {
       e.preventDefault();
-    }, { passive: false });
-
-    // 3. Hızlı çift dokunarak büyütme (double tap zoom) engelleme
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', (e) => {
-      const now = Date.now();
-      if (now - lastTouchEnd <= 300) {
-        const tag = e.target ? e.target.tagName : '';
-        if (!['INPUT', 'TEXTAREA', 'SELECT', 'OPTION'].includes(tag)) {
-          e.preventDefault();
-        }
-      }
-      lastTouchEnd = now;
     }, { passive: false });
   }
 
