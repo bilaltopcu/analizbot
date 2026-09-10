@@ -997,7 +997,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 
