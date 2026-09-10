@@ -857,10 +857,15 @@ function getTeamLogoUrl(teamName, countryCode) {{
     matches_json_path = os.path.join(base_dir, 'matches_2026_2027.json')
     with open(matches_json_path, 'w', encoding='utf-8') as f:
         json.dump(all_matches, f, ensure_ascii=False, indent=2)
-
     print(f"SUCCESS: 2025-2027 seasons data updated ({new_added_count} new, {updated_matches_count} updated) and saved to data.js & matches_2026_2027.json!")
 
-    # FootyStats & FBref Advanced Pipeline Sync
+    # Compact data.js Builder with chronological indexing
+    try:
+        from sync_data_js import run as run_sync_data
+        print("\n--- Compact data.js ve Kronolojik İndeks Üretiliyor ---")
+        run_sync_data()
+    except Exception as e:
+        print(f"sync_data_js warning: {e}")
     try:
         from scraper_footystats_fbref import run as run_advanced_stats
         print("\n--- FootyStats & FBref İleri Düzey İstatistikler Güncelleniyor ---")

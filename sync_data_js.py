@@ -107,13 +107,31 @@ def run():
 
         if h_slug not in team_matches_index:
             team_matches_index[h_slug] = []
-        if len(team_matches_index[h_slug]) < 25:
-            team_matches_index[h_slug].append(compact_m)
+        team_matches_index[h_slug].append(compact_m)
 
         if a_slug not in team_matches_index:
             team_matches_index[a_slug] = []
-        if len(team_matches_index[a_slug]) < 25:
-            team_matches_index[a_slug].append(compact_m)
+        team_matches_index[a_slug].append(compact_m)
+
+    def parse_d(d_str):
+        if not d_str:
+            return (0, 0, 0)
+        try:
+            parts = d_str.split('/')
+            if len(parts) == 3:
+                return (int(parts[2]), int(parts[1]), int(parts[0]))
+            parts = d_str.split('-')
+            if len(parts) == 3:
+                return (int(parts[0]), int(parts[1]), int(parts[2]))
+        except Exception:
+            pass
+        return (0, 0, 0)
+
+    for slug in team_matches_index:
+        # En eski mactan en yeni maca dogru kronolojik sirala
+        team_matches_index[slug].sort(key=lambda x: parse_d(x[1]))
+        # En son oynanan 25 maci sakla (2026/2027 maclari her zaman en sonda yer alir)
+        team_matches_index[slug] = team_matches_index[slug][-25:]
 
     # Advanced Stats'tan takımları topla
     for slug, s in adv_stats.items():
@@ -201,8 +219,10 @@ function generateTeamProfile(teamName, countryCode) {{
     }}
   }}
 
-  const rawMatches = rawList.slice(-5);
-  const dataSeasonLabel = `Son ${{rawMatches.length}} Maç`;
+  // Son maclar (tum mevcut maclari dondur, boylece form strip ve 2026-2027 filtreleri eksiksiz calisir)
+  const rawMatches = rawList;
+  const recent5Raw = rawList.slice(-5);
+  const dataSeasonLabel = `Son ${{recent5Raw.length}} Maç`;
 
   function formatMatch(m, idx) {{
     const isHome = matchTeamNames(m[2], teamName);
