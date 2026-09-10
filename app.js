@@ -1178,39 +1178,30 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderFormStrip(container, matches) {
     container.innerHTML = "";
     if (!matches || matches.length === 0) {
-      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">Maç verisi yok</span>`;
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">(2026-2027 maçı bekleniyor)</span>`;
       return;
     }
 
-    // 2026-2027 sezonuna ait maçları filtrele
+    // SADECE 2026-2027 sezonuna ait maçları filtrele
     const season2627 = matches.filter(m => 
       m.season === '2026/2027' || (m.season && m.season.includes('2026') && m.season.includes('2027'))
     );
 
-    // Eğer 2026-2027 maçları varsa öncelikli olarak onları al
-    let matchesToShow = season2627;
-    if (matchesToShow.length === 0) {
-      // 2026-2027 henüz başlamamışsa takımın son oynadığı maçları göster
-      matchesToShow = matches;
-    } else if (matchesToShow.length < 5) {
-      // 2026-2027 sezonunda henüz 5 maç dolmamışsa (örn. 2-3 maç oynanmışsa),
-      // formu 5 maça tamamlamak için hemen öncesindeki en son maçları da dahil et
-      const prevMatches = matches.filter(m => !matchesToShow.includes(m));
-      matchesToShow = [...prevMatches.slice(-(5 - matchesToShow.length)), ...matchesToShow];
-    }
-
-    const last5 = matchesToShow.slice(-5);
-    if (last5.length === 0) {
-      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">Maç verisi yok</span>`;
+    // 2026-2027 sezonunda henüz hiç maç oynanmamışsa
+    if (season2627.length === 0) {
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">(2026-2027 maçı bekleniyor)</span>`;
       return;
     }
 
-    last5.forEach(m => {
+    // 2026-2027 sezonunda kaç maç oynandıysa o kadarı gösterilir (1, 2, 3, 4 veya maksimum son 5 maç).
+    // 5 maçı geçtikten sonra sürekli güncellenir ve daima en güncel son 5 maç kalır.
+    const matchesToShow = season2627.slice(-5);
+
+    matchesToShow.forEach(m => {
       const badge = document.createElement("span");
       badge.className = `form-badge ${m.result}`;
       badge.textContent = m.result;
-      const seasonTag = m.season ? ` [${m.season}]` : '';
-      badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || ''}${seasonTag}): ${m.score} vs ${m.opponent}`;
+      badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || '2026-2027'}): ${m.score} vs ${m.opponent}`;
       container.appendChild(badge);
     });
   }
