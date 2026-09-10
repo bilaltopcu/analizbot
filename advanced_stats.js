@@ -10542,20 +10542,6 @@ var ADVANCED_TEAM_STATS = {
     "over25Pct": 47,
     "source": "FootyStats & FBref Advanced Engine"
   },
-  "addemirspor": {
-    "teamName": "Adana Demirspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 0.57,
-    "xga_per90": 1.63,
-    "xg_diff": -1.06,
-    "possession": 36.0,
-    "cleanSheetPct": 26,
-    "bttsPct": 61,
-    "over25Pct": 58,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
   "gaziantep": {
     "teamName": "Gaziantep FK",
     "country": "TR",
@@ -11129,20 +11115,6 @@ var ADVANCED_TEAM_STATS = {
     "bttsPct": 48,
     "over25Pct": 45,
     "source": "FootyStats & FBref Verified"
-  },
-  "adanademirspor": {
-    "teamName": "Adana Demirspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 0.57,
-    "xga_per90": 1.63,
-    "xg_diff": -1.06,
-    "possession": 36.0,
-    "cleanSheetPct": 26,
-    "bttsPct": 61,
-    "over25Pct": 58,
-    "source": "FootyStats & FBref Advanced Engine"
   }
 };
 if (typeof window !== "undefined") { window.ADVANCED_TEAM_STATS = ADVANCED_TEAM_STATS; }

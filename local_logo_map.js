@@ -2630,7 +2630,6 @@ const LOCAL_LOGO_MAP = {
   "VfL Bochum": "logos/bochum.png",
   "AS Roma": "logos/as_roma.png",
   "Saint-Etienne": "logos/stetienne.png",
-  "Adana Demirspor": "logos/adanademirspor.png",
   "Bodrum FK": "logos/bodrumfk.png",
   "Hatayspor": "logos/hatayspor.png",
   "Sivasspor": "logos/sivasspor.png",
@@ -2646,8 +2645,6 @@ const LOCAL_LOGO_MAP = {
   "bodrumfk": "logos/bodrumfk.png",
   "goztepe": "logos/goztepe.png",
   "hatayspor": "logos/hatayspor.png",
-  "adana demirspor": "logos/adanademirspor.png",
-  "adanademirspor": "logos/adanademirspor.png",
   "gmg kastamonuspor": "logos/gmgkastamonuspor.svg",
   "gmgkastamonuspor": "logos/gmgkastamonuspor.svg",
   "batman petrolspor": "logos/batmanpetrolspor.svg",
@@ -3276,8 +3273,7 @@ const LOCAL_LOGO_MAP = {
   "kerry fc": "logos/kerryfc.svg",
   "kerryfc": "logos/kerryfc.svg",
   "longford town": "logos/longfordtown.svg",
-  "longfordtown": "logos/longfordtown.svg",
-  "ad. demirspor": "logos/adanademirspor.png"
+  "longfordtown": "logos/longfordtown.svg"
 };
-if (typeof window !== 'undefined') { window.LOCAL_LOGO_MAP = LOCAL_LOGO_MAP; }
-if (typeof module !== 'undefined' && module.exports) { module.exports = LOCAL_LOGO_MAP; }
+if (typeof window !== "undefined") { window.LOCAL_LOGO_MAP = LOCAL_LOGO_MAP; }
+if (typeof module !== "undefined" && module.exports) { module.exports = LOCAL_LOGO_MAP; }

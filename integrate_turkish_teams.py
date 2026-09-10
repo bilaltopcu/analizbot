@@ -27,8 +27,7 @@ TURKISH_TEAMS = [
     {"name": "Kayserispor", "league": "Süper Lig", "xg": 1.75, "xga": 1.50, "poss": 47.8, "cs": 22, "btts": 58, "o25": 56},
     {"name": "Bodrum FK", "league": "Süper Lig", "xg": 1.65, "xga": 1.35, "poss": 46.0, "cs": 30, "btts": 48, "o25": 45},
     {"name": "Göztepe", "league": "Süper Lig", "xg": 2.00, "xga": 1.25, "poss": 51.0, "cs": 32, "btts": 50, "o25": 52},
-    {"name": "Hatayspor", "league": "Süper Lig", "xg": 1.60, "xga": 1.55, "poss": 45.5, "cs": 20, "btts": 58, "o25": 54},
-    {"name": "Adana Demirspor", "league": "Süper Lig", "xg": 1.65, "xga": 1.75, "poss": 48.0, "cs": 15, "btts": 65, "o25": 65}
+    {"name": "Hatayspor", "league": "Süper Lig", "xg": 1.60, "xga": 1.55, "poss": 45.5, "cs": 20, "btts": 58, "o25": 54}
 ]
 
 def slugify(name):
