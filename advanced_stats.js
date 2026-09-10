@@ -4326,20 +4326,6 @@ var ADVANCED_TEAM_STATS = {
     "over25Pct": 47,
     "source": "FootyStats & FBref Advanced Engine"
   },
-  "antalyaspor": {
-    "teamName": "Antalyaspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 72,
-    "xg_per90": 1.1,
-    "xga_per90": 1.47,
-    "xg_diff": -0.37,
-    "possession": 40.3,
-    "cleanSheetPct": 24,
-    "bttsPct": 56,
-    "over25Pct": 47,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
   "kasimpasa": {
     "teamName": "Kasımpaşa",
     "country": "TR",
@@ -11114,6 +11100,34 @@ var ADVANCED_TEAM_STATS = {
     "cleanSheetPct": 30,
     "bttsPct": 48,
     "over25Pct": 45,
+    "source": "FootyStats & FBref Verified"
+  },
+  "erzurumspor": {
+    "teamName": "Erzurumspor",
+    "country": "TR",
+    "league": "Türkiye Süper Lig",
+    "matchesPlayed": 34,
+    "xg_per90": 1.95,
+    "xga_per90": 1.05,
+    "xg_diff": 0.9,
+    "possession": 52.0,
+    "cleanSheetPct": 40,
+    "bttsPct": 45,
+    "over25Pct": 46,
+    "source": "FootyStats & FBref Verified"
+  },
+  "erzurumsporfk": {
+    "teamName": "Erzurumspor",
+    "country": "TR",
+    "league": "Türkiye Süper Lig",
+    "matchesPlayed": 34,
+    "xg_per90": 1.95,
+    "xga_per90": 1.05,
+    "xg_diff": 0.9,
+    "possession": 52.0,
+    "cleanSheetPct": 40,
+    "bttsPct": 45,
+    "over25Pct": 46,
     "source": "FootyStats & FBref Verified"
   }
 };

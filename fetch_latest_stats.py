@@ -156,7 +156,7 @@ DEFAULT_TEAMS = {
     "TR": [
         "Galatasaray", "Fenerbahçe", "Beşiktaş", "Trabzonspor", "Başakşehir",
         "Samsunspor", "Eyüpspor", "Kasımpaşa", "Çaykur Rizespor", "Sivasspor",
-        "Antalyaspor", "Gaziantep FK", "Konyaspor", "Alanyaspor", "Kayserispor",
+        "Erzurumspor", "Gaziantep FK", "Konyaspor", "Alanyaspor", "Kayserispor",
         "Bodrum FK", "Göztepe", "Hatayspor",
     ],
     "ENG": [

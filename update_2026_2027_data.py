@@ -507,7 +507,7 @@ def run_sync():
     default_teams = {
         "TR": [
             "Galatasaray", "Fenerbahçe", "Beşiktaş", "Trabzonspor", "Başakşehir", "Samsunspor", "Eyüpspor", 
-            "Kasımpaşa", "Çaykur Rizespor", "Sivasspor", "Antalyaspor", "Gaziantep FK", "Konyaspor", "Alanyaspor", 
+            "Kasımpaşa", "Çaykur Rizespor", "Sivasspor", "Erzurumspor", "Gaziantep FK", "Konyaspor", "Alanyaspor", 
             "Kayserispor", "Bodrum FK", "Göztepe", "Hatayspor"
         ],
         "ENG": ["Arsenal", "Manchester City", "Liverpool", "Aston Villa", "Tottenham", "Chelsea", "Newcastle", "Manchester United", "West Ham", "Brighton", "Wolves", "Fulham", "Bournemouth", "Crystal Palace", "Brentford", "Everton", "Nottingham Forest", "Leicester", "Ipswich", "Southampton"],

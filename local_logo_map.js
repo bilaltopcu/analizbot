@@ -1304,8 +1304,6 @@ const LOCAL_LOGO_MAP = {
   "gaziantep": "logos/gaziantep.png",
   "Galatasaray": "logos/galatasaray.png",
   "Samsunspor": "logos/samsunspor.png",
-  "Antalyaspor": "logos/antalyaspor.png",
-  "antalyaspor": "logos/antalyaspor.png",
   "Kasimpasa": "logos/kasimpasa.png",
   "Rizespor": "logos/rizespor.png",
   "rizespor": "logos/rizespor.png",
@@ -3273,7 +3271,12 @@ const LOCAL_LOGO_MAP = {
   "kerry fc": "logos/kerryfc.svg",
   "kerryfc": "logos/kerryfc.svg",
   "longford town": "logos/longfordtown.svg",
-  "longfordtown": "logos/longfordtown.svg"
+  "longfordtown": "logos/longfordtown.svg",
+  "erzurumspor": "logos/erzurumspor.png",
+  "erzurumspor fk": "logos/erzurumspor.png",
+  "erzurumsporfk": "logos/erzurumspor.png",
+  "Erzurumspor": "logos/erzurumspor.png",
+  "Erzurumspor FK": "logos/erzurumspor.png"
 };
 if (typeof window !== "undefined") { window.LOCAL_LOGO_MAP = LOCAL_LOGO_MAP; }
 if (typeof module !== "undefined" && module.exports) { module.exports = LOCAL_LOGO_MAP; }

@@ -20,7 +20,7 @@ TURKISH_TEAMS = [
     {"name": "Kasımpaşa", "league": "Süper Lig", "xg": 2.15, "xga": 1.55, "poss": 49.8, "cs": 20, "btts": 65, "o25": 65},
     {"name": "Çaykur Rizespor", "league": "Süper Lig", "xg": 1.95, "xga": 1.45, "poss": 48.5, "cs": 25, "btts": 55, "o25": 55},
     {"name": "Sivasspor", "league": "Süper Lig", "xg": 1.85, "xga": 1.40, "poss": 47.2, "cs": 28, "btts": 52, "o25": 50},
-    {"name": "Antalyaspor", "league": "Süper Lig", "xg": 1.90, "xga": 1.50, "poss": 49.0, "cs": 24, "btts": 56, "o25": 56},
+    {"name": "Erzurumspor", "league": "Süper Lig", "xg": 1.95, "xga": 1.05, "poss": 52.0, "cs": 40, "btts": 45, "o25": 46},
     {"name": "Gaziantep FK", "league": "Süper Lig", "xg": 1.75, "xga": 1.48, "poss": 46.5, "cs": 26, "btts": 54, "o25": 52},
     {"name": "Konyaspor", "league": "Süper Lig", "xg": 1.70, "xga": 1.40, "poss": 48.0, "cs": 28, "btts": 50, "o25": 48},
     {"name": "Alanyaspor", "league": "Süper Lig", "xg": 1.85, "xga": 1.45, "poss": 50.0, "cs": 26, "btts": 54, "o25": 54},
