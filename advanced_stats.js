@@ -4326,20 +4326,6 @@ var ADVANCED_TEAM_STATS = {
     "over25Pct": 47,
     "source": "FootyStats & FBref Advanced Engine"
   },
-  "genclerbirligi": {
-    "teamName": "Gençlerbirliği",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 1.91,
-    "xga_per90": 1.45,
-    "xg_diff": 0.46,
-    "possession": 49.2,
-    "cleanSheetPct": 21,
-    "bttsPct": 50,
-    "over25Pct": 53,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
   "antalyaspor": {
     "teamName": "Antalyaspor",
     "country": "TR",
@@ -4436,34 +4422,6 @@ var ADVANCED_TEAM_STATS = {
     "cleanSheetPct": 28,
     "bttsPct": 62,
     "over25Pct": 58,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "kocaelispor": {
-    "teamName": "Kocaelispor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 1.64,
-    "xga_per90": 1.12,
-    "xg_diff": 0.52,
-    "possession": 48.1,
-    "cleanSheetPct": 32,
-    "bttsPct": 37,
-    "over25Pct": 26,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "fatihkaragumruk": {
-    "teamName": "Fatih Karagümrük",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 34,
-    "xg_per90": 1.76,
-    "xga_per90": 1.61,
-    "xg_diff": 0.15,
-    "possession": 48.5,
-    "cleanSheetPct": 21,
-    "bttsPct": 47,
-    "over25Pct": 47,
     "source": "FootyStats & FBref Advanced Engine"
   },
   "alanyaspor": {
@@ -5836,48 +5794,6 @@ var ADVANCED_TEAM_STATS = {
     "cleanSheetPct": 20,
     "bttsPct": 40,
     "over25Pct": 60,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "corum": {
-    "teamName": "Corum",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 4,
-    "xg_per90": 2.52,
-    "xga_per90": 2.24,
-    "xg_diff": 0.28,
-    "possession": 52.8,
-    "cleanSheetPct": 25,
-    "bttsPct": 50,
-    "over25Pct": 75,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "amedspor": {
-    "teamName": "Amedspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 4,
-    "xg_per90": 2.55,
-    "xga_per90": 1.29,
-    "xg_diff": 1.26,
-    "possession": 53.5,
-    "cleanSheetPct": 25,
-    "bttsPct": 50,
-    "over25Pct": 75,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "erzurumspor": {
-    "teamName": "Erzurumspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 4,
-    "xg_per90": 1.55,
-    "xga_per90": 2.0,
-    "xg_diff": -0.45,
-    "possession": 47.2,
-    "cleanSheetPct": 25,
-    "bttsPct": 25,
-    "over25Pct": 50,
     "source": "FootyStats & FBref Advanced Engine"
   },
   "kortrijk": {
@@ -10598,48 +10514,6 @@ var ADVANCED_TEAM_STATS = {
     "over25Pct": 41,
     "source": "FootyStats & FBref Advanced Engine"
   },
-  "ankaragucu": {
-    "teamName": "Ankaragucu",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 0.48,
-    "xga_per90": 1.4,
-    "xg_diff": -0.92,
-    "possession": 36.0,
-    "cleanSheetPct": 18,
-    "bttsPct": 66,
-    "over25Pct": 45,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "istanbulspor": {
-    "teamName": "Istanbulspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 0.4,
-    "xga_per90": 2.1,
-    "xg_diff": -1.7,
-    "possession": 36.0,
-    "cleanSheetPct": 8,
-    "bttsPct": 47,
-    "over25Pct": 55,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "pendikspor": {
-    "teamName": "Pendikspor",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 0.44,
-    "xga_per90": 1.93,
-    "xg_diff": -1.49,
-    "possession": 36.0,
-    "cleanSheetPct": 13,
-    "bttsPct": 63,
-    "over25Pct": 53,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
   "hatayspor": {
     "teamName": "Hatayspor",
     "country": "TR",
@@ -10669,7 +10543,7 @@ var ADVANCED_TEAM_STATS = {
     "source": "FootyStats & FBref Advanced Engine"
   },
   "addemirspor": {
-    "teamName": "Ad. Demirspor",
+    "teamName": "Adana Demirspor",
     "country": "TR",
     "league": "Türkiye Süper Lig",
     "matchesPlayed": 38,
@@ -10683,7 +10557,7 @@ var ADVANCED_TEAM_STATS = {
     "source": "FootyStats & FBref Advanced Engine"
   },
   "gaziantep": {
-    "teamName": "Gaziantep",
+    "teamName": "Gaziantep FK",
     "country": "TR",
     "league": "Türkiye Süper Lig",
     "matchesPlayed": 38,
@@ -10697,7 +10571,7 @@ var ADVANCED_TEAM_STATS = {
     "source": "FootyStats & FBref Advanced Engine"
   },
   "buyuksehyr": {
-    "teamName": "Buyuksehyr",
+    "teamName": "Başakşehir",
     "country": "TR",
     "league": "Türkiye Süper Lig",
     "matchesPlayed": 38,
@@ -10708,20 +10582,6 @@ var ADVANCED_TEAM_STATS = {
     "cleanSheetPct": 34,
     "bttsPct": 42,
     "over25Pct": 39,
-    "source": "FootyStats & FBref Advanced Engine"
-  },
-  "karagumruk": {
-    "teamName": "Karagumruk",
-    "country": "TR",
-    "league": "Türkiye Süper Lig",
-    "matchesPlayed": 38,
-    "xg_per90": 0.52,
-    "xga_per90": 1.4,
-    "xg_diff": -0.88,
-    "possession": 36.0,
-    "cleanSheetPct": 21,
-    "bttsPct": 55,
-    "over25Pct": 50,
     "source": "FootyStats & FBref Advanced Engine"
   },
   "vitesse": {
@@ -11255,7 +11115,35 @@ var ADVANCED_TEAM_STATS = {
     "bttsPct": 50,
     "over25Pct": 58,
     "source": "FootyStats & FBref Advanced Engine"
+  },
+  "bodrumfk": {
+    "teamName": "Bodrum FK",
+    "country": "TR",
+    "league": "Türkiye Süper Lig",
+    "matchesPlayed": 34,
+    "xg_per90": 1.65,
+    "xga_per90": 1.35,
+    "xg_diff": 0.3,
+    "possession": 46.0,
+    "cleanSheetPct": 30,
+    "bttsPct": 48,
+    "over25Pct": 45,
+    "source": "FootyStats & FBref Verified"
+  },
+  "adanademirspor": {
+    "teamName": "Adana Demirspor",
+    "country": "TR",
+    "league": "Türkiye Süper Lig",
+    "matchesPlayed": 38,
+    "xg_per90": 0.57,
+    "xga_per90": 1.63,
+    "xg_diff": -1.06,
+    "possession": 36.0,
+    "cleanSheetPct": 26,
+    "bttsPct": 61,
+    "over25Pct": 58,
+    "source": "FootyStats & FBref Advanced Engine"
   }
 };
-if (typeof window !== 'undefined') { window.ADVANCED_TEAM_STATS = ADVANCED_TEAM_STATS; }
-if (typeof module !== 'undefined' && module.exports) { module.exports = ADVANCED_TEAM_STATS; }
+if (typeof window !== "undefined") { window.ADVANCED_TEAM_STATS = ADVANCED_TEAM_STATS; }
+if (typeof module !== "undefined" && module.exports) { module.exports = ADVANCED_TEAM_STATS; }

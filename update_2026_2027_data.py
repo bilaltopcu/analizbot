@@ -508,17 +508,7 @@ def run_sync():
         "TR": [
             "Galatasaray", "Fenerbahçe", "Beşiktaş", "Trabzonspor", "Başakşehir", "Samsunspor", "Eyüpspor", 
             "Kasımpaşa", "Çaykur Rizespor", "Sivasspor", "Antalyaspor", "Gaziantep FK", "Konyaspor", "Alanyaspor", 
-            "Kayserispor", "Bodrum FK", "Göztepe", "Hatayspor", "Adana Demirspor",
-            "MKE Ankaragücü", "Fatih Karagümrük", "İstanbulspor", "Pendikspor", "Sakaryaspor", "Kocaelispor", 
-            "Çorum FK", "Gençlerbirliği", "Bandırmaspor", "Boluspor", "Ümraniyespor", "Manisa FK", "Erzurumspor FK", 
-            "Şanlıurfaspor", "Ankara Keçiörengücü", "Iğdır FK", "Amedspor", "Esenler Erokspor", "Adanaspor", "Yeni Malatyaspor",
-            "Bursaspor", "Altay", "Giresunspor", "GMG Kastamonuspor", "Batman Petrolspor", "Sarıyer", "24Erzincanspor", 
-            "Altınordu", "Menemen FK", "İskenderunspor", "Fethiyespor", "Bucaspor 1928", "1461 Trabzon", "Karacabey Belediyespor", 
-            "Isparta 32 Spor", "Kırklarelispor", "Beyoğlu Yeni Çarşı", "Ankaraspor", "Vanspor FK", "Çimentaş Elazığspor", 
-            "Motolux 68 Aksarayspor", "Serik Belediyespor", "Eskişehirspor", "Denizlispor", "Karşıyaka", "Balıkesirspor", 
-            "Akhisarspor", "Orduspor", "Zonguldak Kömürspor", "Düzcespor", "Uşakspor", "Mardin 1969 Spor", "Silivrispor", 
-            "Bornova 1877", "Erbaaspor", "Arnavutköy Bld.", "Somaspor", "Nazillispor", "Karaman FK", "Diyarbekirspor", 
-            "İnegölspor", "Afyonspor", "Adana 01 FK", "Kepezspor"
+            "Kayserispor", "Bodrum FK", "Göztepe", "Hatayspor", "Adana Demirspor"
         ],
         "ENG": ["Arsenal", "Manchester City", "Liverpool", "Aston Villa", "Tottenham", "Chelsea", "Newcastle", "Manchester United", "West Ham", "Brighton", "Wolves", "Fulham", "Bournemouth", "Crystal Palace", "Brentford", "Everton", "Nottingham Forest", "Leicester", "Ipswich", "Southampton"],
         "ESP": ["Real Madrid", "Barcelona", "Atletico Madrid", "Athletic Bilbao", "Real Sociedad", "Real Betis", "Villarreal", "Valencia", "Sevilla", "Girona", "Osasuna", "Celta Vigo", "Getafe", "Rayo Vallecano", "Mallorca", "Espanyol", "Valladolid", "Leganes", "Las Palmas", "Alaves"],

@@ -157,8 +157,7 @@ DEFAULT_TEAMS = {
         "Galatasaray", "Fenerbahçe", "Beşiktaş", "Trabzonspor", "Başakşehir",
         "Samsunspor", "Eyüpspor", "Kasımpaşa", "Çaykur Rizespor", "Sivasspor",
         "Antalyaspor", "Gaziantep FK", "Konyaspor", "Alanyaspor", "Kayserispor",
-        "Bodrum FK", "Göztepe", "Hatayspor", "Adana Demirspor", "MKE Ankaragücü",
-        "Fatih Karagümrük",
+        "Bodrum FK", "Göztepe", "Hatayspor", "Adana Demirspor",
     ],
     "ENG": [
         "Arsenal", "Manchester City", "Liverpool", "Aston Villa", "Tottenham",
