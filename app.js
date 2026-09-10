@@ -1526,14 +1526,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 3. AI Prediction Button Trigger
+  // 3. AI Prediction Button Trigger (Only Recommended Bet Display)
   aiPredictBtn.addEventListener("click", () => {
     generateAIPrediction();
-    generatePoissonMatrix();
     aiResultCard.classList.remove("hidden");
-    poissonSection.classList.remove("hidden");
-    const explanationBox = aiResultCard.querySelector(".ai-explanation-box");
-    if (explanationBox) explanationBox.style.display = "block";
+    if (poissonSection) poissonSection.classList.add("hidden");
     aiResultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
