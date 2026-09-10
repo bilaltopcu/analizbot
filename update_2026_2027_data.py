@@ -876,5 +876,13 @@ function getTeamLogoUrl(teamName, countryCode) {{
     except Exception as e:
         print(f"Performance ledger sync warning: {e}")
 
+    # Telegram Bildirimi Gonder
+    try:
+        from notify_telegram import send_notification
+        print("\n--- Telegram Bildirimi İletiliyor ---")
+        send_notification(new_count=new_added_count, updated_count=updated_matches_count, total_count=len(all_matches))
+    except Exception as e:
+        print(f"Telegram notification warning: {e}")
+
 if __name__ == '__main__':
     run_sync()

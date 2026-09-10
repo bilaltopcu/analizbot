@@ -272,6 +272,28 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Telegram Webhook Endpoint
+  if (pathname === '/api/telegram-webhook' || pathname === '/api/telegram') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const update = JSON.parse(body || '{}');
+          const { handleTelegramUpdate } = require('./telegram_bot');
+          await handleTelegramUpdate(update);
+        } catch (_) {}
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+      });
+      return;
+    } else {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ status: 'TELEGRAM_WEBHOOK_ACTIVE' }));
+    }
+  }
+
   // Live Prediction Record Endpoint
   if (pathname === '/api/record-prediction') {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -506,5 +528,12 @@ server.on('error', (err) => {
 
 server.listen(PORT, () => {
   console.log(`[AnalizBot] Ultra Hızlı & GZIP Sıkıştırmalı Sunucu ${PORT} portunda aktif!`);
+  // 24/7 Telegram Bot Servisi
+  try {
+    const { startTelegramBot } = require('./telegram_bot');
+    startTelegramBot();
+  } catch (err) {
+    console.error('[Telegram Bot Başlatma Uyarısı]', err.message);
+  }
 });
 

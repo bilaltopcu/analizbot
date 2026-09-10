@@ -32,10 +32,14 @@ jobs:
           pip install requests beautifulsoup4
 
       - name: Mac Verilerini ve Istatistikleri Guncelle
+        env:
+          TELEGRAM_BOT_TOKEN: 8737398319:AAHxjEQZEPEp7Y1DIk3lkHqWod8CH0lYjxI
         run: |
           python update_2026_2027_data.py
 
       - name: Yeni Veri Varsa Service Worker Surumunu Artir ve Canliya Push Et
+        env:
+          TELEGRAM_BOT_TOKEN: 8737398319:AAHxjEQZEPEp7Y1DIk3lkHqWod8CH0lYjxI
         run: |
           CHANGES=$(git status -s data.js matches_2026_2027.json advanced_stats.js advanced_team_stats.json performance_data.js performance_data.json)
           if [ -n "$CHANGES" ]; then
@@ -58,10 +62,13 @@ jobs:
 
             git config --global user.name "GolAnaliz AI Bot"
             git config --global user.email "bot@golanaliz.ai"
-            git add data.js matches_2026_2027.json advanced_stats.js advanced_team_stats.json performance_data.js performance_data.json sw.js
+            git add data.js matches_2026_2027.json advanced_stats.js advanced_team_stats.json performance_data.js performance_data.json sw.js telegram_config.json
             git commit -m "chore(auto-data): Otomatik gunluk mac verileri guncellendi [skip ci]"
             git push origin master
             echo "Yeni veriler canliya (master) basariyla gonderildi."
+
+            # Telegram bildirimi gonder
+            python notify_telegram.py || true
           else
             echo "Yeni mac verisi bulunamadi, mevcut veriler guncel."
           fi
