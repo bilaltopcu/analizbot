@@ -9,41 +9,101 @@ import os
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-ip = "217.160.0.246"
+import urllib.request
+import urllib.error
+
+# Requests session destegi (GitHub Actions bulut ortaminda yuksek hiz ve kararlilik)
+try:
+    import requests
+    HAS_REQUESTS = True
+    http_session = requests.Session()
+    http_session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate'
+    })
+except Exception:
+    HAS_REQUESTS = False
+    http_session = None
+
+ip = "217.160.0.118"
 hostname = "www.football-data.co.uk"
 port = 443
 
 def fetch_raw(path):
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-    
-    s = socket.create_connection((ip, port), timeout=15)
-    ss = context.wrap_socket(s, server_hostname=hostname)
-    
-    req = f"GET {path} HTTP/1.1\r\nHost: {hostname}\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\nConnection: close\r\n\r\n"
-    ss.sendall(req.encode('utf-8'))
-    
-    response = b""
-    while True:
-        data = ss.recv(16384)
-        if not data:
-            break
-        response += data
-    ss.close()
-    
-    parts = response.split(b"\r\n\r\n", 1)
-    header = parts[0].decode('utf-8', errors='ignore')
-    body = parts[1] if len(parts) > 1 else b""
-    
-    if any(code in header for code in ["301 Moved", "302 Found", "303 See"]):
-        loc_match = re.search(r'Location:\s*([^\r\n]+)', header, re.IGNORECASE)
-        if loc_match:
-            new_url = loc_match.group(1).strip()
-            if "football-data.co.uk" in new_url:
-                new_path = new_url.split("football-data.co.uk")[1]
-                return fetch_raw(new_path)
-    return header, body
+    url = f"https://{hostname}{path}"
+    # 1. Requests ile standart HTTPS baglantisi (Bulut sunucularinda dogrudan calisir)
+    if HAS_REQUESTS and http_session:
+        try:
+            resp = http_session.get(url, timeout=6)
+            if resp.status_code == 200:
+                return "HTTP/1.1 200 OK", resp.content
+            elif resp.status_code == 404:
+                return "HTTP/1.1 404 Not Found", b""
+        except Exception:
+            pass
+
+    # 2. Urllib standart HTTPS istegi
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    }
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
+            content = resp.read()
+            return "HTTP/1.1 200 OK", content
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return "HTTP/1.1 404 Not Found", b""
+    except Exception:
+        pass
+
+    # 3. Raw Socket Fallback
+    try:
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        
+        target_ip = ip
+        try:
+            resolved = socket.gethostbyname(hostname)
+            if not resolved.startswith("195.175."):
+                target_ip = resolved
+        except Exception:
+            target_ip = ip
+
+        s = socket.create_connection((target_ip, port), timeout=5)
+        ss = context.wrap_socket(s, server_hostname=hostname)
+        
+        req = f"GET {path} HTTP/1.1\r\nHost: {hostname}\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\nConnection: close\r\n\r\n"
+        ss.sendall(req.encode('utf-8'))
+        
+        response = b""
+        while True:
+            data = ss.recv(16384)
+            if not data:
+                break
+            response += data
+        ss.close()
+        
+        parts = response.split(b"\r\n\r\n", 1)
+        header = parts[0].decode('utf-8', errors='ignore')
+        body = parts[1] if len(parts) > 1 else b""
+        
+        if any(code in header for code in ["301 Moved", "302 Found", "303 See"]):
+            loc_match = re.search(r'Location:\s*([^\r\n]+)', header, re.IGNORECASE)
+            if loc_match:
+                new_url = loc_match.group(1).strip()
+                if "football-data.co.uk" in new_url:
+                    new_path = new_url.split("football-data.co.uk")[1]
+                    return fetch_raw(new_path)
+        return header, body
+    except Exception as e:
+        return "HTTP/1.1 500 Error", b""
 
 def run_sync():
     main_leagues = [
@@ -90,11 +150,59 @@ def run_sync():
         ('SWZ', '/new/SWZ.csv', 'İsviçre Super League')
     ]
 
-    all_matches = []
-    seen_match_keys = set()
-
     def get_match_key(m):
-        return f"{m['country']}_{m['homeTeam'].lower()}_{m['awayTeam'].lower()}_{m['date']}"
+        c = str(m.get('country', '')).strip()
+        h = str(m.get('homeTeam', '')).strip().lower()
+        a = str(m.get('awayTeam', '')).strip().lower()
+        d = str(m.get('date', '')).strip()
+        return f"{c}_{h}_{a}_{d}"
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    matches_json_path = os.path.join(base_dir, 'matches_2026_2027.json')
+    data_js_path = os.path.join(base_dir, 'data.js')
+
+    # Mevcut veritabanini guvenlik altina al (Zero-Risk Guard)
+    existing_matches = []
+    match_store = {}
+    if os.path.exists(matches_json_path):
+        try:
+            with open(matches_json_path, 'r', encoding='utf-8') as f:
+                existing_matches = json.load(f)
+                for em in existing_matches:
+                    k = get_match_key(em)
+                    match_store[k] = em
+            print(f"[VERI GUVENLIK KILIDI] Mevcut veritabanindan {len(existing_matches)} mac yuklendi ve korundu.")
+        except Exception as e:
+            print(f"[UYARI] Mevcut veritabani yuklenemedi: {e}")
+
+    new_added_count = 0
+    updated_matches_count = 0
+
+    def add_or_update_match(match_data):
+        nonlocal new_added_count, updated_matches_count
+        key = get_match_key(match_data)
+        if key in match_store:
+            old = match_store[key]
+            # Skor guncellemesi varsa uygula
+            score_changed = False
+            if match_data.get('fthg') is not None and (old.get('fthg') != match_data['fthg'] or old.get('ftag') != match_data['ftag']):
+                old['fthg'] = match_data['fthg']
+                old['ftag'] = match_data['ftag']
+                old['ftr'] = match_data['ftr']
+                score_changed = True
+            
+            # Detayli istatistikleri tamamla
+            stats_improved = False
+            for stat in ['hthg', 'htag', 'hs', 'as', 'hst', 'ast', 'hc', 'ac', 'hy', 'ay', 'hr', 'ar']:
+                if match_data.get(stat, 0) > 0 and (old.get(stat) is None or old.get(stat) == 0):
+                    old[stat] = match_data[stat]
+                    stats_improved = True
+            
+            if score_changed or stats_improved:
+                updated_matches_count += 1
+        else:
+            match_store[key] = match_data
+            new_added_count += 1
 
     seasons_to_fetch = [
         ('2526', '2025/2026'),
@@ -151,11 +259,8 @@ def run_sync():
                             'hr': int(row.get('HR', 0) if row.get('HR') else 0),
                             'ar': int(row.get('AR', 0) if row.get('AR') else 0)
                         }
-                        key = get_match_key(match_data)
-                        if key not in seen_match_keys:
-                            seen_match_keys.add(key)
-                            all_matches.append(match_data)
-                            count += 1
+                        add_or_update_match(match_data)
+                        count += 1
                     if count > 0:
                         print(f"Loaded {count} matches for {name} ({code}) [{season_label}]")
             except Exception as e:
@@ -202,11 +307,8 @@ def run_sync():
                             'hthg': 0, 'htag': 0,
                             'hs': 0, 'as': 0, 'hst': 0, 'ast': 0, 'hc': 0, 'ac': 0, 'hy': 0, 'ay': 0, 'hr': 0, 'ar': 0
                         }
-                        key = get_match_key(match_data)
-                        if key not in seen_match_keys:
-                            seen_match_keys.add(key)
-                            all_matches.append(match_data)
-                            count += 1
+                        add_or_update_match(match_data)
+                        count += 1
                 if count > 0:
                     print(f"Loaded {count} matches for {name} ({country_code})")
         except Exception as e:
@@ -259,14 +361,14 @@ def run_sync():
                     'hthg': 0, 'htag': 0,
                     'hs': 0, 'as': 0, 'hst': 0, 'ast': 0, 'hc': 0, 'ac': 0, 'hy': 0, 'ay': 0, 'hr': 0, 'ar': 0
                 }
-                key = get_match_key(match_data)
-                if key not in seen_match_keys:
-                    seen_match_keys.add(key)
-                    all_matches.append(match_data)
-                    latest_count += 1
+                add_or_update_match(match_data)
+                latest_count += 1
             print(f"Incorporated {latest_count} additional latest matches from Latest_Results.csv")
     except Exception as e:
         print(f"Error fetching Latest_Results: {e}")
+
+    print(f"\nVeri Senkronizasyon Ozeti: {new_added_count} yeni mac eklendi, {updated_matches_count} mac guncellendi.")
+    all_matches = list(match_store.values())
 
     TEAM_CANONICAL = {
         # Turkey (TR)
@@ -726,6 +828,27 @@ function getTeamLogoUrl(teamName, countryCode) {{
   return `logos/${{slug}}.png`;
 }}
 """
+    # GÜVENLİK KİLİDİ (Zero-Risk Guard)
+    if len(existing_matches) > 0 and len(all_matches) < len(existing_matches):
+        print(f"\n[GÜVENLİK KİLİDİ DEVREDE] Toplam maç sayısı mevcut veritabanından az ({len(all_matches)} < {len(existing_matches)}).")
+        print("Mevcut data.js ve matches_2026_2027.json verileri korundu, dosya ezilmedi.")
+        return False
+
+    if len(all_matches) < 1000:
+        print(f"\n[GÜVENLİK KİLİDİ DEVREDE] Çekilen maç sayısı kritik eşiğin altında ({len(all_matches)} maç < 1000).")
+        print("Mevcut data.js ve matches_2026_2027.json verileri korundu, dosya ezilmedi.")
+        return False
+
+    # Yeni veri gelmediyse ve mevcut dosyalar tamsa ezilmesini ve gereksiz git commit oluşmasını engelle
+    if new_added_count == 0 and updated_matches_count == 0 and os.path.exists(data_js_path):
+        print("\n[BİLGİ] Yeni maç verisi gelmedi, mevcut veritabanı en güncel durumda. Dosyalar ezilmedi.")
+        try:
+            from build_performance_ledger import run_performance_audit
+            run_performance_audit()
+        except Exception as e:
+            print(f"Performance ledger sync warning: {e}")
+        return True
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_js_path = os.path.join(base_dir, 'data.js')
     with open(data_js_path, 'w', encoding='utf-8') as f:
@@ -735,7 +858,7 @@ function getTeamLogoUrl(teamName, countryCode) {{
     with open(matches_json_path, 'w', encoding='utf-8') as f:
         json.dump(all_matches, f, ensure_ascii=False, indent=2)
 
-    print("SUCCESS: 2025-2026 & 2026-2027 seasons data updated and saved to data.js & matches_2026_2027.json!")
+    print(f"SUCCESS: 2025-2027 seasons data updated ({new_added_count} new, {updated_matches_count} updated) and saved to data.js & matches_2026_2027.json!")
 
     # FootyStats & FBref Advanced Pipeline Sync
     try:

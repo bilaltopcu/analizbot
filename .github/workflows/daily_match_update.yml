@@ -1,0 +1,67 @@
+name: Otomatik Gunluk Mac Verisi Guncelleme
+
+on:
+  schedule:
+    # Her gece mac bitisleri sonrasi 23:30 TSI (20:30 UTC)
+    - cron: '30 20 * * *'
+    # Her sabah erken saatlerde 04:00 TSI (01:00 UTC)
+    - cron: '0 1 * * *'
+  # GitHub arayuzunden tek tikla elle baslatma imkani
+  workflow_dispatch:
+
+jobs:
+  update-matches:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Kod Deposunu Cek (Checkout)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python 3.11 Ortamini Kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Gerekli Paketleri Yukle
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Mac Verilerini ve Istatistikleri Guncelle
+        run: |
+          python update_2026_2027_data.py
+
+      - name: Yeni Veri Varsa Service Worker Surumunu Artir ve Canliya Push Et
+        run: |
+          CHANGES=$(git status -s data.js matches_2026_2027.json advanced_stats.js advanced_team_stats.json performance_data.js performance_data.json)
+          if [ -n "$CHANGES" ]; then
+            echo "Yeni mac verileri tespit edildi! Service Worker surumu artiriliyor..."
+
+            python -c "
+            import re
+            with open('sw.js', 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            def bump_ver(match):
+                curr = int(match.group(1))
+                return f\"const CACHE_NAME = 'golanaliz-v{curr + 1}';\"
+
+            updated = re.sub(r\"const CACHE_NAME = 'golanaliz-v(\d+)';\", bump_ver, content)
+            with open('sw.js', 'w', encoding='utf-8') as f:
+                f.write(updated)
+            print('Service Worker surumu basariyla artirildi.')
+            "
+
+            git config --global user.name "GolAnaliz AI Bot"
+            git config --global user.email "bot@golanaliz.ai"
+            git add data.js matches_2026_2027.json advanced_stats.js advanced_team_stats.json performance_data.js performance_data.json sw.js
+            git commit -m "chore(auto-data): Otomatik gunluk mac verileri guncellendi [skip ci]"
+            git push origin master
+            echo "Yeni veriler canliya (master) basariyla gonderildi."
+          else
+            echo "Yeni mac verisi bulunamadi, mevcut veriler guncel."
+          fi

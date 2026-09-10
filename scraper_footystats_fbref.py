@@ -235,14 +235,13 @@ def run():
 
     print(f"Toplam {len(existing_teams)} takım veritabanından yüklendi.", flush=True)
 
-    from DrissionPage import ChromiumPage, ChromiumOptions
-    co = ChromiumOptions()
-    co.set_browser_path(r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe')
-    co.headless(False)
-
     master_stats = {}
 
     try:
+        from DrissionPage import ChromiumPage, ChromiumOptions
+        co = ChromiumOptions()
+        co.set_browser_path(r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe')
+        co.headless(True)
         page = ChromiumPage(co)
         page.set.timeouts(page_load=5, script=5)
         for league in LEAGUES_CONFIG:
