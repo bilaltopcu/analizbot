@@ -105,13 +105,43 @@ def run():
             m.get('htag', 0)
         ]
 
-        if h_slug not in team_matches_index:
-            team_matches_index[h_slug] = []
-        team_matches_index[h_slug].append(compact_m)
+        alias_map = {
+            'mancity': 'manchestercity', 'manunited': 'manchesterunited',
+            'nottmforest': 'nottinghamforest', 'athbilbao': 'athleticbilbao',
+            'athmadrid': 'atleticomadrid', 'atlmadrid': 'atleticomadrid',
+            'sociedad': 'realsociedad', 'vallecano': 'rayovallecano',
+            'spgijon': 'sportinggijon', 'spbraga': 'sportingbraga',
+            'splisbon': 'sportingcp', 'preussenmunster': 'preussenmunster',
+            'sheffieldwed': 'sheffieldwednesday', 'sheffieldweds': 'sheffieldwednesday',
+            'psg': 'parissg', 'paris': 'parissg',
+            'wolves': 'wolverhampton', 'wolverhampton': 'wolverhampton',
+            'espanol': 'espanyol', 'stuttgart': 'vfbstuttgart',
+            'bochum': 'vflbochum', 'borussiadortmund': 'dortmund',
+            'borussiamgladbach': 'mgladbach', 'acmilan': 'milan',
+            'asroma': 'roma', 'intermilan': 'inter'
+        }
 
-        if a_slug not in team_matches_index:
-            team_matches_index[a_slug] = []
-        team_matches_index[a_slug].append(compact_m)
+        def norm_team(s):
+            sl = slugify(s)
+            return alias_map.get(sl, sl)
+
+        def add_unique_match(slug_key, m_tuple):
+            if slug_key not in team_matches_index:
+                team_matches_index[slug_key] = []
+            m_date = m_tuple[1]
+            m_score = (m_tuple[4], m_tuple[5])
+            m_norm_ht = norm_team(m_tuple[2])
+            m_norm_at = norm_team(m_tuple[3])
+            for ex in team_matches_index[slug_key]:
+                if ex[1] == m_date and (ex[4], ex[5]) == m_score:
+                    ex_ht = norm_team(ex[2])
+                    ex_at = norm_team(ex[3])
+                    if (ex_ht == m_norm_ht and ex_at == m_norm_at) or (ex_ht == m_norm_at and ex_at == m_norm_ht):
+                        return
+            team_matches_index[slug_key].append(m_tuple)
+
+        add_unique_match(h_slug, compact_m)
+        add_unique_match(a_slug, compact_m)
 
     def parse_d(d_str):
         if not d_str:
@@ -169,14 +199,33 @@ function matchTeamNames(name1, name2) {{
   if (!name1 || !name2) return false;
   const s1 = slugifyTeam(name1);
   const s2 = slugifyTeam(name2);
-  return s1 === s2 || s1.includes(s2) || s2.includes(s1);
+  if (s1 === s2) return true;
+  const aliases = {{
+    'mancity': 'manchestercity', 'manunited': 'manchesterunited',
+    'nottmforest': 'nottinghamforest', 'athbilbao': 'athleticbilbao',
+    'athmadrid': 'atleticomadrid', 'atlmadrid': 'atleticomadrid',
+    'sociedad': 'realsociedad', 'vallecano': 'rayovallecano',
+    'spgijon': 'sportinggijon', 'spbraga': 'sportingbraga',
+    'splisbon': 'sportingcp', 'preussenmunster': 'preussenmunster',
+    'sheffieldwed': 'sheffieldwednesday', 'sheffieldweds': 'sheffieldwednesday',
+    'psg': 'parissg', 'paris': 'parissg',
+    'wolves': 'wolverhampton', 'wolverhampton': 'wolverhampton',
+    'espanol': 'espanyol', 'stuttgart': 'vfbstuttgart',
+    'bochum': 'vflbochum', 'borussiadortmund': 'dortmund',
+    'borussiamgladbach': 'mgladbach', 'acmilan': 'milan',
+    'asroma': 'roma', 'intermilan': 'inter'
+  }};
+  const c1 = aliases[s1] || s1;
+  const c2 = aliases[s2] || s2;
+  return c1 === c2;
 }}
 
 function slugifyTeam(name) {{
   if (!name) return '';
   const trMap = {{
     'ç': 'c', 'Ç': 'c', 'ğ': 'g', 'Ğ': 'g', 'ı': 'i', 'I': 'i', 'İ': 'i',
-    'ö': 'o', 'Ö': 'o', 'ş': 's', 'Ş': 's', 'ü': 'u', 'Ü': 'u'
+    'ö': 'o', 'Ö': 'o', 'ş': 's', 'Ş': 's', 'ü': 'u', 'Ü': 'u',
+    'ß': 'ss', 'ä': 'a', 'ö': 'o', 'ü': 'u', 'é': 'e', 'è': 'e'
   }};
   let str = name.trim();
   for (let key in trMap) {{
@@ -222,7 +271,7 @@ function generateTeamProfile(teamName, countryCode) {{
   // Son maclar (tum mevcut maclari dondur, boylece form strip ve 2026-2027 filtreleri eksiksiz calisir)
   const rawMatches = rawList;
   const recent5Raw = rawList.slice(-5);
-  const dataSeasonLabel = `Son ${{recent5Raw.length}} Maç`;
+  const dataSeasonLabel = '2026-2027 Sezonu';
 
   function formatMatch(m, idx) {{
     const isHome = matchTeamNames(m[2], teamName);
@@ -305,8 +354,12 @@ function generateTeamProfile(teamName, countryCode) {{
   const over25Count = formattedMatches.filter(m => (m.goalsFor + m.goalsAgainst) > 2.5).length;
   const over25Pct = Math.round((over25Count / n) * 100);
 
-  const winCount = formattedMatches.filter(m => m.result === 'W').length;
-  const winPct = Math.round((winCount / n) * 100);
+  const s2627Matches = formattedMatches.filter(m => 
+    m.season === '2026/2027' || (m.season && m.season.includes('2026') && m.season.includes('2027'))
+  );
+  const sampleForWin = s2627Matches.length >= 1 ? s2627Matches : formattedMatches.slice(-5);
+  const winCount = sampleForWin.filter(m => m.result === 'W').length;
+  const winPct = Math.round((winCount / (sampleForWin.length || 1)) * 100);
 
   let formPoints = 0;
   last5.forEach(m => {{

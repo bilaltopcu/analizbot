@@ -1175,42 +1175,85 @@ document.addEventListener("DOMContentLoaded", () => {
     generatePossibleBets();
   }
 
+  function showFormBadgeToast(msg) {
+    let toast = document.getElementById("formBadgeToast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "formBadgeToast";
+      toast.className = "form-badge-toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add("visible");
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+      toast.classList.remove("visible");
+    }, 3000);
+  }
+
   function renderFormStrip(container, matches) {
     container.innerHTML = "";
     if (!matches || matches.length === 0) {
-      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">Maç verisi yok</span>`;
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">(2026-2027 maçı bekleniyor)</span>`;
       return;
     }
 
-    // 2026-2027 sezonuna ait maçları filtrele
+    // 1) SADECE 2026-2027 sezonuna ait maçları filtrele
     const season2627 = matches.filter(m => 
       m.season === '2026/2027' || (m.season && m.season.includes('2026') && m.season.includes('2027'))
     );
 
-    // Eğer 2026-2027 maçları varsa öncelikli olarak onları al
-    let matchesToShow = season2627;
-    if (matchesToShow.length === 0) {
-      // 2026-2027 henüz başlamamışsa takımın son oynadığı maçları göster
-      matchesToShow = matches;
-    } else if (matchesToShow.length < 5) {
-      // 2026-2027 sezonunda henüz 5 maç dolmamışsa (örn. 2-3 maç oynanmışsa),
-      // formu 5 maça tamamlamak için hemen öncesindeki en son maçları da dahil et
-      const prevMatches = matches.filter(m => !matchesToShow.includes(m));
-      matchesToShow = [...prevMatches.slice(-(5 - matchesToShow.length)), ...matchesToShow];
+    // 2) Mükerrer maçları temizle (aynı tarih + rakip slug + skor)
+    const uniqueSeason2627 = [];
+    const seenMatchKeys = new Set();
+    const sourceList = season2627.length > 0 ? season2627 : matches;
+    for (const m of sourceList) {
+      const oppSlug = (typeof slugifyTeam === 'function') ? slugifyTeam(m.opponent) : (m.opponent || '').toLowerCase();
+      const k = `${m.date}_${oppSlug}_${m.score}`;
+      if (!seenMatchKeys.has(k)) {
+        seenMatchKeys.add(k);
+        uniqueSeason2627.push(m);
+      }
     }
 
-    const last5 = matchesToShow.slice(-5);
-    if (last5.length === 0) {
-      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">Maç verisi yok</span>`;
+    // 2026-2027 sezonu maçları varsa YALNIZCA onları göster
+    // Kaç maç oynandıysa o kadarı gösterilir (1, 2, 3, 4 veya maksimum son 5 maç)
+    // Asla eski sezon maçlarıyla 5'e tamamlanmaz!
+    let matchesToShow = [];
+    if (season2627.length > 0) {
+      matchesToShow = uniqueSeason2627.slice(-5);
+    } else {
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">(2026-2027 maçı bekleniyor)</span>`;
       return;
     }
 
-    last5.forEach(m => {
+    if (matchesToShow.length === 0) {
+      container.innerHTML = `<span style="font-size:11px;color:var(--text-muted);font-weight:500;">(2026-2027 maçı bekleniyor)</span>`;
+      return;
+    }
+
+    matchesToShow.forEach(m => {
       const badge = document.createElement("span");
-      badge.className = `form-badge ${m.result}`;
-      badge.textContent = m.result;
-      const seasonTag = m.season ? ` [${m.season}]` : '';
-      badge.title = `${m.isHome ? 'Ev' : 'Dep'} (${m.date || ''}${seasonTag}): ${m.score} vs ${m.opponent}`;
+      const isWin = (m.result === 'W' || m.result === 'G');
+      const isDraw = (m.result === 'D' || m.result === 'B');
+      const trResult = isWin ? 'G' : (isDraw ? 'B' : 'M');
+      const badgeClass = isWin ? 'W G' : (isDraw ? 'D B' : 'L M');
+      const resultText = isWin ? 'Galibiyet (Kazandı)' : (isDraw ? 'Beraberlik' : 'Mağlubiyet (Kaybetti)');
+      const venueText = m.isHome ? 'Ev' : 'Dep';
+
+      badge.className = `form-badge ${badgeClass}`;
+      badge.textContent = trResult;
+      badge.setAttribute("role", "button");
+      badge.setAttribute("tabindex", "0");
+      badge.style.cursor = "pointer";
+      badge.title = `${m.date || '2026/27'} • ${venueText} (${m.score} vs ${m.opponent}) • ${resultText}`;
+
+      // Mobil cihazlarda tıklayınca detaylı maç bilgisi göster
+      badge.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showFormBadgeToast(`${m.date || '2026/27'} | ${venueText}: ${m.score} vs ${m.opponent} (${resultText})`);
+      });
+
       container.appendChild(badge);
     });
   }
