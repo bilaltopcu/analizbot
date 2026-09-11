@@ -68,12 +68,89 @@ def run():
     country_teams = {c: set() for c in country_meta}
     team_matches_index = {}
 
+    canonical_teams = {
+        # England
+        'Man City': 'Manchester City',
+        'Man United': 'Manchester United',
+        "Nott'm Forest": 'Nottingham Forest',
+        'Sheffield Wed': 'Sheffield Wednesday',
+        'Sheffield Weds': 'Sheffield Wednesday',
+        'Bradford City': 'Bradford',
+        'Wolves': 'Wolverhampton',
+        # Spain
+        'Ath Bilbao': 'Athletic Bilbao',
+        'Ath Madrid': 'Atletico Madrid',
+        'Atl. Madrid': 'Atletico Madrid',
+        'Betis': 'Real Betis',
+        'Celta': 'Celta Vigo',
+        'Espanol': 'Espanyol',
+        'La Coruna': 'Dep. A Coruna',
+        'Sociedad': 'Real Sociedad',
+        'Vallecano': 'Rayo Vallecano',
+        'Sp Gijon': 'Sporting Gijon',
+        # Germany
+        'Dortmund': 'Borussia Dortmund',
+        'Leverkusen': 'Bayer Leverkusen',
+        'Hoffenheim': 'TSG Hoffenheim',
+        "M'gladbach": "Borussia M'gladbach",
+        'Ein Frankfurt': 'Eintracht Frankfurt',
+        'Stuttgart': 'VfB Stuttgart',
+        'Bochum': 'VfL Bochum',
+        'St. Pauli': 'St Pauli',
+        # Italy
+        'Milan': 'AC Milan',
+        'Roma': 'AS Roma',
+        # France
+        'St Etienne': 'Saint-Etienne',
+        'Paris SG': 'Paris Saint-Germain',
+        'Paris': 'Paris Saint-Germain',
+        # Portugal
+        'Sp Braga': 'Sporting Braga',
+        'Sp Lisbon': 'Sporting CP',
+        # Mexico
+        'U.A.N.L.- Tigres': 'Tigres UANL',
+        'U.N.A.M.- Pumas': 'UNAM Pumas',
+        # Romania
+        'Din. Bucuresti': 'Dinamo Bucuresti',
+    }
+
+    alias_slug_map = {
+        'mancity': 'manchestercity', 'manunited': 'manchesterunited',
+        'nottmforest': 'nottinghamforest', 'athbilbao': 'athleticbilbao',
+        'athmadrid': 'atleticomadrid', 'atlmadrid': 'atleticomadrid',
+        'sociedad': 'realsociedad', 'vallecano': 'rayovallecano',
+        'spgijon': 'sportinggijon', 'spbraga': 'sportingbraga',
+        'splisbon': 'sportingcp', 'preussenmunster': 'preussenmunster',
+        'sheffieldwed': 'sheffieldwednesday', 'sheffieldweds': 'sheffieldwednesday',
+        'bradfordcity': 'bradford',
+        'psg': 'parissaintgermain', 'paris': 'parissaintgermain', 'parissg': 'parissaintgermain',
+        'wolves': 'wolverhampton', 'espanol': 'espanyol',
+        'celta': 'celtavigo', 'betis': 'realbetis', 'lacoruna': 'depacoruna',
+        'stuttgart': 'vfbstuttgart', 'bochum': 'vflbochum',
+        'dortmund': 'borussiadortmund',
+        'mgladbach': 'borussiamgladbach', 'einfrankfurt': 'eintrachtfrankfurt',
+        'leverkusen': 'bayerleverkusen', 'hoffenheim': 'tsghoffenheim',
+        'milan': 'acmilan', 'roma': 'asroma',
+        'intermilan': 'inter', 'stetienne': 'saintetienne',
+        'uanltigres': 'tigresuanl', 'unampumas': 'unampumas',
+        'dinbucuresti': 'dinamobucuresti'
+    }
+
+    fin_teams = {'AC Oulu', 'Ekenas', 'Gnistan', 'HJK', 'Haka', 'Ilves', 'Inter Turku', 'Jaro', 'KTP', 'KuPS', 'Lahti', 'Mariehamn', 'SJK', 'TPS', 'VPS'}
+
     for m in matches:
         c = m.get('country')
-        ht = m.get('homeTeam')
-        at = m.get('awayTeam')
-        if not ht or not at:
+        ht_orig = m.get('homeTeam')
+        at_orig = m.get('awayTeam')
+        if not ht_orig or not at_orig:
             continue
+
+        ht = canonical_teams.get(ht_orig, ht_orig)
+        at = canonical_teams.get(at_orig, at_orig)
+
+        # Fix Finnish matches incorrectly labeled as USA
+        if c == 'USA' and (ht in fin_teams or at in fin_teams):
+            c = 'FIN'
 
         if c in country_teams:
             country_teams[c].add(ht)
@@ -105,25 +182,9 @@ def run():
             m.get('htag', 0)
         ]
 
-        alias_map = {
-            'mancity': 'manchestercity', 'manunited': 'manchesterunited',
-            'nottmforest': 'nottinghamforest', 'athbilbao': 'athleticbilbao',
-            'athmadrid': 'atleticomadrid', 'atlmadrid': 'atleticomadrid',
-            'sociedad': 'realsociedad', 'vallecano': 'rayovallecano',
-            'spgijon': 'sportinggijon', 'spbraga': 'sportingbraga',
-            'splisbon': 'sportingcp', 'preussenmunster': 'preussenmunster',
-            'sheffieldwed': 'sheffieldwednesday', 'sheffieldweds': 'sheffieldwednesday',
-            'psg': 'parissg', 'paris': 'parissg',
-            'wolves': 'wolverhampton', 'wolverhampton': 'wolverhampton',
-            'espanol': 'espanyol', 'stuttgart': 'vfbstuttgart',
-            'bochum': 'vflbochum', 'borussiadortmund': 'dortmund',
-            'borussiamgladbach': 'mgladbach', 'acmilan': 'milan',
-            'asroma': 'roma', 'intermilan': 'inter'
-        }
-
         def norm_team(s):
             sl = slugify(s)
-            return alias_map.get(sl, sl)
+            return alias_slug_map.get(sl, sl)
 
         def add_unique_match(slug_key, m_tuple):
             if slug_key not in team_matches_index:
@@ -163,11 +224,21 @@ def run():
         # En son oynanan 25 maci sakla (2026/2027 maclari her zaman en sonda yer alir)
         team_matches_index[slug] = team_matches_index[slug][-25:]
 
-    # Advanced Stats'tan takımları topla
+    # Tüm alias slug'larını kanonik maç listesine bağla (O(1) erişim ve çift yönlü uyumluluk)
+    for alias_k, can_k in alias_slug_map.items():
+        if can_k in team_matches_index:
+            if alias_k not in team_matches_index or len(team_matches_index[alias_k]) < len(team_matches_index[can_k]):
+                team_matches_index[alias_k] = team_matches_index[can_k]
+
+    # Advanced Stats'tan takımları topla (kanonik isimlerle)
     for slug, s in adv_stats.items():
         c = s.get('country')
-        if c in country_teams and s.get('teamName'):
-            country_teams[c].add(s['teamName'])
+        raw_tn = s.get('teamName')
+        if not raw_tn:
+            continue
+        canon_tn = canonical_teams.get(raw_tn, raw_tn)
+        if c in country_teams and canon_tn:
+            country_teams[c].add(canon_tn)
 
     countries_list = []
     total_teams_count = 0
@@ -200,21 +271,7 @@ function matchTeamNames(name1, name2) {{
   const s1 = slugifyTeam(name1);
   const s2 = slugifyTeam(name2);
   if (s1 === s2) return true;
-  const aliases = {{
-    'mancity': 'manchestercity', 'manunited': 'manchesterunited',
-    'nottmforest': 'nottinghamforest', 'athbilbao': 'athleticbilbao',
-    'athmadrid': 'atleticomadrid', 'atlmadrid': 'atleticomadrid',
-    'sociedad': 'realsociedad', 'vallecano': 'rayovallecano',
-    'spgijon': 'sportinggijon', 'spbraga': 'sportingbraga',
-    'splisbon': 'sportingcp', 'preussenmunster': 'preussenmunster',
-    'sheffieldwed': 'sheffieldwednesday', 'sheffieldweds': 'sheffieldwednesday',
-    'psg': 'parissg', 'paris': 'parissg',
-    'wolves': 'wolverhampton', 'wolverhampton': 'wolverhampton',
-    'espanol': 'espanyol', 'stuttgart': 'vfbstuttgart',
-    'bochum': 'vflbochum', 'borussiadortmund': 'dortmund',
-    'borussiamgladbach': 'mgladbach', 'acmilan': 'milan',
-    'asroma': 'roma', 'intermilan': 'inter'
-  }};
+  const aliases = {json.dumps(alias_slug_map, ensure_ascii=False, separators=(',', ':'))};
   const c1 = aliases[s1] || s1;
   const c2 = aliases[s2] || s2;
   return c1 === c2;
