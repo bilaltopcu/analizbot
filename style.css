@@ -6360,27 +6360,9 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   100% { transform: scale(0.9); opacity: 0.8; }
 }
 
-/* Scroll Container */
+/* Natural Page Flow Container (Tam Sayfa Akışı - İç kaydırma çubuğu kaldırıldı, tüm sayfa doğal olarak akar) */
 .today-section-body {
-  max-height: 640px;
-  overflow-y: auto;
-  padding-right: 6px;
-  overscroll-behavior: contain;
-}
-
-.today-section-body::-webkit-scrollbar {
-  width: 6px;
-}
-.today-section-body::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
-}
-.today-section-body::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-.today-section-body::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  width: 100%;
 }
 
 .today-competition-group {
