@@ -3011,41 +3011,83 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // =============================================
-  // Maçkolik Stili Üst Sekmeler (Top Navigation Switcher)
+  // Çoklu Sayfa Yönetimi (Multi-Page SPA Navigation)
+  // Sayfa 1: Günün Maçları & Skorlar (viewMatches)
+  // Sayfa 2: AI Takım Analizi & Tahmin Motoru (viewAnalysis)
   // =============================================
   const tabNavMatches = document.getElementById("tabNavMatches");
   const tabNavAnalysis = document.getElementById("tabNavAnalysis");
-  const todayMatchesSection = document.getElementById("todayMatchesSection");
-  const selectionCardSection = document.getElementById("selectionCardSection");
+  const viewMatches = document.getElementById("viewMatches");
+  const viewAnalysis = document.getElementById("viewAnalysis");
+  const btnBackToMatches = document.getElementById("btnBackToMatches");
   const navLiveCountBadge = document.getElementById("navLiveCountBadge");
 
-  function setActiveTopTab(tabName, shouldScroll = true) {
-    if (tabName === "matches") {
+  function switchAppView(viewName, shouldScrollTop = true, updateHistory = true) {
+    if (viewName === "matches") {
       if (tabNavMatches) tabNavMatches.classList.add("active");
       if (tabNavAnalysis) tabNavAnalysis.classList.remove("active");
-      if (shouldScroll && todayMatchesSection) {
-        todayMatchesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (viewMatches) viewMatches.classList.remove("hidden");
+      if (viewAnalysis) viewAnalysis.classList.add("hidden");
+      if (shouldScrollTop) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      if (updateHistory) {
+        try {
+          if (window.location.hash !== '#maclar') {
+            history.pushState(null, '', '#maclar');
+          }
+        } catch (_) {}
       }
     } else {
       if (tabNavAnalysis) tabNavAnalysis.classList.add("active");
       if (tabNavMatches) tabNavMatches.classList.remove("active");
-      if (shouldScroll && selectionCardSection) {
-        selectionCardSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (viewAnalysis) viewAnalysis.classList.remove("hidden");
+      if (viewMatches) viewMatches.classList.add("hidden");
+      if (shouldScrollTop) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      if (updateHistory) {
+        try {
+          if (window.location.hash !== '#analiz') {
+            history.pushState(null, '', '#analiz');
+          }
+        } catch (_) {}
       }
     }
   }
 
   if (tabNavMatches) {
     tabNavMatches.addEventListener("click", () => {
-      setActiveTopTab("matches", true);
+      switchAppView("matches", true);
     });
   }
 
   if (tabNavAnalysis) {
     tabNavAnalysis.addEventListener("click", () => {
-      setActiveTopTab("analysis", true);
+      switchAppView("analysis", true);
     });
   }
+
+  if (btnBackToMatches) {
+    btnBackToMatches.addEventListener("click", () => {
+      switchAppView("matches", true);
+    });
+  }
+
+  // Initial View State
+  if (window.location.hash === '#analiz') {
+    switchAppView("analysis", false, false);
+  } else {
+    switchAppView("matches", false, false);
+  }
+
+  window.addEventListener("popstate", () => {
+    if (window.location.hash === '#analiz') {
+      switchAppView("analysis", false, false);
+    } else {
+      switchAppView("matches", false, false);
+    }
+  });
 
   // =============================================
   // Maçkolik Stili Tarih Şeridi ve Maç Merkezi Entegrasyonu
@@ -3706,7 +3748,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleAutoSelectMatch(match) {
-    setActiveTopTab("analysis");
+    switchAppView("analysis", true);
 
     let countryCode = match.countryCode;
     if (!countryCode && match.competitionCode) {

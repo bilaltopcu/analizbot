@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=4.5.1">
+  <link rel="stylesheet" href="style.css?v=4.5.2">
 </head>
 <body>
 
@@ -147,8 +147,9 @@
       </div>
     </div>
 
-    <!-- ═══ GÜNÜN MAÇLARI & CANLI SKORLAR BÖLÜMÜ (MAÇ MERKEZİ) ═══ -->
-    <section class="today-matches-section glass-panel" id="todayMatchesSection">
+    <!-- ═══ SAYFA 1: GÜNÜN MAÇLARI & SKORLAR (VİEW: MATCHES) ═══ -->
+    <div class="page-view-container" id="viewMatches">
+      <section class="today-matches-section glass-panel" id="todayMatchesSection">
       <div class="today-section-header">
         <div class="today-header-left">
           <div class="today-badge-icon">
@@ -217,6 +218,17 @@
         </div>
       </div>
     </section>
+  </div>
+
+  <!-- ═══ SAYFA 2: AI TAKIM ANALİZİ & TAHMİN (VİEW: ANALYSIS) ═══ -->
+  <div class="page-view-container hidden" id="viewAnalysis">
+    <div class="view-analysis-header">
+      <button type="button" class="btn-back-to-matches" id="btnBackToMatches" title="Günün Maçlarına Geri Dön">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Günün Maçlarına Dön</span>
+      </button>
+      <span class="view-analysis-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Analiz Motoru v6.0</span>
+    </div>
 
     <!-- Main Hero / Selection Card -->
     <section class="selection-card glass-panel" id="selectionCardSection">
@@ -549,8 +561,9 @@
       </div>
 
     </div>
+  </div> <!-- /viewAnalysis -->
 
-    <!-- App Footer -->
+  <!-- App Footer -->
     <footer class="app-footer">
       <p>&copy; 2026 GOLANALIZ AI | Profesyonel Futbol Analiz ve Yapay Zeka Tahmin Platformu</p>
     </footer>
