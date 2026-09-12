@@ -114,17 +114,6 @@
         </div>
       </div>
       <div class="header-badges">
-        <button type="button" class="live-badge today-matches-badge" id="btnTodayMatches" title="Günün Maçları & Canlı Skorları Gör">
-          <div class="badge-left-group">
-            <span class="pulse-indicator live-indicator-green"></span>
-            <i class="fa-solid fa-satellite-dish"></i>
-            <span class="badge-label-text">Günün Maçları:</span>
-          </div>
-          <div class="badge-right-group">
-            <strong id="headerTodayMatchesCount"><i class="fa-solid fa-spinner fa-spin"></i></strong>
-            <i class="fa-solid fa-angle-right badge-caret"></i>
-          </div>
-        </button>
         <button type="button" class="live-badge verified-winrate-badge" id="btnPerformanceModal" title="Resmi AI Kazanan Tahmin Oranını İncele">
           <div class="badge-left-group">
             <span class="pulse-indicator"></span>
@@ -281,6 +270,54 @@
           <button id="compareBtn" class="btn-primary-glow" disabled>
             <i class="fa-solid fa-chart-simple"></i> KARŞILAŞTIR VE ANALİZ ET
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ GÜNÜN MAÇLARI & CANLI SKORLAR BÖLÜMÜ (Football-Data.org) ═══ -->
+    <section class="today-matches-section glass-panel" id="todayMatchesSection">
+      <div class="today-section-header">
+        <div class="today-header-left">
+          <div class="today-badge-icon">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </div>
+          <div class="today-header-titles">
+            <div class="today-title-row">
+              <h3>⚽ Günün Maçları & Canlı Skorlar</h3>
+              <span class="live-source-tag"><span class="pulse-dot"></span> Canlı Akış</span>
+            </div>
+            <p class="today-subtitle">Avrupa ve dünya liglerinden günün karşılaşmaları. Tek tıkla takımları seçip analizi başlatabilirsiniz.</p>
+          </div>
+        </div>
+
+        <div class="today-header-actions">
+          <button type="button" class="today-refresh-btn" id="btnRefreshTodayMatches" title="Maçları ve Skorları Yenile">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="today-filter-tabs">
+        <button type="button" class="today-filter-btn active" data-filter="all">
+          <i class="fa-solid fa-list"></i> Tümü (<span id="countFilterAll">0</span>)
+        </button>
+        <button type="button" class="today-filter-btn filter-live" data-filter="live">
+          <span class="pulse-dot"></span> Canlı (<span id="countFilterLive">0</span>)
+        </button>
+        <button type="button" class="today-filter-btn" data-filter="upcoming">
+          <i class="fa-solid fa-clock"></i> Başlamadı (<span id="countFilterUpcoming">0</span>)
+        </button>
+        <button type="button" class="today-filter-btn" data-filter="finished">
+          <i class="fa-solid fa-flag-checkered"></i> Bitenler (<span id="countFilterFinished">0</span>)
+        </button>
+      </div>
+
+      <!-- Matches Content Area -->
+      <div class="today-section-body" id="todayMatchesList">
+        <div class="today-loading-state">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <p>Günün maçları ve canlı skorlar yükleniyor...</p>
         </div>
       </div>
     </section>
@@ -612,54 +649,6 @@
         <i class="fa-solid fa-bookmark"></i>
         <p>Henüz kaydedilmiş bahisiniz yok.</p>
         <span>Maç analizi yaptıktan sonra bahis kartlarındaki <strong>"Bahislerime Kaydet"</strong> butonunu kullanarak bahis ekleyebilirsiniz.</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Today & Live Matches Modal Overlay (Football-Data.org) -->
-  <div id="todayMatchesModal" class="modal-overlay hidden">
-    <div class="modal-container today-matches-modal glass-panel">
-      <button class="modal-close-btn" id="todayMatchesModalClose" title="Kapat"><i class="fa-solid fa-xmark"></i></button>
-
-      <div class="today-modal-header">
-        <div class="today-modal-header-top">
-          <div class="today-badge-icon">
-            <i class="fa-solid fa-satellite-dish"></i>
-          </div>
-          <div class="today-title-box">
-            <div class="today-title-row">
-              <h2>Günün Maçları & Canlı Skorlar</h2>
-              <span class="live-source-tag"><i class="fa-solid fa-bolt"></i> Football-Data API</span>
-            </div>
-            <p class="today-subtitle">Seçtiğiniz maça tıklayarak takımları ve ligi anında yapay zeka analizine aktarabilirsiniz.</p>
-          </div>
-        </div>
-
-        <!-- Filter tabs & Refresh -->
-        <div class="today-filter-tabs">
-          <button type="button" class="today-filter-btn active" data-filter="all">
-            <i class="fa-solid fa-list"></i> Tümü (<span id="countFilterAll">0</span>)
-          </button>
-          <button type="button" class="today-filter-btn filter-live" data-filter="live">
-            <span class="pulse-dot"></span> Canlı (<span id="countFilterLive">0</span>)
-          </button>
-          <button type="button" class="today-filter-btn" data-filter="upcoming">
-            <i class="fa-solid fa-clock"></i> Başlamadı (<span id="countFilterUpcoming">0</span>)
-          </button>
-          <button type="button" class="today-filter-btn" data-filter="finished">
-            <i class="fa-solid fa-flag-checkered"></i> Bitenler (<span id="countFilterFinished">0</span>)
-          </button>
-          <button type="button" class="today-refresh-btn" id="btnRefreshTodayMatches" title="Yenile">
-            <i class="fa-solid fa-rotate-right"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="today-modal-body" id="todayMatchesList">
-        <div class="today-loading-state">
-          <i class="fa-solid fa-circle-notch fa-spin"></i>
-          <p>Günün maçları yükleniyor...</p>
-        </div>
       </div>
     </div>
   </div>

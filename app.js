@@ -3377,12 +3377,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectTeamOption('home', resolvedHome, homeLogoUrl);
     selectTeamOption('away', resolvedAway, awayLogoUrl);
 
-    // Close modal
-    if (todayMatchesModal) {
-      todayMatchesModal.classList.add('hidden');
-    }
-
-    // Trigger Compare
+    // Trigger Compare & Scroll to Results
     setTimeout(() => {
       if (compareBtn && !compareBtn.disabled) {
         compareBtn.click();
@@ -3394,27 +3389,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 150);
   }
 
-  // Modal event listeners
-  if (btnTodayMatches && todayMatchesModal) {
-    btnTodayMatches.addEventListener("click", () => {
-      todayMatchesModal.classList.remove("hidden");
-      if (todayMatchesData.length === 0) {
-        fetchTodayMatches();
-      }
-    });
-  }
-
-  if (todayMatchesModalClose && todayMatchesModal) {
-    todayMatchesModalClose.addEventListener("click", () => {
-      todayMatchesModal.classList.add("hidden");
-    });
-    todayMatchesModal.addEventListener("click", (e) => {
-      if (e.target === todayMatchesModal) {
-        todayMatchesModal.classList.add("hidden");
-      }
-    });
-  }
-
+  // Refresh Button Listener
   if (btnRefreshTodayMatches) {
     btnRefreshTodayMatches.addEventListener("click", () => {
       const icon = btnRefreshTodayMatches.querySelector("i");
@@ -3425,7 +3400,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Filter tabs listeners
+  // Filter Tabs Listeners
   const filterBtns = document.querySelectorAll(".today-filter-btn");
   filterBtns.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -3436,18 +3411,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Background fetch count on page load
-  setTimeout(() => {
-    fetch('/api/today-matches')
-      .then(r => r.json())
-      .then(d => {
-        if (d && d.matches) {
-          todayMatchesData = d.matches;
-          updateTodayMatchesBadge(todayMatchesData);
-        }
-      })
-      .catch(() => {});
-  }, 1000);
+  // Automatically load today's matches directly on page load
+  fetchTodayMatches();
 
   // Initialize
   initCountryDropdown();
