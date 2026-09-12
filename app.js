@@ -3918,6 +3918,19 @@ document.addEventListener("DOMContentLoaded", () => {
       htag: m.htag,
       hs: m.hs,
       as: m.as,
+      hst: m.hst,
+      ast: m.ast,
+      hc: m.hc,
+      ac: m.ac,
+      hy: m.hy,
+      ay: m.ay,
+      hr: m.hr,
+      ar: m.ar,
+      hf: m.hf,
+      af: m.af,
+      b365h: m.b365h,
+      b365d: m.b365d,
+      b365a: m.b365a,
       status: isFinished ? 'FINISHED' : 'SCHEDULED',
       minute: null,
       time: m.time || '',
@@ -4385,7 +4398,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isFav = favMatchIds.has(m.id);
         const cleanHome = formatMackolikTeamName(m.homeName, m.countryCode);
         const cleanAway = formatMackolikTeamName(m.awayName, m.countryCode);
-        row.setAttribute("title", `Analiz için tıklayın: ${cleanHome} - ${cleanAway}`);
+        row.setAttribute("title", `Detaylar & Niş İstatistikler: ${cleanHome} - ${cleanAway}`);
 
         let middleHtml = '';
         if (isLive) {
@@ -4424,18 +4437,21 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="m-team-label" title="${cleanAway}">${cleanAway}</span>
           </div>
 
-          <!-- 5. Right Actions (C + Star) -->
+          <!-- 5. Right Actions (AI + Star) -->
           <div class="m-cell-actions">
-            <button type="button" class="m-badge-c" title="AI ile Hızlı Analiz">C</button>
+            <button type="button" class="m-badge-ai" title="Yapay Zeka (AI) Analizine Aktar">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span class="m-ai-text">AI</span>
+            </button>
             <button type="button" class="m-btn-star ${isFav ? 'favorited' : ''}" title="Favorilere Ekle">
               <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star"></i>
             </button>
           </div>
         `;
 
-        const cBtn = row.querySelector(".m-badge-c");
-        if (cBtn) {
-          cBtn.addEventListener("click", (e) => {
+        const aiBtn = row.querySelector(".m-badge-ai");
+        if (aiBtn) {
+          aiBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             handleAutoSelectMatch(m);
           });
@@ -4462,7 +4478,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         row.addEventListener("click", () => {
-          handleAutoSelectMatch(m);
+          openMatchDetailModal(m);
         });
 
         tableEl.appendChild(row);
@@ -4471,6 +4487,351 @@ document.addEventListener("DOMContentLoaded", () => {
       todayMatchesList.appendChild(cardEl);
     });
   }
+
+  function openMatchDetailModal(m) {
+    const modalEl = document.getElementById("matchDetailModal");
+    const contentEl = document.getElementById("matchDetailModalContent");
+    if (!modalEl || !contentEl) return;
+
+    let countryCode = m.countryCode;
+    if (!countryCode && m.competitionCode) countryCode = COMP_TO_COUNTRY[m.competitionCode] || 'TR';
+    if (!countryCode && m.raw?.competition?.code) countryCode = COMP_TO_COUNTRY[m.raw.competition.code] || 'TR';
+    if (!countryCode && m.leagueName && m.leagueName.includes('Türkiye')) countryCode = 'TR';
+    if (!countryCode) countryCode = 'TR';
+
+    const cleanHome = formatMackolikTeamName(m.homeName, countryCode);
+    const cleanAway = formatMackolikTeamName(m.awayName, countryCode);
+    const resolvedHome = resolveTeamMatch(m.homeName, countryCode);
+    const resolvedAway = resolveTeamMatch(m.awayName, countryCode);
+
+    const homeLogo = m.homeCrest || getTeamLogoUrl(resolvedHome, countryCode);
+    const awayLogo = m.awayCrest || getTeamLogoUrl(resolvedAway, countryCode);
+
+    const isLive = ['IN_PLAY', 'PAUSED'].includes(m.status);
+    const isFinished = ['FINISHED', 'AWARDED'].includes(m.status);
+
+    // League Title and Emblem / Flag
+    let leagueTitle = m.leagueName || 'Karşılaşma';
+    let leagueEmblemHtml = '';
+    if (m.leagueEmblem) {
+      leagueEmblemHtml = `<img src="${m.leagueEmblem}" alt="${leagueTitle}" onerror="this.style.display='none'">`;
+    } else {
+      leagueEmblemHtml = getLeagueFlagHtml({ name: leagueTitle, countryCode, competitionCode: m.competitionCode });
+    }
+
+    // Direct match stats (from m, m.raw or cachedDbFullData)
+    let dStats = null;
+    if (m.hc !== undefined && m.hc !== null) {
+      dStats = m;
+    } else if (m.raw && (m.raw.hc !== undefined || m.raw.hs !== undefined)) {
+      dStats = m.raw;
+    } else if (cachedDbFullData && Array.isArray(cachedDbFullData)) {
+      const normH = normalizeTeamString(resolvedHome);
+      const normA = normalizeTeamString(resolvedAway);
+      const found = cachedDbFullData.find(item => {
+        const ih = normalizeTeamString(item.home || item.homeTeam || '');
+        const ia = normalizeTeamString(item.away || item.awayTeam || '');
+        return ((ih.includes(normH) || normH.includes(ih)) && (ia.includes(normA) || normA.includes(ia))) && (item.hc !== undefined || item.hs !== undefined);
+      });
+      if (found) dStats = found;
+    }
+
+    // Team profiles for seasonal niche stats
+    let homeProf = null;
+    let awayProf = null;
+    try {
+      if (typeof generateTeamProfile === 'function') {
+        homeProf = generateTeamProfile(resolvedHome, countryCode);
+        awayProf = generateTeamProfile(resolvedAway, countryCode);
+      }
+    } catch (e) {
+      console.warn('[openMatchDetailModal] generateTeamProfile error:', e);
+    }
+
+    // Status display & Score
+    let statusText = 'YAKINDA';
+    let statusClass = 'upcoming';
+    let scoreDisplay = 'VS';
+
+    if (isLive) {
+      statusText = m.minute ? `${m.minute}' CANLI` : 'CANLI';
+      statusClass = 'live';
+      scoreDisplay = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
+    } else if (isFinished) {
+      statusText = 'MAÇ SONUCU';
+      statusClass = 'finished';
+      scoreDisplay = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
+    } else {
+      statusText = m.time || '17:00';
+      statusClass = 'upcoming';
+      scoreDisplay = 'v';
+    }
+
+    // Half time score
+    let htHtml = '';
+    const hthg = m.hthg ?? dStats?.hthg;
+    const htag = m.htag ?? dStats?.htag;
+    if (hthg !== undefined && hthg !== null && htag !== undefined && htag !== null) {
+      htHtml = `<span class="modal-ht-score">(İY: ${hthg} - ${htag})</span>`;
+    }
+
+    // Render Direct Stats Section if present
+    let directStatsHtml = '';
+    const hasCorners = dStats && dStats.hc !== undefined && dStats.hc !== null;
+    const hasShots = dStats && dStats.hs !== undefined && dStats.hs !== null;
+    const hasCards = dStats && dStats.hy !== undefined && dStats.hy !== null;
+
+    if (hasCorners || hasShots || hasCards) {
+      const renderBar = (valL, valR, label, extra = '') => {
+        valL = valL ?? 0;
+        valR = valR ?? 0;
+        const total = valL + valR;
+        const leftW = total > 0 ? Math.round((valL / total) * 100) : 50;
+        const rightW = total > 0 ? Math.round((valR / total) * 100) : 50;
+        return `
+          <div class="stat-bar-row">
+            <span class="val-left">${valL}</span>
+            <div class="stat-bar-track">
+              <div class="stat-bar-fill left ${extra}" style="width: ${leftW}%"></div>
+              <div class="stat-bar-fill right ${extra}" style="width: ${rightW}%"></div>
+              <span class="stat-label">${label}</span>
+            </div>
+            <span class="val-right">${valR}</span>
+          </div>
+        `;
+      };
+
+      directStatsHtml = `
+        <div class="niche-section">
+          <div class="niche-section-title">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span>Karşılaşma İstatistikleri</span>
+          </div>
+          <div class="niche-stat-bars">
+            ${hasCorners ? renderBar(dStats.hc, dStats.ac, 'Korner') : ''}
+            ${hasShots ? renderBar(dStats.hs, dStats.as, 'Toplam Şut') : ''}
+            ${(dStats.hst !== undefined && dStats.ast !== undefined) ? renderBar(dStats.hst, dStats.ast, 'İsabetli Şut') : ''}
+            ${hasCards ? renderBar(dStats.hy, dStats.ay, 'Sarı Kart', 'yellow-card') : ''}
+            ${(dStats.hr !== undefined && dStats.ar !== undefined && (dStats.hr > 0 || dStats.ar > 0)) ? renderBar(dStats.hr, dStats.ar, 'Kırmızı Kart') : ''}
+            ${(dStats.hf !== undefined && dStats.af !== undefined) ? renderBar(dStats.hf, dStats.af, 'Faul') : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // Seasonal Niche Data from Profiles
+    const hStats = homeProf?.stats || {};
+    const aStats = awayProf?.stats || {};
+
+    // 1. Corners
+    const hAvgC = hStats.avgCorners ?? null;
+    const aAvgC = aStats.avgCorners ?? null;
+    const totalExpCorners = (hAvgC !== null && aAvgC !== null) ? (hAvgC + aAvgC).toFixed(1) : (hAvgC || aAvgC || '—');
+
+    const hCornerTrend = (homeProf?.matches || []).filter(x => x.corners !== null && x.corners !== undefined).slice(-5).map(x => x.corners);
+    const aCornerTrend = (awayProf?.matches || []).filter(x => x.corners !== null && x.corners !== undefined).slice(-5).map(x => x.corners);
+
+    const renderTrendPills = (teamTitle, arr) => {
+      if (!arr || arr.length === 0) return '';
+      const pills = arr.map(c => `<span class="trend-num">${c}</span>`).join('');
+      return `<div class="trend-pills"><span class="trend-team">${teamTitle}:</span> ${pills}</div>`;
+    };
+
+    let cornerTrendHtml = '';
+    if (hCornerTrend.length > 0 || aCornerTrend.length > 0) {
+      cornerTrendHtml = `
+        <div class="corner-trend-box">
+          <div class="trend-label">Son 5 Maç Korner Trendi:</div>
+          ${renderTrendPills(cleanHome.slice(0, 10), hCornerTrend)}
+          ${renderTrendPills(cleanAway.slice(0, 10), aCornerTrend)}
+        </div>
+      `;
+    }
+
+    // 2. Yellow Cards
+    const hAvgY = hStats.avgYellowCards ?? null;
+    const aAvgY = aStats.avgYellowCards ?? null;
+    const totalExpY = (hAvgY !== null && aAvgY !== null) ? (hAvgY + aAvgY).toFixed(1) : (hAvgY || aAvgY || '—');
+    const hRed5 = hStats.totalRedCardsIn5 ?? 0;
+    const aRed5 = aStats.totalRedCardsIn5 ?? 0;
+
+    // 3. Shots
+    const hAvgS = hStats.avgShots ?? null;
+    const aAvgS = aStats.avgShots ?? null;
+    const hAvgSot = hStats.avgShotsOnTarget ?? null;
+    const aAvgSot = aStats.avgShotsOnTarget ?? null;
+    const hAcc = hStats.shotAccuracyPct ?? null;
+    const aAcc = aStats.shotAccuracyPct ?? null;
+
+    // 4. Goals & BTTS
+    const hAvgG = hStats.avgTotalGoalsPerMatch ?? null;
+    const aAvgG = aStats.avgTotalGoalsPerMatch ?? null;
+    const totalAvgGoals = (hAvgG !== null && aAvgG !== null) ? ((hAvgG + aAvgG) / 2).toFixed(1) : (hAvgG || aAvgG || '—');
+    const hOver25 = hStats.over25Pct ?? null;
+    const aOver25 = aStats.over25Pct ?? null;
+    const hBtts = hStats.bttsPct ?? null;
+    const aBtts = aStats.bttsPct ?? null;
+
+    // Odds
+    let oddsHtml = '';
+    const b365h = dStats?.b365h || m.raw?.b365h;
+    const b365d = dStats?.b365d || m.raw?.b365d;
+    const b365a = dStats?.b365a || m.raw?.b365a;
+    if (b365h && b365d && b365a) {
+      oddsHtml = `
+        <div class="niche-odds-bar" style="margin-top: 14px;">
+          <span class="odds-title"><i class="fa-solid fa-chart-line"></i> Maç Oranları:</span>
+          <span class="odd-pill">MS 1: <strong>${b365h}</strong></span>
+          <span class="odd-pill">X: <strong>${b365d}</strong></span>
+          <span class="odd-pill">MS 2: <strong>${b365a}</strong></span>
+        </div>
+      `;
+    }
+
+    contentEl.innerHTML = `
+      <!-- Header -->
+      <div class="modal-match-header">
+        <div class="modal-league-info">
+          ${leagueEmblemHtml}
+          <span>${leagueTitle}</span>
+        </div>
+        <div class="modal-match-date">
+          ${m.dateFormatted || ''} ${m.time || ''}
+        </div>
+      </div>
+
+      <!-- Scoreboard Hero -->
+      <div class="modal-scoreboard">
+        <div class="modal-team-side">
+          <img class="modal-team-logo" src="${homeLogo}" alt="${cleanHome}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>'">
+          <div class="modal-team-name">${cleanHome}</div>
+        </div>
+
+        <div class="modal-score-center">
+          <span class="modal-match-status-badge ${statusClass}">${statusText}</span>
+          <div class="${(isLive || isFinished) ? 'modal-score-display' : 'modal-score-vs'}">${scoreDisplay}</div>
+          ${htHtml}
+        </div>
+
+        <div class="modal-team-side">
+          <img class="modal-team-logo" src="${awayLogo}" alt="${cleanAway}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>'">
+          <div class="modal-team-name">${cleanAway}</div>
+        </div>
+      </div>
+
+      <!-- Quick AI CTA Button -->
+      <button type="button" class="btn-modal-ai-action" id="btnModalGoAi">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>Yapay Zeka (AI) İle Derin Analiz Yap</span>
+      </button>
+
+      <!-- Direct Stats (if available) -->
+      ${directStatsHtml}
+
+      <!-- Seasonal Niche Stats & Expectations -->
+      <div class="niche-section">
+        <div class="niche-section-title">
+          <i class="fa-solid fa-bullseye"></i>
+          <span>Sezon Niş Verileri & Beklentiler</span>
+        </div>
+
+        <div class="niche-cards-grid">
+          <!-- 1. Corner Card -->
+          <div class="niche-card corner-card">
+            <div class="niche-card-header">
+              <i class="fa-solid fa-flag"></i>
+              <h4>Korner Beklentisi</h4>
+            </div>
+            <div class="niche-highlight-val">~${totalExpCorners}</div>
+            <div class="niche-subtext">Maç başı tahmini korner</div>
+            <div class="niche-meta-row">
+              <div>Ev: <strong>${hAvgC !== null ? hAvgC + ' korner' : '—'}</strong></div>
+              <div>Dep: <strong>${aAvgC !== null ? aAvgC + ' korner' : '—'}</strong></div>
+            </div>
+            ${cornerTrendHtml}
+          </div>
+
+          <!-- 2. Card Card -->
+          <div class="niche-card card-niche-card">
+            <div class="niche-card-header">
+              <i class="fa-solid fa-square"></i>
+              <h4>Kart & Disiplin</h4>
+            </div>
+            <div class="niche-highlight-val">~${totalExpY}</div>
+            <div class="niche-subtext">Maç başı sarı kart</div>
+            <div class="niche-meta-row">
+              <div>Ev Ort: <strong>${hAvgY !== null ? hAvgY + ' kart' : '—'}</strong></div>
+              <div>Dep Ort: <strong>${aAvgY !== null ? aAvgY + ' kart' : '—'}</strong></div>
+              <div>Son 5 maç kırmızı: <strong>${hRed5 + aRed5}</strong></div>
+            </div>
+          </div>
+
+          <!-- 3. Shot Card -->
+          <div class="niche-card shot-card">
+            <div class="niche-card-header">
+              <i class="fa-solid fa-crosshairs"></i>
+              <h4>Şut & İsabet</h4>
+            </div>
+            <div class="niche-highlight-val">${hAvgS !== null ? hAvgS : '—'} / ${aAvgS !== null ? aAvgS : '—'}</div>
+            <div class="niche-subtext">Ev / Deplasman şut ort.</div>
+            <div class="niche-meta-row">
+              <div>İsabetli Şut: <strong>${hAvgSot !== null ? hAvgSot : '—'} / ${aAvgSot !== null ? aAvgSot : '—'}</strong></div>
+              <div>İsabet Oranı: <strong>${hAcc !== null ? '%' + hAcc : '—'} / ${aAcc !== null ? '%' + aAcc : '—'}</strong></div>
+            </div>
+          </div>
+
+          <!-- 4. Goal Card -->
+          <div class="niche-card goal-card">
+            <div class="niche-card-header">
+              <i class="fa-solid fa-futbol"></i>
+              <h4>Gol Dinamikleri</h4>
+            </div>
+            <div class="niche-highlight-val">~${totalAvgGoals}</div>
+            <div class="niche-subtext">Maç başı gol beklentisi</div>
+            <div class="niche-meta-row">
+              <div>2.5 Üst: <strong>Ev %${hOver25 ?? '—'} / Dep %${aOver25 ?? '—'}</strong></div>
+              <div>KG Var: <strong>Ev %${hBtts ?? '—'} / Dep %${aBtts ?? '—'}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        ${oddsHtml}
+      </div>
+    `;
+
+    // Hook up modal AI button
+    const btnGoAi = contentEl.querySelector("#btnModalGoAi");
+    if (btnGoAi) {
+      btnGoAi.addEventListener("click", () => {
+        modalEl.classList.add("hidden");
+        handleAutoSelectMatch(m);
+      });
+    }
+
+    // Reveal modal
+    modalEl.classList.remove("hidden");
+  }
+
+  // Match Detail Modal Close Handlers
+  const matchDetailModal = document.getElementById("matchDetailModal");
+  const matchDetailModalClose = document.getElementById("matchDetailModalClose");
+  if (matchDetailModalClose && matchDetailModal) {
+    matchDetailModalClose.addEventListener("click", () => {
+      matchDetailModal.classList.add("hidden");
+    });
+  }
+  if (matchDetailModal) {
+    matchDetailModal.addEventListener("click", (e) => {
+      if (e.target === matchDetailModal) {
+        matchDetailModal.classList.add("hidden");
+      }
+    });
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && matchDetailModal && !matchDetailModal.classList.contains("hidden")) {
+      matchDetailModal.classList.add("hidden");
+    }
+  });
 
   function handleAutoSelectMatch(match) {
     switchAppView("analysis", true);
