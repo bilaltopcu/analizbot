@@ -6370,73 +6370,91 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
    ========================================================== */
 .mackolik-league-card {
   background: #ffffff;
-  border: 1px solid var(--border-glass);
-  border-radius: 12px;
-  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: var(--transition-fast);
 }
 
 .mackolik-league-card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--border-glass-bright);
+  border-color: #cbd5e1;
 }
 
 .mackolik-league-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 18px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 14px;
+  background: #3e3e3e; /* Tam Mackolik Koyu Füme Bar */
+  border-bottom: 1px solid #2d2d2d;
 }
 
 .m-header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  overflow: hidden;
 }
 
 .m-flag-circle {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .m-flag-circle svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
 .m-comp-emblem {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .m-league-title {
-  font-size: 14.5px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.2px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.m-league-count {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: #f1f5f9;
-  padding: 3px 9px;
-  border-radius: 12px;
+.m-league-star {
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.m-league-star:hover {
+  color: #f59e0b;
+  transform: scale(1.15);
+}
+
+.m-league-star.favorited i {
+  font-weight: 900;
+  color: #f59e0b;
 }
 
 /* Tablo / Satır Düzeni */
@@ -6448,19 +6466,15 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 
 .mackolik-match-row {
   display: grid;
-  grid-template-columns: 82px 1fr 48px 1fr 64px;
+  grid-template-columns: 50px 1fr 24px 1fr 54px;
   align-items: center;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 42px;
+  padding: 0 14px;
   background: #ffffff;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background 0.15s ease;
+  border-bottom: 1px solid #f1f3f5;
+  transition: background 0.12s ease;
   cursor: pointer;
   user-select: none;
-}
-
-.mackolik-match-row:nth-child(even) {
-  background: #fafbfc;
 }
 
 .mackolik-match-row:last-child {
@@ -6468,73 +6482,53 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 }
 
 .mackolik-match-row:hover {
-  background: #f0f7ff !important;
+  background: #f8fafc !important;
+}
+
+.mackolik-match-row.is-live {
+  background: #fffafa;
 }
 
 /* 1. Time Cell */
 .m-cell-time {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-style: italic;
-  font-weight: 700;
-  font-size: 13px;
-  color: #334155;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #374151;
   white-space: nowrap;
+  letter-spacing: -0.2px;
 }
 
-.m-pill-c {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 19px;
-  height: 19px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  font-style: normal;
-  background: #e0f2fe;
-  color: #0284c7;
-  border: 1px solid #bae6fd;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.m-pill-c.pill-live {
-  background: #fee2e2;
+.m-time-live {
   color: #dc2626;
-  border-color: #fca5a5;
+  font-weight: 800;
   animation: pulse-dot 1.2s infinite;
-}
-
-.m-pill-c.pill-ms {
-  background: #f1f5f9;
-  color: #475569;
-  border-color: #cbd5e1;
 }
 
 /* 2 & 4. Home & Away Teams */
 .m-cell-home, .m-cell-away {
   display: flex;
   align-items: center;
-  gap: 10px;
   overflow: hidden;
 }
 
 .m-cell-home {
   justify-content: flex-end;
   text-align: right;
+  padding-right: 6px;
 }
 
 .m-cell-away {
   justify-content: flex-start;
   text-align: left;
+  padding-left: 6px;
 }
 
 .m-team-label {
   font-size: 13.5px;
   font-weight: 600;
-  color: #1e293b;
+  color: #111827;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6545,50 +6539,37 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   color: var(--accent-blue);
 }
 
-.m-crest-box {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.m-crest-img {
-  max-width: 22px;
-  max-height: 22px;
-  object-fit: contain;
-}
-
-/* 3. Score Cell */
-.m-cell-score {
+/* 3. Middle Separator (v or Score) */
+.m-cell-middle {
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  min-width: 20px;
+}
+
+.m-vs-label {
+  font-size: 13px;
   font-weight: 700;
-  font-size: 14.5px;
-  color: #64748b;
-  min-width: 36px;
+  color: #111827;
+  line-height: 1;
 }
 
-.m-score-num.score-live {
+.m-score-val {
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.m-score-val.score-live {
   color: #dc2626;
-  font-weight: 800;
 }
 
-.m-score-num.score-finished {
-  color: #0f172a;
-  font-weight: 800;
+.m-score-val.score-finished {
+  color: #111827;
 }
 
-.m-score-num.score-dash {
-  font-weight: 600;
-  color: #94a3b8;
-  font-size: 16px;
-}
-
-/* 5. Action Icons */
+/* 5. Action Icons (C Circle + Star) */
 .m-cell-actions {
   display: flex;
   align-items: center;
@@ -6596,40 +6577,51 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   gap: 8px;
 }
 
-.m-btn-analyze, .m-btn-star {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+.m-badge-c {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e0f2f1;
+  border: 1.5px solid #00897b;
+  color: #00897b;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
-.m-btn-analyze:hover {
-  background: #dcfce7;
+.m-badge-c:hover {
+  background: #b2dfdb;
   transform: scale(1.15);
 }
 
-.m-svg-trend {
-  display: block;
-}
-
 .m-btn-star {
-  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
   font-size: 15px;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .m-btn-star:hover {
-  color: #eab308;
+  color: #f59e0b;
   transform: scale(1.15);
 }
 
 .m-btn-star.favorited i {
   font-weight: 900;
-  color: #eab308;
+  color: #f59e0b;
 }
 
 .today-loading-state, .today-empty-state {
@@ -6950,58 +6942,49 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 
 @media (max-width: 768px) {
   .today-matches-section {
-    padding: 16px 10px;
+    padding: 12px 6px;
     margin: 0 auto 16px auto;
   }
   .mackolik-league-card {
     border-radius: 8px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   .mackolik-league-header {
-    padding: 9px 12px;
+    padding: 8px 10px;
   }
   .m-league-title {
-    font-size: 13.5px;
+    font-size: 13px;
+  }
+  .m-league-star {
+    font-size: 15px;
   }
   .mackolik-match-row {
-    grid-template-columns: 66px 1fr 34px 1fr 50px;
+    grid-template-columns: 46px 1fr 20px 1fr 50px;
     min-height: 40px;
-    padding: 0 10px;
+    padding: 0 8px;
   }
   .m-cell-time {
     font-size: 11.5px;
-    gap: 4px;
-  }
-  .m-pill-c {
-    width: 17px;
-    height: 17px;
-    font-size: 10px;
   }
   .m-team-label {
-    font-size: 12px;
-    max-width: 100px;
-  }
-  .m-crest-box {
-    width: 18px;
-    height: 18px;
-  }
-  .m-crest-img {
-    max-width: 18px;
-    max-height: 18px;
-  }
-  .m-cell-score {
     font-size: 12.5px;
-    min-width: 28px;
+  }
+  .m-vs-label {
+    font-size: 12px;
+  }
+  .m-score-val {
+    font-size: 12.5px;
   }
   .m-cell-actions {
-    gap: 4px;
+    gap: 6px;
   }
-  .m-svg-trend {
-    width: 16px;
-    height: 16px;
+  .m-badge-c {
+    width: 19px;
+    height: 19px;
+    font-size: 10px;
   }
   .m-btn-star {
-    font-size: 13px;
+    font-size: 14px;
     padding: 2px;
   }
   .top-nav-tab {
@@ -7009,17 +6992,17 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
     font-size: 11.5px;
   }
   .date-pill-btn {
-    min-width: 70px;
-    height: 42px;
-    padding: 2px 6px;
+    min-width: 68px;
+    height: 40px;
+    padding: 2px 4px;
   }
   .date-nav-btn {
-    width: 32px;
-    height: 42px;
+    width: 30px;
+    height: 40px;
   }
   .date-calendar-btn {
-    height: 42px;
-    padding: 0 10px;
+    height: 40px;
+    padding: 0 8px;
     font-size: 11px;
   }
   .date-calendar-btn .calendar-btn-text {
