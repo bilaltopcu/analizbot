@@ -36,6 +36,70 @@ const PORT = process.env.PORT || 3000;
 const aiAnalysisCache = new Map();
 const MAX_CACHE_SIZE = 300;
 
+// Football-Data.org In-Memory Cache (60s TTL for rate-limit protection)
+let footballDataCache = {
+  timestamp: 0,
+  data: null
+};
+
+function fetchFootballDataOrg(apiKey) {
+  return new Promise((resolve, reject) => {
+    const now = Date.now();
+    if (footballDataCache.data && (now - footballDataCache.timestamp < 60000)) {
+      return resolve(footballDataCache.data);
+    }
+
+    const options = {
+      hostname: 'api.football-data.org',
+      port: 443,
+      path: '/v4/matches',
+      method: 'GET',
+      headers: {
+        'X-Auth-Token': apiKey,
+        'User-Agent': 'GolAnaliz-AI/1.0'
+      },
+      timeout: 8000
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const parsed = JSON.parse(data);
+            footballDataCache = {
+              timestamp: Date.now(),
+              data: parsed
+            };
+            resolve(parsed);
+          } catch (e) {
+            reject(new Error('JSON parse error: ' + e.message));
+          }
+        } else {
+          if (footballDataCache.data) {
+            return resolve(footballDataCache.data);
+          }
+          reject(new Error(`Football-Data.org status ${res.statusCode}: ${data.slice(0, 100)}`));
+        }
+      });
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      if (footballDataCache.data) return resolve(footballDataCache.data);
+      reject(new Error('Football-Data.org timeout'));
+    });
+
+    req.on('error', (err) => {
+      if (footballDataCache.data) return resolve(footballDataCache.data);
+      reject(err);
+    });
+
+    req.end();
+  });
+}
+
 function callSingleModel(model, promptText, apiKey, useThinkingZero) {
   return new Promise((resolve) => {
     const config = {
@@ -233,6 +297,38 @@ const server = http.createServer((req, res) => {
       'Connection': 'close'
     });
     return res.end(JSON.stringify({ status: 'UP', service: 'golanaliz-ai', timestamp: new Date().toISOString() }));
+  }
+
+  // Football-Data.org Today & Live Matches Endpoint
+  if (pathname === '/api/today-matches' || pathname === '/api/live-matches') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      return res.end();
+    }
+
+    const apiKey = process.env.FOOTBALL_DATA_ORG_KEY || '2e2da80d56aa4afdb1cdb1098cd48591';
+    fetchFootballDataOrg(apiKey)
+      .then(data => {
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Cache-Control': 'public, max-age=60'
+        });
+        res.end(JSON.stringify({
+          success: true,
+          count: data?.matches?.length || 0,
+          cachedAt: footballDataCache.timestamp,
+          matches: data?.matches || []
+        }));
+      })
+      .catch(err => {
+        res.writeHead(502, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      });
+    return;
   }
 
   if (pathname === '/api/sync-2026-2027' || pathname === '/api/sync-data') {

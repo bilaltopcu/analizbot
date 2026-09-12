@@ -3010,6 +3010,445 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // =============================================
+  // Football-Data.org Today & Live Matches Integration
+  // =============================================
+  const btnTodayMatches = document.getElementById("btnTodayMatches");
+  const todayMatchesModal = document.getElementById("todayMatchesModal");
+  const todayMatchesModalClose = document.getElementById("todayMatchesModalClose");
+  const todayMatchesList = document.getElementById("todayMatchesList");
+  const headerTodayMatchesCount = document.getElementById("headerTodayMatchesCount");
+  const btnRefreshTodayMatches = document.getElementById("btnRefreshTodayMatches");
+  const countFilterAll = document.getElementById("countFilterAll");
+  const countFilterLive = document.getElementById("countFilterLive");
+  const countFilterUpcoming = document.getElementById("countFilterUpcoming");
+  const countFilterFinished = document.getElementById("countFilterFinished");
+
+  let todayMatchesData = [];
+  let currentTodayFilter = "all";
+
+  const COMP_TO_COUNTRY = {
+    "PL": "ENG",
+    "ELC": "ENG",
+    "PD": "ESP",
+    "SA": "ITA",
+    "BL1": "GER",
+    "FL1": "FRA",
+    "DED": "NED",
+    "PPL": "POR",
+    "BSA": "BRA",
+    "CL": "ENG"
+  };
+
+  const TEAM_ALIASES = {
+    'queens park rangers': 'QPR',
+    'deportivo alaves': 'Alaves',
+    'borussia monchengladbach': "Borussia M'gladbach",
+    'bayer 04 leverkusen': 'Bayer Leverkusen',
+    'tsg 1899 hoffenheim': 'TSG Hoffenheim',
+    '1 fc koln': 'FC Koln',
+    'fc koln': 'FC Koln',
+    'athletic club': 'Athletic Bilbao',
+    'fortuna sittard': 'For Sittard',
+    'ca mineiro': 'Atletico-MG',
+    'atletico mineiro': 'Atletico-MG',
+    'ca paranaense': 'Athletico-PR',
+    'athletico paranaense': 'Athletico-PR',
+    'gremio fbpa': 'Gremio',
+    'nec nijmegen': 'Nijmegen',
+    'nec': 'Nijmegen',
+    'vitoria sc': 'Guimaraes',
+    'vitoria de guimaraes': 'Guimaraes',
+    'sao paulo': 'Sao Paulo',
+    'botafogo fr': 'Botafogo RJ',
+    'academico de viseu': 'Academico Viseu',
+    'chapecoense af': 'Chapecoense-SC',
+    'tottenham hotspur': 'Tottenham',
+    'brighton and hove albion': 'Brighton',
+    'wolverhampton wanderers': 'Wolverhampton',
+    'west ham united': 'West Ham',
+    'newcastle united': 'Newcastle',
+    'manchester city': 'Manchester City',
+    'manchester united': 'Manchester United',
+    'luton town': 'Luton',
+    'leicester city': 'Leicester',
+    'ipswich town': 'Ipswich',
+    'nottingham forest': 'Nottingham Forest'
+  };
+
+  function normalizeTeamString(str) {
+    if (!str) return "";
+    let s = str.toLowerCase()
+      .replace(/[çćč]/g, 'c')
+      .replace(/[ğ]/g, 'g')
+      .replace(/[ıİïíîì]/g, 'i')
+      .replace(/[öøœóòôõ]/g, 'o')
+      .replace(/[şšś]/g, 's')
+      .replace(/[üúùû]/g, 'u')
+      .replace(/[äáàâã]/g, 'a')
+      .replace(/[éèêë]/g, 'e')
+      .replace(/[ñ]/g, 'n')
+      .replace(/[ß]/g, 'ss');
+    
+    s = s.replace(/\b(fc|cf|afc|fbc|ca|ac|rsc|bsc|sc|fk|sk|sv|cp)\b/g, ' ');
+    s = s.replace(/[^a-z0-9]/g, '');
+    return s.trim();
+  }
+
+  function resolveTeamMatch(apiName, countryCode) {
+    if (!apiName) return apiName || "";
+    const cleanApi = normalizeTeamString(apiName);
+
+    // Check alias dictionary
+    for (const [alias, canonical] of Object.entries(TEAM_ALIASES)) {
+      const cleanAlias = normalizeTeamString(alias);
+      if (cleanApi.includes(cleanAlias) || cleanAlias.includes(cleanApi)) {
+        return canonical;
+      }
+    }
+
+    // Find country teams
+    const country = (typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries)
+      ? FOOTBALL_DATA.countries.find(c => c.code === countryCode)
+      : null;
+    const candidateTeams = country ? country.teams : (typeof getAllTeamsUnified === 'function' ? getAllTeamsUnified().map(t => t.name) : []);
+
+    // 1. Exact match
+    for (const team of candidateTeams) {
+      if (team.toLowerCase() === apiName.toLowerCase()) return team;
+    }
+
+    // 2. Normalized match
+    for (const team of candidateTeams) {
+      const cleanDb = normalizeTeamString(team);
+      if (cleanDb === cleanApi) return team;
+    }
+
+    // 3. Substring match
+    for (const team of candidateTeams) {
+      const cleanDb = normalizeTeamString(team);
+      if (cleanDb.length >= 4 && (cleanApi.includes(cleanDb) || cleanDb.includes(cleanApi))) {
+        return team;
+      }
+    }
+
+    // Fallback: search across all countries
+    if (typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries) {
+      for (const c of FOOTBALL_DATA.countries) {
+        for (const team of c.teams) {
+          const cleanDb = normalizeTeamString(team);
+          if (cleanDb === cleanApi || (cleanDb.length >= 4 && cleanApi.includes(cleanDb))) {
+            return team;
+          }
+        }
+      }
+    }
+
+    return apiName;
+  }
+
+  async function fetchTodayMatches(forceRefresh = false) {
+    if (todayMatchesList) {
+      todayMatchesList.innerHTML = `
+        <div class="today-loading-state">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <p>Günün maçları ve canlı skorlar çekiliyor...</p>
+        </div>
+      `;
+    }
+
+    try {
+      let data = null;
+      // 1. Try local/proxy backend endpoint
+      try {
+        const res = await fetch('/api/today-matches' + (forceRefresh ? '?t=' + Date.now() : ''));
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.matches) data = json;
+        }
+      } catch (e) {
+        console.warn('[GOLANALIZ] /api/today-matches unreachable, checking direct fallback:', e);
+      }
+
+      // 2. Fallback directly to football-data.org if backend proxy is not reachable
+      if (!data) {
+        const directRes = await fetch('https://api.football-data.org/v4/matches', {
+          headers: { 'X-Auth-Token': '2e2da80d56aa4afdb1cdb1098cd48591' }
+        });
+        if (directRes.ok) {
+          data = await directRes.json();
+        }
+      }
+
+      if (!data || !data.matches) {
+        throw new Error('Maç verileri alınamadı.');
+      }
+
+      todayMatchesData = data.matches || [];
+      renderTodayMatches(todayMatchesData, currentTodayFilter);
+      updateTodayMatchesBadge(todayMatchesData);
+    } catch (err) {
+      console.error('[GOLANALIZ] Günün maçları çekme hatası:', err);
+      if (todayMatchesList) {
+        todayMatchesList.innerHTML = `
+          <div class="today-empty-state">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
+            <p>Maç verileri alınırken bir sorun oluştu: ${err.message}</p>
+            <button type="button" class="btn-primary" id="todayRetryBtn" style="margin-top:12px;padding:8px 16px;font-size:13px;">
+              <i class="fa-solid fa-rotate-right"></i> Tekrar Dene
+            </button>
+          </div>
+        `;
+        document.getElementById('todayRetryBtn')?.addEventListener('click', () => fetchTodayMatches(true));
+      }
+    }
+  }
+
+  function updateTodayMatchesBadge(matches) {
+    if (!matches) return;
+    const totalCount = matches.length;
+    const liveCount = matches.filter(m => ['IN_PLAY', 'PAUSED'].includes(m.status)).length;
+    const upcomingCount = matches.filter(m => ['SCHEDULED', 'TIMED'].includes(m.status)).length;
+    const finishedCount = matches.filter(m => ['FINISHED', 'AWARDED'].includes(m.status)).length;
+
+    if (headerTodayMatchesCount) {
+      if (liveCount > 0) {
+        headerTodayMatchesCount.innerHTML = `<span style="color:#ef4444;font-weight:900;">🔴 ${liveCount} Canlı</span> (${totalCount})`;
+      } else {
+        headerTodayMatchesCount.textContent = `${totalCount} Maç`;
+      }
+    }
+
+    if (countFilterAll) countFilterAll.textContent = totalCount;
+    if (countFilterLive) countFilterLive.textContent = liveCount;
+    if (countFilterUpcoming) countFilterUpcoming.textContent = upcomingCount;
+    if (countFilterFinished) countFilterFinished.textContent = finishedCount;
+  }
+
+  function renderTodayMatches(matches, filter = "all") {
+    if (!todayMatchesList) return;
+
+    let filtered = matches;
+    if (filter === "live") {
+      filtered = matches.filter(m => ['IN_PLAY', 'PAUSED'].includes(m.status));
+    } else if (filter === "upcoming") {
+      filtered = matches.filter(m => ['SCHEDULED', 'TIMED'].includes(m.status));
+    } else if (filter === "finished") {
+      filtered = matches.filter(m => ['FINISHED', 'AWARDED'].includes(m.status));
+    }
+
+    if (filtered.length === 0) {
+      todayMatchesList.innerHTML = `
+        <div class="today-empty-state">
+          <i class="fa-regular fa-futbol"></i>
+          <p>Seçilen filtrede ("${filter}") maç bulunamadı.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Group by competition
+    const grouped = {};
+    filtered.forEach(m => {
+      const compName = m.competition?.name || 'Diğer Karşılaşmalar';
+      if (!grouped[compName]) {
+        grouped[compName] = {
+          competition: m.competition,
+          matches: []
+        };
+      }
+      grouped[compName].matches.push(m);
+    });
+
+    todayMatchesList.innerHTML = "";
+
+    Object.values(grouped).forEach(grp => {
+      const groupEl = document.createElement("div");
+      groupEl.className = "today-competition-group";
+
+      const compEmblem = grp.competition?.emblem 
+        ? `<img src="${grp.competition.emblem}" alt="${grp.competition.name}" class="today-comp-emblem" onerror="this.style.display='none';">`
+        : '<i class="fa-solid fa-trophy" style="color:#f59e0b;"></i>';
+
+      groupEl.innerHTML = `
+        <div class="today-competition-header">
+          ${compEmblem}
+          <span>${grp.competition?.name || 'Lig'}</span>
+        </div>
+        <div class="today-matches-grid"></div>
+      `;
+
+      const gridEl = groupEl.querySelector(".today-matches-grid");
+
+      grp.matches.forEach(m => {
+        const card = document.createElement("div");
+        const isLive = ['IN_PLAY', 'PAUSED'].includes(m.status);
+        const isFinished = ['FINISHED', 'AWARDED'].includes(m.status);
+        card.className = `today-match-card ${isLive ? 'is-live' : ''}`;
+
+        // Format match time / date
+        let matchTime = '';
+        if (m.utcDate) {
+          try {
+            const d = new Date(m.utcDate);
+            matchTime = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+          } catch (_) { matchTime = ''; }
+        }
+
+        // Status badge & score
+        let statusHtml = '';
+        let scoreHtml = '';
+        if (isLive) {
+          statusHtml = `<span class="today-status-badge status-live">🔴 CANLI</span>`;
+          scoreHtml = `<span class="today-score-val" style="color:#dc2626;">${m.score?.fullTime?.home ?? 0} - ${m.score?.fullTime?.away ?? 0}</span>`;
+        } else if (isFinished) {
+          statusHtml = `<span class="today-status-badge status-finished">BİTTİ</span>`;
+          scoreHtml = `<span class="today-score-val">${m.score?.fullTime?.home ?? 0} - ${m.score?.fullTime?.away ?? 0}</span>`;
+        } else {
+          statusHtml = `<span class="today-status-badge status-upcoming">${matchTime || 'YAKINDA'}</span>`;
+          scoreHtml = `<span class="today-score-val" style="color:#64748b;font-size:13px;">VS</span>`;
+        }
+
+        const homeName = m.homeTeam?.name || 'Ev Sahibi';
+        const awayName = m.awayTeam?.name || 'Deplasman';
+        const homeCrest = m.homeTeam?.crest || '';
+        const awayCrest = m.awayTeam?.crest || '';
+
+        card.innerHTML = `
+          <div class="today-team home-team">
+            <span class="today-team-name">${homeName}</span>
+            ${homeCrest ? `<img src="${homeCrest}" alt="${homeName}" class="today-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+          </div>
+          <div class="today-score-box">
+            ${scoreHtml}
+            ${statusHtml}
+          </div>
+          <div class="today-team away-team">
+            ${awayCrest ? `<img src="${awayCrest}" alt="${awayName}" class="today-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+            <span class="today-team-name">${awayName}</span>
+          </div>
+          <button type="button" class="today-analyze-btn" title="Bu maçı analiz et">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Analiz Et
+          </button>
+        `;
+
+        // Handle "Analiz Et" click
+        const analyzeBtn = card.querySelector(".today-analyze-btn");
+        analyzeBtn.addEventListener("click", () => {
+          handleAutoSelectMatch(m);
+        });
+
+        gridEl.appendChild(card);
+      });
+
+      todayMatchesList.appendChild(groupEl);
+    });
+  }
+
+  function handleAutoSelectMatch(match) {
+    const compCode = match.competition?.code || '';
+    const countryCode = COMP_TO_COUNTRY[compCode] || 'ENG';
+
+    // Find country object
+    let country = (typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries)
+      ? FOOTBALL_DATA.countries.find(c => c.code === countryCode)
+      : null;
+    if (!country && typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries) {
+      country = FOOTBALL_DATA.countries[0];
+    }
+    if (!country) return;
+
+    // Resolve team names
+    const resolvedHome = resolveTeamMatch(match.homeTeam?.name, country.code);
+    const resolvedAway = resolveTeamMatch(match.awayTeam?.name, country.code);
+
+    // Switch to league mode if in cup
+    if (selectedMatchMode === 'cup' && btnModeLeague) {
+      btnModeLeague.click();
+    }
+
+    // 1. Select Country
+    selectCountryOption(country);
+
+    // 2. Select Teams
+    const homeLogoUrl = getTeamLogoUrl(resolvedHome, country.code);
+    const awayLogoUrl = getTeamLogoUrl(resolvedAway, country.code);
+
+    selectTeamOption('home', resolvedHome, homeLogoUrl);
+    selectTeamOption('away', resolvedAway, awayLogoUrl);
+
+    // Close modal
+    if (todayMatchesModal) {
+      todayMatchesModal.classList.add('hidden');
+    }
+
+    // Trigger Compare
+    setTimeout(() => {
+      if (compareBtn && !compareBtn.disabled) {
+        compareBtn.click();
+        const resultsEl = document.getElementById('resultsSection');
+        if (resultsEl) {
+          resultsEl.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }, 150);
+  }
+
+  // Modal event listeners
+  if (btnTodayMatches && todayMatchesModal) {
+    btnTodayMatches.addEventListener("click", () => {
+      todayMatchesModal.classList.remove("hidden");
+      if (todayMatchesData.length === 0) {
+        fetchTodayMatches();
+      }
+    });
+  }
+
+  if (todayMatchesModalClose && todayMatchesModal) {
+    todayMatchesModalClose.addEventListener("click", () => {
+      todayMatchesModal.classList.add("hidden");
+    });
+    todayMatchesModal.addEventListener("click", (e) => {
+      if (e.target === todayMatchesModal) {
+        todayMatchesModal.classList.add("hidden");
+      }
+    });
+  }
+
+  if (btnRefreshTodayMatches) {
+    btnRefreshTodayMatches.addEventListener("click", () => {
+      const icon = btnRefreshTodayMatches.querySelector("i");
+      if (icon) icon.classList.add("fa-spin");
+      fetchTodayMatches(true).finally(() => {
+        if (icon) icon.classList.remove("fa-spin");
+      });
+    });
+  }
+
+  // Filter tabs listeners
+  const filterBtns = document.querySelectorAll(".today-filter-btn");
+  filterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      filterBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentTodayFilter = btn.dataset.filter || "all";
+      renderTodayMatches(todayMatchesData, currentTodayFilter);
+    });
+  });
+
+  // Background fetch count on page load
+  setTimeout(() => {
+    fetch('/api/today-matches')
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.matches) {
+          todayMatchesData = d.matches;
+          updateTodayMatchesBadge(todayMatchesData);
+        }
+      })
+      .catch(() => {});
+  }, 1000);
+
   // Initialize
   initCountryDropdown();
   updateAuthUI();
