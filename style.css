@@ -6365,251 +6365,271 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   width: 100%;
 }
 
-.today-competition-group {
-  margin-bottom: 22px;
+/* ==========================================================
+   MAÇKOLİK STİLİ LİG KARTLARI VE MAÇ SATIRLARI (MACKOLIK LAYOUT)
+   ========================================================== */
+.mackolik-league-card {
+  background: #ffffff;
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  transition: var(--transition-fast);
 }
 
-.today-competition-header {
+.mackolik-league-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-glass-bright);
+}
+
+.mackolik-league-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.m-header-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 14px;
-  background: #f1f5f9;
-  border-left: 4px solid var(--accent-blue);
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: 0.2px;
 }
 
-.today-comp-emblem {
+.m-flag-circle {
   width: 22px;
   height: 22px;
-  object-fit: contain;
-}
-
-.today-matches-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 16px;
-}
-
-/* ==========================================================
-   GOOGLE-STYLE SPORTS MATCH CARD (SITE THEME COMPATIBLE)
-   ========================================================== */
-.google-match-card {
-  background: #ffffff;
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  color: var(--text-primary);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  flex-direction: column;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
 }
 
-.google-match-card:hover {
-  border-color: var(--accent-blue);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 0 0 2px rgba(30, 86, 192, 0.06);
+.m-flag-circle svg {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
-.google-match-card.is-live {
-  border-color: #fca5a5;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+.m-comp-emblem {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
-/* 1. Header Title: "Fenerbahçe - Beşiktaş" */
-.g-match-title {
-  padding: 14px 18px 6px 18px;
-  font-size: 16.5px;
-  font-weight: 700;
+.m-league-title {
+  font-size: 14.5px;
+  font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.2px;
 }
 
-/* 2. Subtitle Meta: "Süper Lig · 5/9 Cmt"  --  "Maç sonu" */
-.g-match-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 18px 12px 18px;
-  font-size: 12.5px;
+.m-league-count {
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--text-muted);
-  font-weight: 500;
-}
-
-.g-meta-status {
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.g-meta-status.is-live {
-  color: var(--accent-crimson);
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.g-meta-status.is-finished {
-  color: #475569;
-  font-weight: 600;
-}
-
-/* 3. Scoreboard Grid */
-.g-scoreboard {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
+  background: #f1f5f9;
+  padding: 3px 9px;
   border-radius: 12px;
-  margin: 0 16px 12px 16px;
-  padding: 10px 14px;
-  gap: 10px;
 }
 
-.g-team-col {
+/* Tablo / Satır Düzeni */
+.mackolik-matches-table {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
+  width: 100%;
 }
 
-.g-team-crest-wrap {
-  width: 48px;
-  height: 48px;
+.mackolik-match-row {
+  display: grid;
+  grid-template-columns: 82px 1fr 48px 1fr 64px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mackolik-match-row:nth-child(even) {
+  background: #fafbfc;
+}
+
+.mackolik-match-row:last-child {
+  border-bottom: none;
+}
+
+.mackolik-match-row:hover {
+  background: #f0f7ff !important;
+}
+
+/* 1. Time Cell */
+.m-cell-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 13px;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.m-pill-c {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  font-style: normal;
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.m-pill-c.pill-live {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  animation: pulse-dot 1.2s infinite;
+}
+
+.m-pill-c.pill-ms {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+/* 2 & 4. Home & Away Teams */
+.m-cell-home, .m-cell-away {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.m-cell-home {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.m-cell-away {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.m-team-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+.mackolik-match-row:hover .m-team-label {
+  color: var(--accent-blue);
+}
+
+.m-crest-box {
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: #ffffff;
-  padding: 4px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.05);
+  flex-shrink: 0;
 }
 
-.g-team-crest {
-  max-width: 40px;
-  max-height: 40px;
+.m-crest-img {
+  max-width: 22px;
+  max-height: 22px;
   object-fit: contain;
 }
 
-.g-team-name {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.g-score-box {
+/* 3. Score Cell */
+.m-cell-score {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-}
-
-.g-score-val {
-  font-size: 30px;
-  font-weight: 800;
-  color: #0f172a;
-  min-width: 24px;
   text-align: center;
-  line-height: 1;
-}
-
-.g-score-dash {
-  font-size: 24px;
-  font-weight: 400;
-  color: #94a3b8;
-}
-
-/* 4. Events / Half-time Row with soccer ball in the middle */
-.g-events-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 18px;
-  border-top: 1px solid #f1f5f9;
-  font-size: 12px;
-  color: var(--text-secondary);
-  min-height: 34px;
-}
-
-.g-events-left {
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.g-events-ball {
-  padding: 0 10px;
-  color: var(--accent-blue);
-  font-size: 12px;
-}
-
-.g-events-right {
-  flex: 1;
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 5. Bottom Action Row */
-.g-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 18px;
-  border-top: 1px solid var(--border-glass);
-  background: #f8fafc;
-  margin-top: auto;
-}
-
-.g-footer-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.g-footer-label i {
-  color: var(--accent-blue);
-}
-
-.g-analyze-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);
-  color: #ffffff;
-  border: none;
-  font-size: 12px;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(30, 86, 192, 0.25);
+  font-size: 14.5px;
+  color: #64748b;
+  min-width: 36px;
 }
 
-.g-analyze-btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(30, 86, 192, 0.35);
+.m-score-num.score-live {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.m-score-num.score-finished {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.m-score-num.score-dash {
+  font-weight: 600;
+  color: #94a3b8;
+  font-size: 16px;
+}
+
+/* 5. Action Icons */
+.m-cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.m-btn-analyze, .m-btn-star {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.m-btn-analyze:hover {
+  background: #dcfce7;
+  transform: scale(1.15);
+}
+
+.m-svg-trend {
+  display: block;
+}
+
+.m-btn-star {
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.m-btn-star:hover {
+  color: #eab308;
+  transform: scale(1.15);
+}
+
+.m-btn-star.favorited i {
+  font-weight: 900;
+  color: #eab308;
 }
 
 .today-loading-state, .today-empty-state {
@@ -6930,37 +6950,59 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 
 @media (max-width: 768px) {
   .today-matches-section {
-    padding: 18px 14px;
-    margin: 0 auto 20px auto;
+    padding: 16px 10px;
+    margin: 0 auto 16px auto;
   }
-  .today-matches-grid {
-    grid-template-columns: 1fr;
+  .mackolik-league-card {
+    border-radius: 8px;
+    margin-bottom: 14px;
   }
-  .g-match-title {
-    font-size: 15px;
-    padding: 12px 14px 6px 14px;
+  .mackolik-league-header {
+    padding: 9px 12px;
   }
-  .g-match-meta {
-    padding: 0 14px 10px 14px;
+  .m-league-title {
+    font-size: 13.5px;
+  }
+  .mackolik-match-row {
+    grid-template-columns: 66px 1fr 34px 1fr 50px;
+    min-height: 40px;
+    padding: 0 10px;
+  }
+  .m-cell-time {
     font-size: 11.5px;
+    gap: 4px;
   }
-  .g-scoreboard {
-    padding: 8px 12px;
-    margin: 0 12px 10px 12px;
+  .m-pill-c {
+    width: 17px;
+    height: 17px;
+    font-size: 10px;
   }
-  .g-team-crest-wrap {
-    width: 42px;
-    height: 42px;
+  .m-team-label {
+    font-size: 12px;
+    max-width: 100px;
   }
-  .g-team-crest {
-    max-width: 34px;
-    max-height: 34px;
+  .m-crest-box {
+    width: 18px;
+    height: 18px;
   }
-  .g-score-val {
-    font-size: 26px;
+  .m-crest-img {
+    max-width: 18px;
+    max-height: 18px;
   }
-  .g-card-footer {
-    padding: 8px 14px;
+  .m-cell-score {
+    font-size: 12.5px;
+    min-width: 28px;
+  }
+  .m-cell-actions {
+    gap: 4px;
+  }
+  .m-svg-trend {
+    width: 16px;
+    height: 16px;
+  }
+  .m-btn-star {
+    font-size: 13px;
+    padding: 2px;
   }
   .top-nav-tab {
     padding: 9px 12px;

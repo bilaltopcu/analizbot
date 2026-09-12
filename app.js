@@ -3586,6 +3586,88 @@ document.addEventListener("DOMContentLoaded", () => {
     if (countFilterFinished) countFilterFinished.textContent = finishedCount;
   }
 
+  function getLeagueFlagHtml(grp) {
+    const name = grp.name || '';
+    const cCode = grp.countryCode || '';
+
+    if (name.includes('Süper Lig') || name.includes('1. Lig') || cCode === 'TR' || name.includes('Türkiye')) {
+      return `<span class="m-flag-circle m-flag-tr" title="Türkiye">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <circle cx="16" cy="16" r="16" fill="#e30a17"/>
+          <circle cx="15" cy="16" r="6" fill="#ffffff"/>
+          <circle cx="16.5" cy="16" r="4.8" fill="#e30a17"/>
+          <polygon points="19.5,16 16.5,17 17.5,14 17.5,18 16.5,15" fill="#ffffff" transform="scale(0.9) translate(2,1.6)"/>
+        </svg>
+      </span>`;
+    }
+
+    if (name.includes('Premier') || cCode === 'ENG' || name.includes('İngiltere') || name.includes('Championship')) {
+      return `<span class="m-flag-circle m-flag-eng" title="İngiltere">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <circle cx="16" cy="16" r="16" fill="#ffffff"/>
+          <rect x="13" y="0" width="6" height="32" fill="#cf142b"/>
+          <rect x="0" y="13" width="32" height="6" fill="#cf142b"/>
+          <circle cx="16" cy="16" r="15.5" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+        </svg>
+      </span>`;
+    }
+
+    if (name.includes('LaLiga') || name.includes('Primera') || cCode === 'ESP' || name.includes('İspanya')) {
+      return `<span class="m-flag-circle m-flag-esp" title="İspanya">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <circle cx="16" cy="16" r="16" fill="#c60b1e"/>
+          <rect y="8" width="32" height="16" fill="#ffc400"/>
+        </svg>
+      </span>`;
+    }
+
+    if (name.includes('Serie A') || cCode === 'ITA' || name.includes('İtalya')) {
+      return `<span class="m-flag-circle m-flag-ita" title="İtalya">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <rect width="11" height="32" fill="#009246"/>
+          <rect x="11" width="10" height="32" fill="#ffffff"/>
+          <rect x="21" width="11" height="32" fill="#ce2b37"/>
+        </svg>
+      </span>`;
+    }
+
+    if (name.includes('Bundesliga') || cCode === 'GER' || name.includes('Almanya')) {
+      return `<span class="m-flag-circle m-flag-ger" title="Almanya">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <rect width="32" height="11" fill="#000000"/>
+          <rect y="11" width="32" height="10" fill="#dd0000"/>
+          <rect y="21" width="32" height="11" fill="#ffce00"/>
+        </svg>
+      </span>`;
+    }
+
+    if (name.includes('Ligue 1') || cCode === 'FRA' || name.includes('Fransa')) {
+      return `<span class="m-flag-circle m-flag-fra" title="Fransa">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <rect width="11" height="32" fill="#002395"/>
+          <rect x="11" width="10" height="32" fill="#ffffff"/>
+          <rect x="21" width="11" height="32" fill="#ed2939"/>
+        </svg>
+      </span>`;
+    }
+
+    if (name.includes('Eredivisie') || cCode === 'NED' || name.includes('Hollanda')) {
+      return `<span class="m-flag-circle m-flag-ned" title="Hollanda">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <rect width="32" height="11" fill="#ae1c28"/>
+          <rect y="11" width="32" height="10" fill="#ffffff"/>
+          <rect y="21" width="32" height="11" fill="#21468b"/>
+        </svg>
+      </span>`;
+    }
+
+    if (grp.emblem) {
+      return `<img src="${grp.emblem}" alt="${grp.name}" class="m-comp-emblem" onerror="this.style.display='none';">`;
+    }
+
+    return `<i class="fa-solid fa-trophy" style="color:#f59e0b; font-size:16px;"></i>`;
+  }
+
   function renderTodayMatches(matches, filter = "all") {
     if (!todayMatchesList) return;
 
@@ -3593,7 +3675,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (filter === "live") {
       filtered = matches.filter(m => ['IN_PLAY', 'PAUSED'].includes(m.status));
     } else if (filter === "upcoming") {
-      filtered = matches.filter(m => ['SCHEDULED', 'TIMED'].includes(m.status));
+      filtered = matches.filter(m => ['TIMED', 'SCHEDULED'].includes(m.status));
     } else if (filter === "finished") {
       filtered = matches.filter(m => ['FINISHED', 'AWARDED'].includes(m.status));
     }
@@ -3615,6 +3697,7 @@ document.addEventListener("DOMContentLoaded", () => {
         grouped[compName] = {
           name: compName,
           emblem: m.leagueEmblem,
+          countryCode: m.countryCode,
           matches: []
         };
       }
@@ -3624,126 +3707,121 @@ document.addEventListener("DOMContentLoaded", () => {
     todayMatchesList.innerHTML = "";
 
     Object.values(grouped).forEach(grp => {
-      const groupEl = document.createElement("div");
-      groupEl.className = "today-competition-group";
+      const cardEl = document.createElement("div");
+      cardEl.className = "mackolik-league-card";
 
-      const compEmblem = grp.emblem
-        ? `<img src="${grp.emblem}" alt="${grp.name}" class="today-comp-emblem" onerror="this.style.display='none';">`
-        : '<i class="fa-solid fa-trophy" style="color:#f59e0b;"></i>';
+      const flagHtml = getLeagueFlagHtml(grp);
 
-      groupEl.innerHTML = `
-        <div class="today-competition-header">
-          ${compEmblem}
-          <span>${grp.name}</span>
+      cardEl.innerHTML = `
+        <div class="mackolik-league-header">
+          <div class="m-header-left">
+            ${flagHtml}
+            <span class="m-league-title">${grp.name}</span>
+          </div>
+          <span class="m-league-count">${grp.matches.length} Maç</span>
         </div>
-        <div class="today-matches-grid"></div>
+        <div class="mackolik-matches-table"></div>
       `;
 
-      const gridEl = groupEl.querySelector(".today-matches-grid");
+      const tableEl = cardEl.querySelector(".mackolik-matches-table");
 
       grp.matches.forEach(m => {
-        const card = document.createElement("div");
+        const row = document.createElement("div");
         const isLive = ['IN_PLAY', 'PAUSED'].includes(m.status);
         const isFinished = ['FINISHED', 'AWARDED'].includes(m.status);
-        card.className = `google-match-card ${isLive ? 'is-live' : ''}`;
+        row.className = `mackolik-match-row ${isLive ? 'is-live' : ''}`;
+        row.setAttribute("data-match-id", m.id);
+        row.setAttribute("title", `Analiz için tıklayın: ${m.homeName} - ${m.awayName}`);
 
-        let statusText = '';
-        let statusClass = '';
+        let pillText = 'C';
+        let pillClass = '';
+        let statusTitle = 'Canlı Anlatım';
         if (isLive) {
-          statusText = '🔴 Canlı' + (m.minute ? ` ${m.minute}'` : '');
-          statusClass = 'is-live';
+          pillText = m.minute ? `${m.minute}'` : 'C';
+          pillClass = 'pill-live';
+          statusTitle = 'Canlı Karşılaşma';
         } else if (isFinished) {
-          statusText = 'Maç sonu';
-          statusClass = 'is-finished';
+          pillText = 'MS';
+          pillClass = 'pill-ms';
+          statusTitle = 'Maç Sonu';
         } else {
-          statusText = m.time || 'Yakında';
-          statusClass = 'is-upcoming';
+          pillClass = 'pill-c';
         }
 
-        let eventsHome = '';
-        let eventsAway = '';
-        const normKey1 = `05/09/2026_${m.homeName}_${m.awayName}`;
-        const normKey2 = `05/09/2026_${normalizeTeamString(m.homeName)}_${normalizeTeamString(m.awayName)}`;
-
-        if (KNOWN_MATCH_SCORERS[normKey1]) {
-          eventsHome = KNOWN_MATCH_SCORERS[normKey1].home;
-          eventsAway = KNOWN_MATCH_SCORERS[normKey1].away;
-        } else if (KNOWN_MATCH_SCORERS[normKey2]) {
-          eventsHome = KNOWN_MATCH_SCORERS[normKey2].home;
-          eventsAway = KNOWN_MATCH_SCORERS[normKey2].away;
-        } else if (m.hthg !== null && m.hthg !== undefined && m.htag !== null && m.htag !== undefined) {
-          eventsHome = `İlk yarı: ${m.hthg}` + (m.hs ? ` · Şut: ${m.hs}` : '');
-          eventsAway = `İlk yarı: ${m.htag}` + (m.as ? ` · Şut: ${m.as}` : '');
-        } else if (isLive) {
-          eventsHome = 'Canlı Veri';
-          eventsAway = 'Canlı Veri';
-        } else {
-          eventsHome = `Başlama: ${m.time || 'Bugün'}`;
-          eventsAway = 'Tahmin Analizi Hazır';
+        let scoreDisplay = '-';
+        if (isFinished || isLive) {
+          scoreDisplay = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
         }
 
-        card.innerHTML = `
-          <!-- 1. Header Title -->
-          <div class="g-match-title">${m.homeName} - ${m.awayName}</div>
-
-          <!-- 2. Meta Line: League · Date / Day  --  Status -->
-          <div class="g-match-meta">
-            <span class="g-meta-league">${m.leagueName} · ${m.dateFormatted}</span>
-            <span class="g-meta-status ${statusClass}">${statusText}</span>
+        row.innerHTML = `
+          <!-- 1. Time & Status Badge -->
+          <div class="m-cell-time">
+            <span class="m-time-val">${m.time || '17:00'}</span>
+            <span class="m-pill-c ${pillClass}" title="${statusTitle}">${pillText}</span>
           </div>
 
-          <!-- 3. Scoreboard: Team Crests & Big Numbers -->
-          <div class="g-scoreboard">
-            <div class="g-team-col g-home-col">
-              <div class="g-team-crest-wrap">
-                ${m.homeCrest ? `<img src="${m.homeCrest}" alt="${m.homeName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
-              </div>
-              <span class="g-team-name" title="${m.homeName}">${m.homeName}</span>
-            </div>
-
-            <div class="g-score-box">
-              <span class="g-score-val">${m.homeScore}</span>
-              <span class="g-score-dash">-</span>
-              <span class="g-score-val">${m.awayScore}</span>
-            </div>
-
-            <div class="g-team-col g-away-col">
-              <div class="g-team-crest-wrap">
-                ${m.awayCrest ? `<img src="${m.awayCrest}" alt="${m.awayName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
-              </div>
-              <span class="g-team-name" title="${m.awayName}">${m.awayName}</span>
+          <!-- 2. Home Team -->
+          <div class="m-cell-home">
+            <span class="m-team-label" title="${m.homeName}">${m.homeName}</span>
+            <div class="m-crest-box">
+              ${m.homeCrest ? `<img src="${m.homeCrest}" alt="${m.homeName}" class="m-crest-img" onerror="this.style.visibility='hidden';">` : ''}
             </div>
           </div>
 
-          <!-- 4. Events / Half-time Row with Soccer Ball in Middle -->
-          <div class="g-events-row">
-            <span class="g-events-left" title="${eventsHome}">${eventsHome}</span>
-            <span class="g-events-ball"><i class="fa-solid fa-futbol"></i></span>
-            <span class="g-events-right" title="${eventsAway}">${eventsAway}</span>
+          <!-- 3. Score or Dash -->
+          <div class="m-cell-score">
+            <span class="m-score-num ${isLive ? 'score-live' : (isFinished ? 'score-finished' : 'score-dash')}">${scoreDisplay}</span>
           </div>
 
-          <!-- 5. Card Footer: Quick AI Analysis Action -->
-          <div class="g-card-footer">
-            <div class="g-footer-label">
-              <i class="fa-solid fa-wand-magic-sparkles" style="color: #60a5fa;"></i>
-              <span>Yapay zeka & oran analizi</span>
+          <!-- 4. Away Team -->
+          <div class="m-cell-away">
+            <div class="m-crest-box">
+              ${m.awayCrest ? `<img src="${m.awayCrest}" alt="${m.awayName}" class="m-crest-img" onerror="this.style.visibility='hidden';">` : ''}
             </div>
-            <button type="button" class="g-analyze-btn" title="Bu maçı analiz et">
-              <span>Hemen Analiz Et</span>
-              <i class="fa-solid fa-arrow-right"></i>
+            <span class="m-team-label" title="${m.awayName}">${m.awayName}</span>
+          </div>
+
+          <!-- 5. Right Actions -->
+          <div class="m-cell-actions">
+            <button type="button" class="m-btn-analyze" title="Bu maçı AI ile analiz et">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="m-svg-trend">
+                <path d="M4 19h16" stroke="#059669" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M6 15l4.5-5 3.5 3.5 5.5-6.5" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15.5 7h4v4" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button type="button" class="m-btn-star" title="Favorilere ekle">
+              <i class="fa-regular fa-star"></i>
             </button>
           </div>
         `;
 
-        const analyzeBtn = card.querySelector(".g-analyze-btn");
-        analyzeBtn.addEventListener("click", () => {
+        const starBtn = row.querySelector(".m-btn-star");
+        if (starBtn) {
+          starBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            starBtn.classList.toggle("favorited");
+            const starIcon = starBtn.querySelector("i");
+            if (starIcon) {
+              if (starBtn.classList.contains("favorited")) {
+                starIcon.classList.remove("fa-regular");
+                starIcon.classList.add("fa-solid");
+              } else {
+                starIcon.classList.remove("fa-solid");
+                starIcon.classList.add("fa-regular");
+              }
+            }
+          });
+        }
+
+        row.addEventListener("click", () => {
           handleAutoSelectMatch(m);
         });
 
-        gridEl.appendChild(card);
+        tableEl.appendChild(row);
       });
 
-      todayMatchesList.appendChild(groupEl);
+      todayMatchesList.appendChild(cardEl);
     });
   }
 
