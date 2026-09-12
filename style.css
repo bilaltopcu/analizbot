@@ -6189,68 +6189,53 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
    TODAY & LIVE MATCHES (GOLANALIZ AI UNIFIED DESIGN SYSTEM)
    ========================================================== */
 .today-matches-section {
-  margin: 0 auto 28px auto;
-  padding: 24px 28px;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-glass);
-  background: #ffffff;
-  box-shadow: var(--shadow-md), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  margin: 0 auto 20px auto;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   position: relative;
   transition: var(--transition-normal);
 }
 
 .today-matches-section::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  opacity: 0.7;
+  display: none !important;
 }
 
 .today-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-glass);
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 2px 2px 8px 2px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   flex-wrap: wrap;
 }
 
 .today-header-left {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .today-badge-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--accent-blue), #2563eb);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 4px 14px rgba(30, 86, 192, 0.25);
-  flex-shrink: 0;
+  display: none !important;
 }
 
 .today-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .today-title-row h3 {
   font-family: var(--font-heading);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 750;
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.2px;
@@ -6259,35 +6244,35 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 .live-source-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 3px 8px;
   border-radius: 20px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 750;
   background: #eff6ff;
   color: var(--accent-blue);
   border: 1px solid #bfdbfe;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
 .today-subtitle {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-muted);
-  margin: 3px 0 0 0;
+  margin: 0;
 }
 
 .today-refresh-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   border: 1px solid var(--border-glass);
-  background: #f8fafc;
+  background: #ffffff;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: var(--transition-fast);
   box-shadow: var(--shadow-sm);
@@ -6796,12 +6781,12 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f8fafc;
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
-  padding: 8px 12px;
-  margin-bottom: 18px;
-  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.04);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 6px 10px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .date-nav-btn {
@@ -6961,8 +6946,27 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 
 @media (max-width: 768px) {
   .today-matches-section {
-    padding: 12px 6px;
-    margin: 0 auto 16px auto;
+    padding: 0 !important;
+    margin: 0 auto 12px auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .today-section-header {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+  }
+  .today-title-row h3 {
+    font-size: 14.5px;
+  }
+  .today-subtitle {
+    display: none !important;
+  }
+  .mackolik-date-bar {
+    padding: 4px 6px;
+    gap: 5px;
+    margin-bottom: 10px;
+    border-radius: 10px;
   }
   .mackolik-league-card {
     border-radius: 8px;
