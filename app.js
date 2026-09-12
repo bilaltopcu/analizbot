@@ -3107,13 +3107,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const countFilterAll = document.getElementById("countFilterAll");
   const countFilterLive = document.getElementById("countFilterLive");
   const countFilterUpcoming = document.getElementById("countFilterUpcoming");
-  const countFilterFinished = document.getElementById("countFilterFinished");
-
-  const ANCHOR_TODAY_DATE = "12/09/2026";
-  let selectedMatchDate = "12/09/2026";
+  const getSystemTodayDateStr = () => {
+    const d = new Date();
+    const day = String(d.getDate()).padStart(2, '0');
+    const mon = String(d.getMonth() + 1).padStart(2, '0');
+    return `${day}/${mon}/${d.getFullYear()}`;
+  };
+  const ANCHOR_TODAY_DATE = getSystemTodayDateStr();
+  let selectedMatchDate = ANCHOR_TODAY_DATE;
   let currentTodayFilter = "all";
   let todayMatchesData = [];
   let cachedDbFullData = null;
+  const clientDateMatchesCache = new Map();
 
   const COMP_TO_COUNTRY = {
     "PL": "ENG",
@@ -3487,50 +3492,105 @@ document.addEventListener("DOMContentLoaded", () => {
       let rawMatches = [];
       let sourceName = 'api';
 
-      try {
-        const url = `/api/matches-by-date?date=${encodeURIComponent(targetDateStr)}${forceRefresh ? '&t=' + Date.now() : ''}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          if (json && Array.isArray(json.matches)) {
-            rawMatches = json.matches;
-            sourceName = json.source || 'db';
-          }
-        }
-      } catch (e) {
-        console.warn('[GOLANALIZ] /api/matches-by-date unreachable, trying client fallback:', e);
-      }
+      // Check client-side memory cache if not forceRefresh
+      const cachedItem = clientDateMatchesCache.get(targetDateStr);
+      const isToday = (targetDateStr === ANCHOR_TODAY_DATE);
+      const cacheTtl = isToday ? 60000 : 600000; // 1 min for today, 10 mins for other dates
 
-      if (!rawMatches || rawMatches.length === 0) {
-        if (targetDateStr === ANCHOR_TODAY_DATE) {
+      if (!forceRefresh && cachedItem && (Date.now() - cachedItem.timestamp < cacheTtl)) {
+        rawMatches = cachedItem.matches;
+        sourceName = cachedItem.sourceName;
+      } else {
+        try {
+          const url = `/api/matches-by-date?date=${encodeURIComponent(targetDateStr)}${forceRefresh ? '&t=' + Date.now() : ''}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            if (json && Array.isArray(json.matches)) {
+              rawMatches = json.matches;
+              sourceName = json.source || 'db';
+            }
+          }
+        } catch (e) {
+          console.warn('[GOLANALIZ] /api/matches-by-date unreachable, trying client fallback:', e);
+        }
+
+        // Client Fallback (e.g. static hosting on Vercel without Node server)
+        if (!rawMatches || rawMatches.length === 0) {
           try {
-            const directRes = await fetch('https://api.football-data.org/v4/matches', {
-              headers: { 'X-Auth-Token': '2e2da80d56aa4afdb1cdb1098cd48591' }
-            });
-            if (directRes.ok) {
-              const directJson = await directRes.json();
-              if (directJson?.matches) rawMatches = directJson.matches;
+            let directUrl = '';
+            if (targetDateStr === ANCHOR_TODAY_DATE) {
+              directUrl = 'https://api.football-data.org/v4/matches';
+            } else {
+              const parts = targetDateStr.split('/');
+              if (parts.length === 3) {
+                const isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                const dt = new Date(Date.UTC(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10)));
+                dt.setUTCDate(dt.getUTCDate() + 1);
+                const nextDayISO = dt.toISOString().slice(0, 10);
+                directUrl = `https://api.football-data.org/v4/matches?dateFrom=${isoDate}&dateTo=${nextDayISO}`;
+              }
+            }
+
+            if (directUrl) {
+              const directRes = await fetch(directUrl, {
+                headers: { 'X-Auth-Token': '2e2da80d56aa4afdb1cdb1098cd48591' }
+              });
+              if (directRes.ok) {
+                const directJson = await directRes.json();
+                if (directJson?.matches && directJson.matches.length > 0) {
+                  rawMatches = directJson.matches;
+                  sourceName = 'api';
+                }
+              }
+            }
+          } catch (_) {}
+
+          // Merge or fallback to matches_2026_2027.json
+          try {
+            if (!cachedDbFullData) {
+              const dbRes = await fetch('matches_2026_2027.json');
+              if (dbRes.ok) cachedDbFullData = await dbRes.json();
+            }
+            if (cachedDbFullData) {
+              const dbMatches = cachedDbFullData.filter(m => (m.date || '').trim() === targetDateStr);
+              if (dbMatches.length > 0) {
+                if (!rawMatches || rawMatches.length === 0) {
+                  rawMatches = dbMatches;
+                  sourceName = 'db';
+                } else {
+                  const existingPairs = new Set(rawMatches.map(m => {
+                    const h = (m.homeTeam?.name || m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const a = (m.awayTeam?.name || m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return `${h}_${a}`;
+                  }));
+                  dbMatches.forEach(dbM => {
+                    const h = (dbM.home || dbM.homeTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const a = (dbM.away || dbM.awayTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (!existingPairs.has(`${h}_${a}`)) {
+                      rawMatches.push(dbM);
+                    }
+                  });
+                  sourceName = 'api+db';
+                }
+              }
             }
           } catch (_) {}
         }
 
-        if (!rawMatches || rawMatches.length === 0) {
-          if (!cachedDbFullData) {
-            const dbRes = await fetch('matches_2026_2027.json');
-            if (dbRes.ok) cachedDbFullData = await dbRes.json();
-          }
-          if (cachedDbFullData) {
-            rawMatches = cachedDbFullData.filter(m => {
-              const d = (m.date || '').trim();
-              return d === targetDateStr;
-            });
-          }
-        }
+        // Cache the retrieved matches in memory
+        clientDateMatchesCache.set(targetDateStr, {
+          timestamp: Date.now(),
+          matches: rawMatches || [],
+          sourceName
+        });
       }
 
       if (todaySectionSourceTag) {
-        if (sourceName === 'api' || targetDateStr === ANCHOR_TODAY_DATE) {
-          todaySectionSourceTag.innerHTML = '<span class="pulse-dot"></span> Canlı Akış';
+        if (sourceName === 'api+db') {
+          todaySectionSourceTag.innerHTML = '<span class="pulse-dot"></span> Canlı Akış + Arşiv';
+        } else if (sourceName === 'api' || targetDateStr === ANCHOR_TODAY_DATE) {
+          todaySectionSourceTag.innerHTML = '<span class="pulse-dot"></span> Canlı / Fikstür API';
         } else {
           todaySectionSourceTag.innerHTML = '<i class="fa-solid fa-database"></i> 2026-2027 Arşivi';
         }
@@ -3681,12 +3741,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (filtered.length === 0) {
-      todayMatchesList.innerHTML = `
-        <div class="today-empty-state">
-          <i class="fa-regular fa-futbol"></i>
-          <p>Seçilen filtrede ("${filter}") karşılaşma bulunamadı.</p>
-        </div>
-      `;
+      if (!matches || matches.length === 0) {
+        todayMatchesList.innerHTML = `
+          <div class="today-empty-state">
+            <i class="fa-regular fa-calendar-xmark" style="font-size:36px;color:#94a3b8;margin-bottom:12px;"></i>
+            <h4 style="font-size:16px;color:#f8fafc;margin-bottom:6px;">Karşılaşma Bulunamadı</h4>
+            <p style="color:#94a3b8;font-size:13px;max-width:360px;margin:0 auto 14px;">${selectedMatchDate} tarihinde planlanan veya arşivde kayıtlı bir maç bulunmuyor.</p>
+            <button type="button" class="btn-primary" id="btnGoToToday" style="padding:8px 18px;font-size:13px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border-radius:8px;">
+              <i class="fa-solid fa-calendar-day"></i> Bugünün Maçlarına Git
+            </button>
+          </div>
+        `;
+        document.getElementById('btnGoToToday')?.addEventListener('click', () => {
+          selectedMatchDate = ANCHOR_TODAY_DATE;
+          renderDatePills();
+          loadMatchesForDate(selectedMatchDate);
+        });
+      } else {
+        todayMatchesList.innerHTML = `
+          <div class="today-empty-state">
+            <i class="fa-regular fa-futbol"></i>
+            <p>Seçilen filtrede ("${filter}") karşılaşma bulunamadı.</p>
+          </div>
+        `;
+      }
       return;
     }
 

@@ -64,23 +64,53 @@ function getMatchesByDate(dateStr) {
   return matchesByDateCache ? (matchesByDateCache.get(dateStr) || []) : [];
 }
 
-// Football-Data.org In-Memory Cache (60s TTL for rate-limit protection)
-let footballDataCache = {
-  timestamp: 0,
-  data: null
-};
+// Football-Data.org In-Memory Multi-Date Cache (protect against rate-limits)
+const footballDataDateCache = new Map();
 
-function fetchFootballDataOrg(apiKey) {
+function getNextDayISO(isoDateStr) {
+  try {
+    const parts = isoDateStr.split('-').map(Number);
+    const dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    dt.setUTCDate(dt.getUTCDate() + 1);
+    return dt.toISOString().slice(0, 10);
+  } catch (_) {
+    return isoDateStr;
+  }
+}
+
+function fetchFootballDataOrgForDate(apiKey, isoDateStr) {
   return new Promise((resolve, reject) => {
     const now = Date.now();
-    if (footballDataCache.data && (now - footballDataCache.timestamp < 60000)) {
-      return resolve(footballDataCache.data);
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const targetISO = (!isoDateStr || isoDateStr.trim() === '') ? todayISO : isoDateStr.trim();
+    const isToday = (targetISO === todayISO);
+
+    // Dynamic TTL:
+    // Today: 60s (live scores update)
+    // Future: 30 mins (scheduled fixtures)
+    // Past: 24 hours (finished matches)
+    let ttl = 60 * 1000;
+    if (targetISO > todayISO) {
+      ttl = 30 * 60 * 1000;
+    } else if (targetISO < todayISO) {
+      ttl = 24 * 60 * 60 * 1000;
+    }
+
+    const cached = footballDataDateCache.get(targetISO);
+    if (cached && (now - cached.timestamp < ttl)) {
+      return resolve(cached.data);
+    }
+
+    let apiPath = '/v4/matches';
+    if (!isToday) {
+      const nextDayISO = getNextDayISO(targetISO);
+      apiPath = `/v4/matches?dateFrom=${targetISO}&dateTo=${nextDayISO}`;
     }
 
     const options = {
       hostname: 'api.football-data.org',
       port: 443,
-      path: '/v4/matches',
+      path: apiPath,
       method: 'GET',
       headers: {
         'X-Auth-Token': apiKey,
@@ -96,17 +126,19 @@ function fetchFootballDataOrg(apiKey) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           try {
             const parsed = JSON.parse(data);
-            footballDataCache = {
+            footballDataDateCache.set(targetISO, {
               timestamp: Date.now(),
               data: parsed
-            };
+            });
             resolve(parsed);
           } catch (e) {
             reject(new Error('JSON parse error: ' + e.message));
           }
         } else {
-          if (footballDataCache.data) {
-            return resolve(footballDataCache.data);
+          // If rate limited (429) or error, fallback to expired cache if available
+          if (cached && cached.data) {
+            console.warn(`[Football-Data.org API] Status ${res.statusCode}, serving cached data for ${targetISO}`);
+            return resolve(cached.data);
           }
           reject(new Error(`Football-Data.org status ${res.statusCode}: ${data.slice(0, 100)}`));
         }
@@ -115,17 +147,22 @@ function fetchFootballDataOrg(apiKey) {
 
     req.on('timeout', () => {
       req.destroy();
-      if (footballDataCache.data) return resolve(footballDataCache.data);
+      if (cached && cached.data) return resolve(cached.data);
       reject(new Error('Football-Data.org timeout'));
     });
 
     req.on('error', (err) => {
-      if (footballDataCache.data) return resolve(footballDataCache.data);
+      if (cached && cached.data) return resolve(cached.data);
       reject(err);
     });
 
     req.end();
   });
+}
+
+function fetchFootballDataOrg(apiKey) {
+  const todayISO = new Date().toISOString().slice(0, 10);
+  return fetchFootballDataOrgForDate(apiKey, todayISO);
 }
 
 function callSingleModel(model, promptText, apiKey, useThinkingZero) {
@@ -348,7 +385,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({
           success: true,
           count: data?.matches?.length || 0,
-          cachedAt: footballDataCache.timestamp,
+          cachedAt: Date.now(),
           matches: data?.matches || []
         }));
       })
@@ -359,7 +396,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Matches by Specific Date Endpoint (Historical DB + Live API fallback)
+  // Matches by Specific Date Endpoint (Historical DB + Live API for ANY DATE)
   if (pathname === '/api/matches-by-date') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -370,65 +407,101 @@ const server = http.createServer((req, res) => {
       return res.end();
     }
 
-    const queryDate = reqUrl.searchParams.get('date') || ''; // e.g. "05/09/2026" or "2026-09-05"
+    const queryDate = reqUrl.searchParams.get('date') || ''; // e.g. "13/09/2026" or "2026-09-13"
     let dFormatted = queryDate.trim();
+    let isoDateStr = '';
+
     if (dFormatted.includes('-')) {
       const parts = dFormatted.split('-');
       if (parts.length === 3) {
-        dFormatted = `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+        if (parts[0].length === 4) {
+          // YYYY-MM-DD
+          isoDateStr = dFormatted;
+          dFormatted = `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+        } else {
+          // DD-MM-YYYY
+          dFormatted = `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}`;
+          isoDateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      }
+    } else if (dFormatted.includes('/')) {
+      const parts = dFormatted.split('/');
+      if (parts.length === 3) {
+        if (parts[2].length === 4) {
+          // DD/MM/YYYY
+          isoDateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
       }
     }
 
-    // Check if query is for today (12/09/2026)
-    const todayStr = '12/09/2026';
-    if (dFormatted === todayStr || !dFormatted) {
-      const apiKey = process.env.FOOTBALL_DATA_ORG_KEY || '2e2da80d56aa4afdb1cdb1098cd48591';
-      fetchFootballDataOrg(apiKey)
-        .then(data => {
-          if (data?.matches && data.matches.length > 0) {
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-            return res.end(JSON.stringify({
-              success: true,
-              date: dFormatted || todayStr,
-              source: 'api',
-              count: data.matches.length,
-              matches: data.matches
-            }));
-          }
-          const dbMatches = getMatchesByDate(dFormatted || todayStr);
-          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-          res.end(JSON.stringify({
-            success: true,
-            date: dFormatted || todayStr,
-            source: 'db',
-            count: dbMatches.length,
-            matches: dbMatches
-          }));
-        })
-        .catch(() => {
-          const dbMatches = getMatchesByDate(dFormatted || todayStr);
-          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-          res.end(JSON.stringify({
-            success: true,
-            date: dFormatted || todayStr,
-            source: 'db',
-            count: dbMatches.length,
-            matches: dbMatches
-          }));
-        });
-      return;
+    if (!dFormatted) {
+      const dNow = new Date();
+      isoDateStr = dNow.toISOString().slice(0, 10);
+      const day = String(dNow.getDate()).padStart(2, '0');
+      const mon = String(dNow.getMonth() + 1).padStart(2, '0');
+      dFormatted = `${day}/${mon}/${dNow.getFullYear()}`;
     }
 
-    // Query for past date
+    const apiKey = process.env.FOOTBALL_DATA_ORG_KEY || '2e2da80d56aa4afdb1cdb1098cd48591';
     const dbMatches = getMatchesByDate(dFormatted);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-    return res.end(JSON.stringify({
-      success: true,
-      date: dFormatted,
-      source: 'db',
-      count: dbMatches.length,
-      matches: dbMatches
-    }));
+
+    fetchFootballDataOrgForDate(apiKey, isoDateStr)
+      .then(apiData => {
+        const apiMatches = apiData?.matches || [];
+
+        if (apiMatches.length === 0 && dbMatches.length === 0) {
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+          return res.end(JSON.stringify({
+            success: true,
+            date: dFormatted,
+            source: 'none',
+            count: 0,
+            matches: []
+          }));
+        }
+
+        // Deduplication & merge: Keep API match if present, append DB matches not covered by API
+        const mergedMatches = [...apiMatches];
+        const apiTeamPairs = new Set();
+        apiMatches.forEach(m => {
+          const h = (m.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const a = (m.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (h && a) apiTeamPairs.add(`${h}_${a}`);
+        });
+
+        dbMatches.forEach(dbM => {
+          const h = (dbM.home || dbM.homeTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const a = (dbM.away || dbM.awayTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (!apiTeamPairs.has(`${h}_${a}`)) {
+            mergedMatches.push(dbM);
+          }
+        });
+
+        let source = 'api';
+        if (apiMatches.length > 0 && dbMatches.length > 0) source = 'api+db';
+        else if (apiMatches.length === 0 && dbMatches.length > 0) source = 'db';
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({
+          success: true,
+          date: dFormatted,
+          source,
+          count: mergedMatches.length,
+          matches: mergedMatches
+        }));
+      })
+      .catch(err => {
+        console.warn(`[API matches-by-date] Error fetching API for ${isoDateStr}:`, err.message);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({
+          success: true,
+          date: dFormatted,
+          source: 'db',
+          count: dbMatches.length,
+          matches: dbMatches
+        }));
+      });
+    return;
   }
 
   if (pathname === '/api/sync-2026-2027' || pathname === '/api/sync-data') {
