@@ -1123,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderComparisonResults();
       resultsSection.classList.remove("hidden");
       aiResultCard.classList.add("hidden");
-      poissonSection.classList.add("hidden");
+      if (poissonSection) poissonSection.classList.add("hidden");
       resultsSection.scrollIntoView({ behavior: "smooth" });
     } catch (err) {
       console.error("[GOLANALIZ] Karşılaştırma hatası:", err);
@@ -1811,6 +1811,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function generatePoissonMatrix() {
     if (!homeProfile || !awayProfile) return;
+    if (!poissonGrid) return;
     const quantData = calculateDixonColesProbabilities(homeProfile, awayProfile);
     if (!quantData) return;
 
@@ -1835,15 +1836,17 @@ document.addEventListener("DOMContentLoaded", () => {
       poissonGrid.appendChild(card);
     });
 
-    poissonLikelyRow.innerHTML = `
-      <div class="poisson-likely-label">En Olası Dixon-Coles Skorları:</div>
-      ${top9.slice(0, 3).map((sc, i) => `
-        <div class="poisson-likely-pill rank-pill-${i}">
-          <span class="likely-score">${sc.label}</span>
-          <span class="likely-pct">%${Math.round(sc.prob * 1000) / 10}</span>
-        </div>
-      `).join('')}
-    `;
+    if (poissonLikelyRow) {
+      poissonLikelyRow.innerHTML = `
+        <div class="poisson-likely-label">En Olası Dixon-Coles Skorları:</div>
+        ${top9.slice(0, 3).map((sc, i) => `
+          <div class="poisson-likely-pill rank-pill-${i}">
+            <span class="likely-score">${sc.label}</span>
+            <span class="likely-pct">%${Math.round(sc.prob * 1000) / 10}</span>
+          </div>
+        `).join('')}
+      `;
+    }
   }
 
   // Engine 6.0: Calculate match probabilities with deep research metrics
@@ -3107,6 +3110,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const countFilterAll = document.getElementById("countFilterAll");
   const countFilterLive = document.getElementById("countFilterLive");
   const countFilterUpcoming = document.getElementById("countFilterUpcoming");
+  const countFilterFinished = document.getElementById("countFilterFinished");
   const getSystemTodayDateStr = () => {
     const d = new Date();
     const day = String(d.getDate()).padStart(2, '0');
@@ -3743,10 +3747,9 @@ document.addEventListener("DOMContentLoaded", () => {
     datePillsStrip.innerHTML = "";
 
     const centerDate = parseCustomDate(selectedMatchDate);
-    const dTime = centerDate.getTime();
     const pillDates = [];
     for (let offset = -4; offset <= 4; offset++) {
-      const pillD = new Date(dTime + offset * 86400000);
+      const pillD = new Date(centerDate.getFullYear(), centerDate.getMonth(), centerDate.getDate() + offset);
       pillDates.push(pillD);
     }
 

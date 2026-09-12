@@ -718,7 +718,7 @@ JSON Şeması:
 
       } catch (err) {
         console.error('[Gemini Route Error]', err);
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
         res.end(JSON.stringify({ success: false, fallback: true, error: err.message }));
       }
     });
@@ -805,4 +805,7 @@ server.listen(PORT, () => {
     console.error('[Telegram Bot Başlatma Uyarısı]', err.message);
   }
 });
+
+module.exports = server;
+
 

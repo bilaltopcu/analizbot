@@ -1,0 +1,42 @@
+[
+  {
+    "id": "pred_coritiba_vs_athletico-pr_1789255884022",
+    "homeTeam": "Coritiba",
+    "awayTeam": "Athletico-PR",
+    "league": "BREZILYA",
+    "country": "Brezilya",
+    "prediction": "TOPLAM KORNER 8.5 ALT",
+    "category": "korner",
+    "categoryLabel": "Korner Bahsi",
+    "odds": 1.75,
+    "confidence": 95,
+    "reason": "İki takımın kontrollü kanat organizasyonları ve korner savunmaları araştırmasına göre beklenen korner 3.8. 8.5 Alt potansiyeli yüksek.",
+    "status": "PENDING",
+    "outcome": null,
+    "recordedAt": "2026-09-12T23:31:24.022Z",
+    "settledAt": null,
+    "actualScore": null,
+    "actualCorners": null,
+    "actualCards": null
+  },
+  {
+    "id": "pred_santos_vs_cruzeiro_1789255472512",
+    "homeTeam": "Santos",
+    "awayTeam": "Cruzeiro",
+    "league": "BREZILYA",
+    "country": "Brezilya",
+    "prediction": "TOPLAM KORNER 8.5 ALT",
+    "category": "korner",
+    "categoryLabel": "Korner Bahsi",
+    "odds": 1.75,
+    "confidence": 95,
+    "reason": "İki takımın kontrollü kanat organizasyonları ve korner savunmaları araştırmasına göre beklenen korner 3.8. 8.5 Alt potansiyeli yüksek.",
+    "status": "PENDING",
+    "outcome": null,
+    "recordedAt": "2026-09-12T23:24:32.512Z",
+    "settledAt": null,
+    "actualScore": null,
+    "actualCorners": null,
+    "actualCards": null
+  }
+]
