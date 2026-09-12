@@ -3019,31 +3019,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectionCardSection = document.getElementById("selectionCardSection");
   const navLiveCountBadge = document.getElementById("navLiveCountBadge");
 
-  function setActiveTopTab(tabName) {
+  function setActiveTopTab(tabName, shouldScroll = true) {
     if (tabName === "matches") {
       if (tabNavMatches) tabNavMatches.classList.add("active");
       if (tabNavAnalysis) tabNavAnalysis.classList.remove("active");
-      if (todayMatchesSection) todayMatchesSection.classList.remove("hidden");
-      if (selectionCardSection) selectionCardSection.classList.add("hidden");
+      if (shouldScroll && todayMatchesSection) {
+        todayMatchesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } else {
       if (tabNavAnalysis) tabNavAnalysis.classList.add("active");
       if (tabNavMatches) tabNavMatches.classList.remove("active");
-      if (todayMatchesSection) todayMatchesSection.classList.add("hidden");
-      if (selectionCardSection) selectionCardSection.classList.remove("hidden");
+      if (shouldScroll && selectionCardSection) {
+        selectionCardSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
   }
 
   if (tabNavMatches) {
     tabNavMatches.addEventListener("click", () => {
-      setActiveTopTab("matches");
-      todayMatchesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTopTab("matches", true);
     });
   }
 
   if (tabNavAnalysis) {
     tabNavAnalysis.addEventListener("click", () => {
-      setActiveTopTab("analysis");
-      selectionCardSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTopTab("analysis", true);
     });
   }
 
