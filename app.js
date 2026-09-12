@@ -3011,11 +3011,54 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // =============================================
-  // Football-Data.org Today & Live Matches Integration
+  // Maçkolik Stili Üst Sekmeler (Top Navigation Switcher)
   // =============================================
-  const btnTodayMatches = document.getElementById("btnTodayMatches");
-  const todayMatchesModal = document.getElementById("todayMatchesModal");
-  const todayMatchesModalClose = document.getElementById("todayMatchesModalClose");
+  const tabNavMatches = document.getElementById("tabNavMatches");
+  const tabNavAnalysis = document.getElementById("tabNavAnalysis");
+  const todayMatchesSection = document.getElementById("todayMatchesSection");
+  const selectionCardSection = document.getElementById("selectionCardSection");
+  const navLiveCountBadge = document.getElementById("navLiveCountBadge");
+
+  function setActiveTopTab(tabName) {
+    if (tabName === "matches") {
+      if (tabNavMatches) tabNavMatches.classList.add("active");
+      if (tabNavAnalysis) tabNavAnalysis.classList.remove("active");
+      if (todayMatchesSection) todayMatchesSection.classList.remove("hidden");
+      if (selectionCardSection) selectionCardSection.classList.add("hidden");
+    } else {
+      if (tabNavAnalysis) tabNavAnalysis.classList.add("active");
+      if (tabNavMatches) tabNavMatches.classList.remove("active");
+      if (todayMatchesSection) todayMatchesSection.classList.add("hidden");
+      if (selectionCardSection) selectionCardSection.classList.remove("hidden");
+    }
+  }
+
+  if (tabNavMatches) {
+    tabNavMatches.addEventListener("click", () => {
+      setActiveTopTab("matches");
+      todayMatchesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  if (tabNavAnalysis) {
+    tabNavAnalysis.addEventListener("click", () => {
+      setActiveTopTab("analysis");
+      selectionCardSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  // =============================================
+  // Maçkolik Stili Tarih Şeridi ve Maç Merkezi Entegrasyonu
+  // =============================================
+  const btnPrevDate = document.getElementById("btnPrevDate");
+  const btnNextDate = document.getElementById("btnNextDate");
+  const datePillsStrip = document.getElementById("datePillsStrip");
+  const btnCalendarPicker = document.getElementById("btnCalendarPicker");
+  const matchDatePickerInput = document.getElementById("matchDatePickerInput");
+  const calendarBtnLabel = document.getElementById("calendarBtnLabel");
+  const todaySectionMainTitle = document.getElementById("todaySectionMainTitle");
+  const todaySectionSubtitle = document.getElementById("todaySectionSubtitle");
+  const todaySectionSourceTag = document.getElementById("todaySectionSourceTag");
   const todayMatchesList = document.getElementById("todayMatchesList");
   const headerTodayMatchesCount = document.getElementById("headerTodayMatchesCount");
   const btnRefreshTodayMatches = document.getElementById("btnRefreshTodayMatches");
@@ -3024,8 +3067,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const countFilterUpcoming = document.getElementById("countFilterUpcoming");
   const countFilterFinished = document.getElementById("countFilterFinished");
 
-  let todayMatchesData = [];
+  const ANCHOR_TODAY_DATE = "12/09/2026";
+  let selectedMatchDate = "12/09/2026";
   let currentTodayFilter = "all";
+  let todayMatchesData = [];
+  let cachedDbFullData = null;
 
   const COMP_TO_COUNTRY = {
     "PL": "ENG",
@@ -3147,59 +3193,323 @@ document.addEventListener("DOMContentLoaded", () => {
     return apiName;
   }
 
-  async function fetchTodayMatches(forceRefresh = false) {
+  const TR_MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  const TR_MONTHS_SHORT = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+  const TR_DAYS_SHORT = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+  const TR_DAYS_FULL = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+
+  function parseCustomDate(dStr) {
+    if (!dStr) return new Date();
+    if (typeof dStr === 'string' && dStr.includes('/')) {
+      const parts = dStr.split('/');
+      return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+    }
+    if (typeof dStr === 'string' && dStr.includes('-')) {
+      const parts = dStr.split('-');
+      if (parts[0].length === 4) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+    }
+    return new Date(dStr);
+  }
+
+  function formatDateDDMMYYYY(d) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const mon = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${mon}/${year}`;
+  }
+
+  function formatDateYYYYMMDD(d) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const mon = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${mon}-${day}`;
+  }
+
+  function formatTurkishFullDate(dStr) {
+    const d = parseCustomDate(dStr);
+    return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()} ${TR_DAYS_FULL[d.getDay()]}`;
+  }
+
+  function formatGoogleMatchDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const d = parseCustomDate(dateStr);
+      return `${d.getDate()}/${d.getMonth() + 1} ${TR_DAYS_SHORT[d.getDay()]}`;
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  function renderDatePills() {
+    if (!datePillsStrip) return;
+    datePillsStrip.innerHTML = "";
+
+    const centerDate = parseCustomDate(selectedMatchDate);
+    const dTime = centerDate.getTime();
+    const pillDates = [];
+    for (let offset = -4; offset <= 4; offset++) {
+      const pillD = new Date(dTime + offset * 86400000);
+      pillDates.push(pillD);
+    }
+
+    pillDates.forEach(pillD => {
+      const pillDateStr = formatDateDDMMYYYY(pillD);
+      const isSelected = (pillDateStr === selectedMatchDate);
+      const isToday = (pillDateStr === ANCHOR_TODAY_DATE);
+
+      const pillBtn = document.createElement("button");
+      pillBtn.type = "button";
+      pillBtn.className = `date-pill-btn ${isSelected ? "active" : ""}`;
+      pillBtn.setAttribute("data-date", pillDateStr);
+
+      const weekdayText = TR_DAYS_SHORT[pillD.getDay()];
+      const dayMonthText = `${pillD.getDate()} ${TR_MONTHS_SHORT[pillD.getMonth()]}`;
+
+      pillBtn.innerHTML = `
+        ${isToday ? '<span class="date-pill-today-badge">BUGÜN</span>' : ''}
+        <span class="date-pill-weekday">${weekdayText}</span>
+        <span class="date-pill-day">${dayMonthText}</span>
+      `;
+
+      pillBtn.addEventListener("click", () => {
+        if (selectedMatchDate !== pillDateStr) {
+          selectedMatchDate = pillDateStr;
+          renderDatePills();
+          loadMatchesForDate(selectedMatchDate);
+        }
+      });
+
+      datePillsStrip.appendChild(pillBtn);
+    });
+
+    if (calendarBtnLabel) {
+      const cd = parseCustomDate(selectedMatchDate);
+      calendarBtnLabel.textContent = `${cd.getDate()} ${TR_MONTHS_SHORT[cd.getMonth()]}`;
+    }
+    if (matchDatePickerInput) {
+      matchDatePickerInput.value = formatDateYYYYMMDD(centerDate);
+    }
+
+    setTimeout(() => {
+      const activePill = datePillsStrip.querySelector(".date-pill-btn.active");
+      if (activePill) {
+        activePill.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+    }, 50);
+  }
+
+  if (btnPrevDate) {
+    btnPrevDate.addEventListener("click", () => {
+      const d = parseCustomDate(selectedMatchDate);
+      d.setDate(d.getDate() - 1);
+      selectedMatchDate = formatDateDDMMYYYY(d);
+      renderDatePills();
+      loadMatchesForDate(selectedMatchDate);
+    });
+  }
+
+  if (btnNextDate) {
+    btnNextDate.addEventListener("click", () => {
+      const d = parseCustomDate(selectedMatchDate);
+      d.setDate(d.getDate() + 1);
+      selectedMatchDate = formatDateDDMMYYYY(d);
+      renderDatePills();
+      loadMatchesForDate(selectedMatchDate);
+    });
+  }
+
+  if (btnCalendarPicker && matchDatePickerInput) {
+    btnCalendarPicker.addEventListener("click", () => {
+      try {
+        if (matchDatePickerInput.showPicker) {
+          matchDatePickerInput.showPicker();
+        } else {
+          matchDatePickerInput.focus();
+          matchDatePickerInput.click();
+        }
+      } catch (_) {
+        matchDatePickerInput.click();
+      }
+    });
+
+    matchDatePickerInput.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val) {
+        const parts = val.split("-");
+        if (parts.length === 3) {
+          selectedMatchDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          renderDatePills();
+          loadMatchesForDate(selectedMatchDate);
+        }
+      }
+    });
+  }
+
+  const KNOWN_MATCH_SCORERS = {
+    "05/09/2026_Fenerbahçe_Beşiktaş": {
+      home: "Milan Škriniar 26'",
+      away: "Rıdvan Yılmaz 38', Dušan Vlahović 73'"
+    },
+    "05/09/2026_Fenerbahce_Besiktas": {
+      home: "Milan Škriniar 26'",
+      away: "Rıdvan Yılmaz 38', Dušan Vlahović 73'"
+    }
+  };
+
+  function normalizeMatchItem(m, fallbackDateStr) {
+    if (m.homeTeam && typeof m.homeTeam === 'object' && m.homeTeam.name) {
+      const homeName = m.homeTeam.name;
+      const awayName = m.awayTeam?.name || '';
+      const compName = m.competition?.name || 'Lig';
+      const isLive = ['IN_PLAY', 'PAUSED'].includes(m.status);
+      const isFinished = ['FINISHED', 'AWARDED'].includes(m.status);
+      const homeScore = m.score?.fullTime?.home ?? (isLive ? 0 : '-');
+      const awayScore = m.score?.fullTime?.away ?? (isLive ? 0 : '-');
+      const hthg = m.score?.halfTime?.home;
+      const htag = m.score?.halfTime?.away;
+      const matchDateStr = m.utcDate || fallbackDateStr;
+
+      return {
+        id: m.id || `${matchDateStr}_${homeName}_${awayName}`,
+        homeName,
+        awayName,
+        homeCrest: m.homeTeam.crest || getTeamLogoUrl(homeName, ''),
+        awayCrest: m.awayTeam?.crest || getTeamLogoUrl(awayName, ''),
+        homeScore,
+        awayScore,
+        hthg,
+        htag,
+        status: m.status,
+        minute: m.minute,
+        time: m.utcDate ? new Date(m.utcDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '',
+        dateFormatted: formatGoogleMatchDate(matchDateStr),
+        leagueName: compName,
+        leagueEmblem: m.competition?.emblem || '',
+        competitionCode: m.competition?.code || '',
+        countryCode: COMP_TO_COUNTRY[m.competition?.code] || '',
+        raw: m
+      };
+    }
+
+    const homeName = m.homeTeam || m.home || 'Ev Sahibi';
+    const awayName = m.awayTeam || m.away || 'Deplasman';
+    const countryCode = m.country || 'TR';
+    const isFinished = (m.fthg !== undefined && m.fthg !== null && m.fthg !== '');
+    const homeScore = isFinished ? m.fthg : '-';
+    const awayScore = isFinished ? m.ftag : '-';
+    const matchDateStr = m.date || fallbackDateStr;
+
+    return {
+      id: `${matchDateStr}_${homeName}_${awayName}`,
+      homeName,
+      awayName,
+      homeCrest: getTeamLogoUrl(homeName, countryCode),
+      awayCrest: getTeamLogoUrl(awayName, countryCode),
+      homeScore,
+      awayScore,
+      hthg: m.hthg,
+      htag: m.htag,
+      hs: m.hs,
+      as: m.as,
+      status: isFinished ? 'FINISHED' : 'SCHEDULED',
+      minute: null,
+      time: m.time || '',
+      dateFormatted: formatGoogleMatchDate(matchDateStr),
+      leagueName: m.league_name || 'Lig',
+      leagueEmblem: '',
+      countryCode,
+      raw: m
+    };
+  }
+
+  async function loadMatchesForDate(targetDateStr, forceRefresh = false) {
     if (todayMatchesList) {
       todayMatchesList.innerHTML = `
         <div class="today-loading-state">
           <i class="fa-solid fa-circle-notch fa-spin"></i>
-          <p>Günün maçları ve canlı skorlar çekiliyor...</p>
+          <p>${targetDateStr} karşılaşmaları yükleniyor...</p>
         </div>
       `;
     }
 
+    if (todaySectionMainTitle) {
+      todaySectionMainTitle.innerHTML = `⚽ ${formatTurkishFullDate(targetDateStr)} Karşılaşmaları`;
+    }
+    if (todaySectionSubtitle) {
+      todaySectionSubtitle.textContent = `${targetDateStr} tarihindeki tüm lig ve kupa karşılaşmaları. Tek tıkla maçı seçip yapay zeka analizine aktarabilirsiniz.`;
+    }
+
     try {
-      let data = null;
-      // 1. Try local/proxy backend endpoint
+      let rawMatches = [];
+      let sourceName = 'api';
+
       try {
-        const res = await fetch('/api/today-matches' + (forceRefresh ? '?t=' + Date.now() : ''));
+        const url = `/api/matches-by-date?date=${encodeURIComponent(targetDateStr)}${forceRefresh ? '&t=' + Date.now() : ''}`;
+        const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();
-          if (json && json.matches) data = json;
+          if (json && Array.isArray(json.matches)) {
+            rawMatches = json.matches;
+            sourceName = json.source || 'db';
+          }
         }
       } catch (e) {
-        console.warn('[GOLANALIZ] /api/today-matches unreachable, checking direct fallback:', e);
+        console.warn('[GOLANALIZ] /api/matches-by-date unreachable, trying client fallback:', e);
       }
 
-      // 2. Fallback directly to football-data.org if backend proxy is not reachable
-      if (!data) {
-        const directRes = await fetch('https://api.football-data.org/v4/matches', {
-          headers: { 'X-Auth-Token': '2e2da80d56aa4afdb1cdb1098cd48591' }
-        });
-        if (directRes.ok) {
-          data = await directRes.json();
+      if (!rawMatches || rawMatches.length === 0) {
+        if (targetDateStr === ANCHOR_TODAY_DATE) {
+          try {
+            const directRes = await fetch('https://api.football-data.org/v4/matches', {
+              headers: { 'X-Auth-Token': '2e2da80d56aa4afdb1cdb1098cd48591' }
+            });
+            if (directRes.ok) {
+              const directJson = await directRes.json();
+              if (directJson?.matches) rawMatches = directJson.matches;
+            }
+          } catch (_) {}
+        }
+
+        if (!rawMatches || rawMatches.length === 0) {
+          if (!cachedDbFullData) {
+            const dbRes = await fetch('matches_2026_2027.json');
+            if (dbRes.ok) cachedDbFullData = await dbRes.json();
+          }
+          if (cachedDbFullData) {
+            rawMatches = cachedDbFullData.filter(m => {
+              const d = (m.date || '').trim();
+              return d === targetDateStr;
+            });
+          }
         }
       }
 
-      if (!data || !data.matches) {
-        throw new Error('Maç verileri alınamadı.');
+      if (todaySectionSourceTag) {
+        if (sourceName === 'api' || targetDateStr === ANCHOR_TODAY_DATE) {
+          todaySectionSourceTag.innerHTML = '<span class="pulse-dot"></span> Canlı Akış';
+        } else {
+          todaySectionSourceTag.innerHTML = '<i class="fa-solid fa-database"></i> 2026-2027 Arşivi';
+        }
       }
 
-      todayMatchesData = data.matches || [];
+      todayMatchesData = (rawMatches || []).map(m => normalizeMatchItem(m, targetDateStr));
       renderTodayMatches(todayMatchesData, currentTodayFilter);
       updateTodayMatchesBadge(todayMatchesData);
     } catch (err) {
-      console.error('[GOLANALIZ] Günün maçları çekme hatası:', err);
+      console.error('[GOLANALIZ] Maç yükleme hatası:', err);
       if (todayMatchesList) {
         todayMatchesList.innerHTML = `
           <div class="today-empty-state">
             <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
-            <p>Maç verileri alınırken bir sorun oluştu: ${err.message}</p>
+            <p>Karşılaşmalar yüklenirken bir sorun oluştu: ${err.message}</p>
             <button type="button" class="btn-primary" id="todayRetryBtn" style="margin-top:12px;padding:8px 16px;font-size:13px;">
               <i class="fa-solid fa-rotate-right"></i> Tekrar Dene
             </button>
           </div>
         `;
-        document.getElementById('todayRetryBtn')?.addEventListener('click', () => fetchTodayMatches(true));
+        document.getElementById('todayRetryBtn')?.addEventListener('click', () => loadMatchesForDate(selectedMatchDate, true));
       }
     }
   }
@@ -3216,6 +3526,15 @@ document.addEventListener("DOMContentLoaded", () => {
         headerTodayMatchesCount.innerHTML = `<span style="color:#ef4444;font-weight:900;">🔴 ${liveCount} Canlı</span> (${totalCount})`;
       } else {
         headerTodayMatchesCount.textContent = `${totalCount} Maç`;
+      }
+    }
+
+    if (navLiveCountBadge) {
+      if (liveCount > 0) {
+        navLiveCountBadge.textContent = `${liveCount} CANLI`;
+        navLiveCountBadge.style.display = 'inline-block';
+      } else {
+        navLiveCountBadge.textContent = `${totalCount} MAÇ`;
       }
     }
 
@@ -3241,38 +3560,24 @@ document.addEventListener("DOMContentLoaded", () => {
       todayMatchesList.innerHTML = `
         <div class="today-empty-state">
           <i class="fa-regular fa-futbol"></i>
-          <p>Seçilen filtrede ("${filter}") maç bulunamadı.</p>
+          <p>Seçilen filtrede ("${filter}") karşılaşma bulunamadı.</p>
         </div>
       `;
       return;
     }
 
-    // Group by competition
     const grouped = {};
     filtered.forEach(m => {
-      const compName = m.competition?.name || 'Diğer Karşılaşmalar';
+      const compName = m.leagueName || 'Diğer Karşılaşmalar';
       if (!grouped[compName]) {
         grouped[compName] = {
-          competition: m.competition,
+          name: compName,
+          emblem: m.leagueEmblem,
           matches: []
         };
       }
       grouped[compName].matches.push(m);
     });
-
-    function formatGoogleMatchDate(utcDateStr) {
-      if (!utcDateStr) return '';
-      try {
-        const d = new Date(utcDateStr);
-        const day = d.getDate();
-        const month = d.getMonth() + 1;
-        const daysTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
-        const dayName = daysTr[d.getDay()];
-        return `${day}/${month} ${dayName}`;
-      } catch (_) {
-        return '';
-      }
-    }
 
     todayMatchesList.innerHTML = "";
 
@@ -3280,14 +3585,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const groupEl = document.createElement("div");
       groupEl.className = "today-competition-group";
 
-      const compEmblem = grp.competition?.emblem 
-        ? `<img src="${grp.competition.emblem}" alt="${grp.competition.name}" class="today-comp-emblem" onerror="this.style.display='none';">`
+      const compEmblem = grp.emblem
+        ? `<img src="${grp.emblem}" alt="${grp.name}" class="today-comp-emblem" onerror="this.style.display='none';">`
         : '<i class="fa-solid fa-trophy" style="color:#f59e0b;"></i>';
 
       groupEl.innerHTML = `
         <div class="today-competition-header">
           ${compEmblem}
-          <span>${grp.competition?.name || 'Lig'}</span>
+          <span>${grp.name}</span>
         </div>
         <div class="today-matches-grid"></div>
       `;
@@ -3300,58 +3605,48 @@ document.addEventListener("DOMContentLoaded", () => {
         const isFinished = ['FINISHED', 'AWARDED'].includes(m.status);
         card.className = `google-match-card ${isLive ? 'is-live' : ''}`;
 
-        // Format date and time
-        const dateFormatted = formatGoogleMatchDate(m.utcDate);
-        let matchTime = '';
-        if (m.utcDate) {
-          try {
-            const d = new Date(m.utcDate);
-            matchTime = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-          } catch (_) { matchTime = ''; }
-        }
-
-        // Status text (matching Google sports style)
         let statusText = '';
         let statusClass = '';
-        let homeScore = '-';
-        let awayScore = '-';
-        let eventsHome = '';
-        let eventsAway = '';
-
         if (isLive) {
           statusText = '🔴 Canlı' + (m.minute ? ` ${m.minute}'` : '');
           statusClass = 'is-live';
-          homeScore = m.score?.fullTime?.home ?? 0;
-          awayScore = m.score?.fullTime?.away ?? 0;
-          eventsHome = (m.score?.halfTime?.home !== null && m.score?.halfTime?.home !== undefined) ? `İlk yarı: ${m.score.halfTime.home}` : 'Canlı Veri';
-          eventsAway = (m.score?.halfTime?.away !== null && m.score?.halfTime?.away !== undefined) ? `İlk yarı: ${m.score.halfTime.away}` : 'Canlı Veri';
         } else if (isFinished) {
           statusText = 'Maç sonu';
           statusClass = 'is-finished';
-          homeScore = m.score?.fullTime?.home ?? 0;
-          awayScore = m.score?.fullTime?.away ?? 0;
-          eventsHome = (m.score?.halfTime?.home !== null && m.score?.halfTime?.home !== undefined) ? `İlk yarı: ${m.score.halfTime.home}` : '';
-          eventsAway = (m.score?.halfTime?.away !== null && m.score?.halfTime?.away !== undefined) ? `İlk yarı: ${m.score.halfTime.away}` : '';
         } else {
-          statusText = matchTime || 'Yakında';
+          statusText = m.time || 'Yakında';
           statusClass = 'is-upcoming';
-          eventsHome = `Başlama: ${matchTime || 'Bugün'}`;
+        }
+
+        let eventsHome = '';
+        let eventsAway = '';
+        const normKey1 = `05/09/2026_${m.homeName}_${m.awayName}`;
+        const normKey2 = `05/09/2026_${normalizeTeamString(m.homeName)}_${normalizeTeamString(m.awayName)}`;
+
+        if (KNOWN_MATCH_SCORERS[normKey1]) {
+          eventsHome = KNOWN_MATCH_SCORERS[normKey1].home;
+          eventsAway = KNOWN_MATCH_SCORERS[normKey1].away;
+        } else if (KNOWN_MATCH_SCORERS[normKey2]) {
+          eventsHome = KNOWN_MATCH_SCORERS[normKey2].home;
+          eventsAway = KNOWN_MATCH_SCORERS[normKey2].away;
+        } else if (m.hthg !== null && m.hthg !== undefined && m.htag !== null && m.htag !== undefined) {
+          eventsHome = `İlk yarı: ${m.hthg}` + (m.hs ? ` · Şut: ${m.hs}` : '');
+          eventsAway = `İlk yarı: ${m.htag}` + (m.as ? ` · Şut: ${m.as}` : '');
+        } else if (isLive) {
+          eventsHome = 'Canlı Veri';
+          eventsAway = 'Canlı Veri';
+        } else {
+          eventsHome = `Başlama: ${m.time || 'Bugün'}`;
           eventsAway = 'Tahmin Analizi Hazır';
         }
 
-        const homeName = m.homeTeam?.name || 'Ev Sahibi';
-        const awayName = m.awayTeam?.name || 'Deplasman';
-        const homeCrest = m.homeTeam?.crest || '';
-        const awayCrest = m.awayTeam?.crest || '';
-        const leagueName = grp.competition?.name || 'Lig';
-
         card.innerHTML = `
           <!-- 1. Header Title -->
-          <div class="g-match-title">${homeName} - ${awayName}</div>
+          <div class="g-match-title">${m.homeName} - ${m.awayName}</div>
 
           <!-- 2. Meta Line: League · Date / Day  --  Status -->
           <div class="g-match-meta">
-            <span class="g-meta-league">${leagueName} · ${dateFormatted}</span>
+            <span class="g-meta-league">${m.leagueName} · ${m.dateFormatted}</span>
             <span class="g-meta-status ${statusClass}">${statusText}</span>
           </div>
 
@@ -3359,30 +3654,30 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="g-scoreboard">
             <div class="g-team-col g-home-col">
               <div class="g-team-crest-wrap">
-                ${homeCrest ? `<img src="${homeCrest}" alt="${homeName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+                ${m.homeCrest ? `<img src="${m.homeCrest}" alt="${m.homeName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
               </div>
-              <span class="g-team-name" title="${homeName}">${homeName}</span>
+              <span class="g-team-name" title="${m.homeName}">${m.homeName}</span>
             </div>
 
             <div class="g-score-box">
-              <span class="g-score-val">${homeScore}</span>
+              <span class="g-score-val">${m.homeScore}</span>
               <span class="g-score-dash">-</span>
-              <span class="g-score-val">${awayScore}</span>
+              <span class="g-score-val">${m.awayScore}</span>
             </div>
 
             <div class="g-team-col g-away-col">
               <div class="g-team-crest-wrap">
-                ${awayCrest ? `<img src="${awayCrest}" alt="${awayName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+                ${m.awayCrest ? `<img src="${m.awayCrest}" alt="${m.awayName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
               </div>
-              <span class="g-team-name" title="${awayName}">${awayName}</span>
+              <span class="g-team-name" title="${m.awayName}">${m.awayName}</span>
             </div>
           </div>
 
           <!-- 4. Events / Half-time Row with Soccer Ball in Middle -->
           <div class="g-events-row">
-            <span class="g-events-left">${eventsHome}</span>
+            <span class="g-events-left" title="${eventsHome}">${eventsHome}</span>
             <span class="g-events-ball"><i class="fa-solid fa-futbol"></i></span>
-            <span class="g-events-right">${eventsAway}</span>
+            <span class="g-events-right" title="${eventsAway}">${eventsAway}</span>
           </div>
 
           <!-- 5. Card Footer: Quick AI Analysis Action -->
@@ -3398,7 +3693,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
 
-        // Handle "Analiz Et" click
         const analyzeBtn = card.querySelector(".g-analyze-btn");
         analyzeBtn.addEventListener("click", () => {
           handleAutoSelectMatch(m);
@@ -3412,10 +3706,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleAutoSelectMatch(match) {
-    const compCode = match.competition?.code || '';
-    const countryCode = COMP_TO_COUNTRY[compCode] || 'ENG';
+    setActiveTopTab("analysis");
 
-    // Find country object
+    let countryCode = match.countryCode;
+    if (!countryCode && match.competitionCode) {
+      countryCode = COMP_TO_COUNTRY[match.competitionCode] || 'ENG';
+    }
+    if (!countryCode && match.raw?.competition?.code) {
+      countryCode = COMP_TO_COUNTRY[match.raw.competition.code] || 'ENG';
+    }
+    if (!countryCode && match.leagueName && match.leagueName.includes('Türkiye')) {
+      countryCode = 'TR';
+    }
+    if (!countryCode) countryCode = 'TR';
+
     let country = (typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries)
       ? FOOTBALL_DATA.countries.find(c => c.code === countryCode)
       : null;
@@ -3424,35 +3728,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (!country) return;
 
-    // Resolve team names
-    const resolvedHome = resolveTeamMatch(match.homeTeam?.name, country.code);
-    const resolvedAway = resolveTeamMatch(match.awayTeam?.name, country.code);
+    const resolvedHome = resolveTeamMatch(match.homeName, country.code);
+    const resolvedAway = resolveTeamMatch(match.awayName, country.code);
 
-    // Switch to league mode if in cup
     if (selectedMatchMode === 'cup' && btnModeLeague) {
       btnModeLeague.click();
     }
 
-    // 1. Select Country
     selectCountryOption(country);
 
-    // 2. Select Teams
     const homeLogoUrl = getTeamLogoUrl(resolvedHome, country.code);
     const awayLogoUrl = getTeamLogoUrl(resolvedAway, country.code);
 
     selectTeamOption('home', resolvedHome, homeLogoUrl);
     selectTeamOption('away', resolvedAway, awayLogoUrl);
 
-    // Trigger Compare & Scroll to Results
     setTimeout(() => {
       if (compareBtn && !compareBtn.disabled) {
         compareBtn.click();
         const resultsEl = document.getElementById('resultsSection');
         if (resultsEl) {
+          resultsEl.classList.remove('hidden');
           resultsEl.scrollIntoView({ behavior: 'smooth' });
         }
       }
-    }, 150);
+    }, 200);
   }
 
   // Refresh Button Listener
@@ -3460,7 +3760,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnRefreshTodayMatches.addEventListener("click", () => {
       const icon = btnRefreshTodayMatches.querySelector("i");
       if (icon) icon.classList.add("fa-spin");
-      fetchTodayMatches(true).finally(() => {
+      loadMatchesForDate(selectedMatchDate, true).finally(() => {
         if (icon) icon.classList.remove("fa-spin");
       });
     });
@@ -3477,8 +3777,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Automatically load today's matches directly on page load
-  fetchTodayMatches();
+  // Render date pills strip and initial match load
+  renderDatePills();
+  loadMatchesForDate(selectedMatchDate);
 
   // Initialize
   initCountryDropdown();

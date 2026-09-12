@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=4.4.1">
+  <link rel="stylesheet" href="style.css?v=4.5.0">
 </head>
 <body>
 
@@ -132,9 +132,94 @@
       </div>
     </header>
 
+    <!-- ═══ MAÇKOLİK STİLİ ÜST SEKMELER (Günün Maçları & Canlı Skorlar vs Takım Analizi) ═══ -->
+    <div class="top-nav-switch-container">
+      <div class="top-nav-switch-wrapper">
+        <button type="button" class="top-nav-tab active" id="tabNavMatches" data-section="matches">
+          <i class="fa-solid fa-futbol"></i>
+          <span>GÜNÜN MAÇLARI & SKORLAR</span>
+          <span class="nav-tab-badge" id="navLiveCountBadge">CANLI</span>
+        </button>
+        <button type="button" class="top-nav-tab" id="tabNavAnalysis" data-section="analysis">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>TAKIM ANALİZİ & AI TAHMİN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ GÜNÜN MAÇLARI & CANLI SKORLAR BÖLÜMÜ (MAÇ MERKEZİ) ═══ -->
+    <section class="today-matches-section glass-panel" id="todayMatchesSection">
+      <div class="today-section-header">
+        <div class="today-header-left">
+          <div class="today-badge-icon">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </div>
+          <div class="today-header-titles">
+            <div class="today-title-row">
+              <h3 id="todaySectionMainTitle">⚽ Günün Maçları & Canlı Skorlar</h3>
+              <span class="live-source-tag" id="todaySectionSourceTag"><span class="pulse-dot"></span> Canlı Akış</span>
+            </div>
+            <p class="today-subtitle" id="todaySectionSubtitle">Avrupa ve dünya liglerinden günün karşılaşmaları. Tek tıkla takımları seçip analizi başlatabilirsiniz.</p>
+          </div>
+        </div>
+
+        <div class="today-header-actions">
+          <button type="button" class="today-refresh-btn" id="btnRefreshTodayMatches" title="Maçları ve Skorları Yenile">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ═══ MAÇKOLİK İNTERAKTİF TARİH ŞERİDİ (Date Strip & Picker) ═══ -->
+      <div class="mackolik-date-bar">
+        <button type="button" class="date-nav-btn" id="btnPrevDate" title="Önceki Gün">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div class="date-pills-strip" id="datePillsStrip">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <button type="button" class="date-nav-btn" id="btnNextDate" title="Sonraki Gün">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <div class="date-calendar-wrapper">
+          <button type="button" class="date-calendar-btn" id="btnCalendarPicker" title="Takvimden Tarih Seç">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span class="calendar-btn-text" id="calendarBtnLabel">Takvim</span>
+          </button>
+          <input type="date" id="matchDatePickerInput" class="hidden-date-input" aria-label="Tarih Seçimi">
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="today-filter-tabs">
+        <button type="button" class="today-filter-btn active" data-filter="all">
+          <i class="fa-solid fa-list"></i> Tümü (<span id="countFilterAll">0</span>)
+        </button>
+        <button type="button" class="today-filter-btn filter-live" data-filter="live">
+          <span class="pulse-dot"></span> Canlı (<span id="countFilterLive">0</span>)
+        </button>
+        <button type="button" class="today-filter-btn" data-filter="upcoming">
+          <i class="fa-solid fa-clock"></i> Başlamadı (<span id="countFilterUpcoming">0</span>)
+        </button>
+        <button type="button" class="today-filter-btn" data-filter="finished">
+          <i class="fa-solid fa-flag-checkered"></i> Bitenler (<span id="countFilterFinished">0</span>)
+        </button>
+      </div>
+
+      <!-- Matches Content Area -->
+      <div class="today-section-body" id="todayMatchesList">
+        <div class="today-loading-state">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <p>Karşılaşmalar yükleniyor...</p>
+        </div>
+      </div>
+    </section>
 
     <!-- Main Hero / Selection Card -->
-    <section class="selection-card glass-panel">
+    <section class="selection-card glass-panel hidden" id="selectionCardSection">
       <!-- Match Mode Selector (Lig vs Kupa) -->
       <div class="match-mode-container">
         <div class="match-mode-label"><i class="fa-solid fa-trophy"></i> MAÇ TÜRÜ / MODU:</div>
@@ -274,53 +359,7 @@
       </div>
     </section>
 
-    <!-- ═══ GÜNÜN MAÇLARI & CANLI SKORLAR BÖLÜMÜ (Football-Data.org) ═══ -->
-    <section class="today-matches-section glass-panel" id="todayMatchesSection">
-      <div class="today-section-header">
-        <div class="today-header-left">
-          <div class="today-badge-icon">
-            <i class="fa-solid fa-satellite-dish"></i>
-          </div>
-          <div class="today-header-titles">
-            <div class="today-title-row">
-              <h3>⚽ Günün Maçları & Canlı Skorlar</h3>
-              <span class="live-source-tag"><span class="pulse-dot"></span> Canlı Akış</span>
-            </div>
-            <p class="today-subtitle">Avrupa ve dünya liglerinden günün karşılaşmaları. Tek tıkla takımları seçip analizi başlatabilirsiniz.</p>
-          </div>
-        </div>
 
-        <div class="today-header-actions">
-          <button type="button" class="today-refresh-btn" id="btnRefreshTodayMatches" title="Maçları ve Skorları Yenile">
-            <i class="fa-solid fa-rotate-right"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Filter Tabs -->
-      <div class="today-filter-tabs">
-        <button type="button" class="today-filter-btn active" data-filter="all">
-          <i class="fa-solid fa-list"></i> Tümü (<span id="countFilterAll">0</span>)
-        </button>
-        <button type="button" class="today-filter-btn filter-live" data-filter="live">
-          <span class="pulse-dot"></span> Canlı (<span id="countFilterLive">0</span>)
-        </button>
-        <button type="button" class="today-filter-btn" data-filter="upcoming">
-          <i class="fa-solid fa-clock"></i> Başlamadı (<span id="countFilterUpcoming">0</span>)
-        </button>
-        <button type="button" class="today-filter-btn" data-filter="finished">
-          <i class="fa-solid fa-flag-checkered"></i> Bitenler (<span id="countFilterFinished">0</span>)
-        </button>
-      </div>
-
-      <!-- Matches Content Area -->
-      <div class="today-section-body" id="todayMatchesList">
-        <div class="today-loading-state">
-          <i class="fa-solid fa-circle-notch fa-spin"></i>
-          <p>Günün maçları ve canlı skorlar yükleniyor...</p>
-        </div>
-      </div>
-    </section>
 
     <!-- Results Container (Hidden until Compare Clicked) -->
     <div id="resultsSection" class="results-container hidden">

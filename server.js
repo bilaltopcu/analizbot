@@ -36,6 +36,34 @@ const PORT = process.env.PORT || 3000;
 const aiAnalysisCache = new Map();
 const MAX_CACHE_SIZE = 300;
 
+// Matches by Date in-memory index
+let matchesByDateCache = null;
+function getMatchesByDate(dateStr) {
+  if (!matchesByDateCache) {
+    matchesByDateCache = new Map();
+    const jsonPath = path.join(__dirname, 'matches_2026_2027.json');
+    if (fs.existsSync(jsonPath)) {
+      try {
+        const raw = fs.readFileSync(jsonPath, 'utf8');
+        const allMatches = JSON.parse(raw);
+        allMatches.forEach(m => {
+          const d = (m.date || '').trim();
+          if (d) {
+            if (!matchesByDateCache.has(d)) {
+              matchesByDateCache.set(d, []);
+            }
+            matchesByDateCache.get(d).push(m);
+          }
+        });
+        console.log(`[Matches DB Indexed] Loaded ${matchesByDateCache.size} unique dates.`);
+      } catch (e) {
+        console.error('[Matches DB Index Error]', e.message);
+      }
+    }
+  }
+  return matchesByDateCache ? (matchesByDateCache.get(dateStr) || []) : [];
+}
+
 // Football-Data.org In-Memory Cache (60s TTL for rate-limit protection)
 let footballDataCache = {
   timestamp: 0,
@@ -329,6 +357,78 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ success: false, error: err.message }));
       });
     return;
+  }
+
+  // Matches by Specific Date Endpoint (Historical DB + Live API fallback)
+  if (pathname === '/api/matches-by-date') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      return res.end();
+    }
+
+    const queryDate = reqUrl.searchParams.get('date') || ''; // e.g. "05/09/2026" or "2026-09-05"
+    let dFormatted = queryDate.trim();
+    if (dFormatted.includes('-')) {
+      const parts = dFormatted.split('-');
+      if (parts.length === 3) {
+        dFormatted = `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+      }
+    }
+
+    // Check if query is for today (12/09/2026)
+    const todayStr = '12/09/2026';
+    if (dFormatted === todayStr || !dFormatted) {
+      const apiKey = process.env.FOOTBALL_DATA_ORG_KEY || '2e2da80d56aa4afdb1cdb1098cd48591';
+      fetchFootballDataOrg(apiKey)
+        .then(data => {
+          if (data?.matches && data.matches.length > 0) {
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+            return res.end(JSON.stringify({
+              success: true,
+              date: dFormatted || todayStr,
+              source: 'api',
+              count: data.matches.length,
+              matches: data.matches
+            }));
+          }
+          const dbMatches = getMatchesByDate(dFormatted || todayStr);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+          res.end(JSON.stringify({
+            success: true,
+            date: dFormatted || todayStr,
+            source: 'db',
+            count: dbMatches.length,
+            matches: dbMatches
+          }));
+        })
+        .catch(() => {
+          const dbMatches = getMatchesByDate(dFormatted || todayStr);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+          res.end(JSON.stringify({
+            success: true,
+            date: dFormatted || todayStr,
+            source: 'db',
+            count: dbMatches.length,
+            matches: dbMatches
+          }));
+        });
+      return;
+    }
+
+    // Query for past date
+    const dbMatches = getMatchesByDate(dFormatted);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+    return res.end(JSON.stringify({
+      success: true,
+      date: dFormatted,
+      source: 'db',
+      count: dbMatches.length,
+      matches: dbMatches
+    }));
   }
 
   if (pathname === '/api/sync-2026-2027' || pathname === '/api/sync-data') {
