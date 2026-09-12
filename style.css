@@ -6192,9 +6192,9 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   margin: 24px auto;
   padding: 24px 28px;
   border-radius: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 10px 35px -5px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #181a1d;
+  box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.4);
 }
 
 .today-section-header {
@@ -6204,7 +6204,7 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   gap: 16px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-wrap: wrap;
 }
 
@@ -6238,7 +6238,7 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 .today-title-row h3 {
   font-size: 21px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   margin: 0;
   letter-spacing: -0.3px;
 }
@@ -6251,16 +6251,16 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   border-radius: 20px;
   font-size: 11px;
   font-weight: 800;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .today-subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: #9aa0a6;
   margin: 4px 0 0 0;
 }
 
@@ -6280,16 +6280,16 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   border-radius: 12px;
   font-size: 13px;
   font-weight: 700;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #475569;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #202124;
+  color: #9aa0a6;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .today-filter-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #2d3035;
+  color: #ffffff;
 }
 
 .today-filter-btn.active {
@@ -6325,9 +6325,9 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #475569;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #202124;
+  color: #9aa0a6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6337,14 +6337,14 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 }
 
 .today-refresh-btn:hover {
-  background: #eff6ff;
-  color: #2563eb;
-  border-color: #bfdbfe;
+  background: #2d3035;
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.4);
   transform: rotate(180deg);
 }
 
 .today-section-body {
-  max-height: 560px;
+  max-height: 600px;
   overflow-y: auto;
   padding-right: 6px;
   overscroll-behavior: contain;
@@ -6354,15 +6354,15 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   width: 6px;
 }
 .today-section-body::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #1f2124;
   border-radius: 4px;
 }
 .today-section-body::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #3c4043;
   border-radius: 4px;
 }
 .today-section-body::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #5f6368;
 }
 
 .today-competition-group {
@@ -6374,13 +6374,13 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
-  background: #f1f5f9;
-  border-left: 4px solid #2563eb;
+  background: #202124;
+  border-left: 4px solid #3b82f6;
   border-radius: 8px;
   margin-bottom: 12px;
   font-size: 13px;
   font-weight: 800;
-  color: #1e293b;
+  color: #e8eaed;
   letter-spacing: 0.2px;
 }
 
@@ -6389,135 +6389,214 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   height: 22px;
   object-fit: contain;
 }
-
+/* ==========================================================
+   GOOGLE-STYLE DARK SPORTS MATCH CARD (USER SPECIFIED)
+   ========================================================== */
 .today-matches-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
 }
 
-.today-match-card {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-}
-
-.today-match-card:hover {
-  border-color: #93c5fd;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
-}
-
-.today-match-card.is-live {
-  border-color: rgba(239, 68, 68, 0.5);
-  background: linear-gradient(135deg, #ffffff, rgba(254, 242, 242, 0.5));
-}
-
-.today-team {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.today-team.home-team {
-  justify-content: flex-end;
-  text-align: right;
-}
-
-.today-team.away-team {
-  justify-content: flex-start;
-  text-align: left;
-}
-
-.today-team-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1e293b;
+.google-match-card {
+  background: #1f2124;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 110px;
+  color: #e8eaed;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.today-team-crest {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  flex-shrink: 0;
+.google-match-card:hover {
+  border-color: rgba(96, 165, 250, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
 }
 
-.today-score-box {
+.google-match-card.is-live {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
+}
+
+/* 1. Header Title: "Fenerbahçe - Beşiktaş" */
+.g-match-title {
+  padding: 16px 20px 8px 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+}
+
+/* 2. Subtitle Meta: "Süper Lig · 5/9 Cmt"  --  "Maç sonu" */
+.g-match-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 14px 20px;
+  font-size: 13px;
+  color: #9aa0a6;
+  font-weight: 500;
+}
+
+.g-meta-status {
+  font-weight: 600;
+  color: #9aa0a6;
+}
+
+.g-meta-status.is-live {
+  color: #f87171;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.g-meta-status.is-finished {
+  color: #9aa0a6;
+}
+
+/* 3. Scoreboard Grid */
+.g-scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 6px 20px 18px 20px;
+  gap: 12px;
+}
+
+.g-team-col {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.g-team-crest-wrap {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  min-width: 84px;
-  padding: 4px 8px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
 }
 
-.today-score-val {
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: 2px;
+.g-team-crest {
+  max-width: 52px;
+  max-height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
 }
 
-.today-status-badge {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  border-radius: 4px;
-  padding: 2px 6px;
-  margin-top: 2px;
+.g-team-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8eaed;
+  max-width: 125px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.status-live {
-  background: #fee2e2;
-  color: #dc2626;
-  animation: pulse-dot 1.5s infinite;
+.g-score-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
-.status-upcoming {
-  background: #f1f5f9;
-  color: #475569;
+.g-score-val {
+  font-size: 34px;
+  font-weight: 700;
+  color: #ffffff;
+  min-width: 26px;
+  text-align: center;
+  line-height: 1;
 }
 
-.status-finished {
-  background: #e2e8f0;
-  color: #334155;
+.g-score-dash {
+  font-size: 26px;
+  font-weight: 400;
+  color: #5f6368;
 }
 
-.today-analyze-btn {
+/* 4. Events / Half-time Row with soccer ball in the middle */
+.g-events-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: #9aa0a6;
+  min-height: 38px;
+}
+
+.g-events-left {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.g-events-ball {
+  padding: 0 12px;
+  color: #9aa0a6;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.g-events-right {
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 5. Bottom Action Row */
+.g-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  margin-top: auto;
+}
+
+.g-footer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #9aa0a6;
+  font-weight: 500;
+}
+
+.g-analyze-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #fff;
+  padding: 7px 15px;
+  border-radius: 20px;
+  background: #2563eb;
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  white-space: nowrap;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
-.today-analyze-btn:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
-  transform: scale(1.04);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+.g-analyze-btn:hover {
+  background: #1d4ed8;
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
 }
 
 .today-loading-state, .today-empty-state {
@@ -6540,24 +6619,30 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   .today-matches-grid {
     grid-template-columns: 1fr;
   }
-  .today-match-card {
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: auto auto;
-    row-gap: 10px;
-    padding: 12px;
+  .g-match-title {
+    font-size: 16px;
+    padding: 14px 16px 8px 16px;
   }
-  .today-analyze-btn {
-    grid-column: 1 / -1;
-    justify-content: center;
-    width: 100%;
+  .g-match-meta {
+    padding: 0 16px 12px 16px;
+    font-size: 12px;
   }
-  .today-team-name {
-    font-size: 13px;
-    max-width: 95px;
+  .g-scoreboard {
+    padding: 4px 16px 14px 16px;
   }
-  .today-team-crest {
-    width: 24px;
-    height: 24px;
+  .g-team-crest-wrap {
+    width: 44px;
+    height: 44px;
+  }
+  .g-team-crest {
+    max-width: 44px;
+    max-height: 44px;
+  }
+  .g-score-val {
+    font-size: 28px;
+  }
+  .g-card-footer {
+    padding: 10px 16px;
   }
 }
 

@@ -3260,6 +3260,20 @@ document.addEventListener("DOMContentLoaded", () => {
       grouped[compName].matches.push(m);
     });
 
+    function formatGoogleMatchDate(utcDateStr) {
+      if (!utcDateStr) return '';
+      try {
+        const d = new Date(utcDateStr);
+        const day = d.getDate();
+        const month = d.getMonth() + 1;
+        const daysTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+        const dayName = daysTr[d.getDay()];
+        return `${day}/${month} ${dayName}`;
+      } catch (_) {
+        return '';
+      }
+    }
+
     todayMatchesList.innerHTML = "";
 
     Object.values(grouped).forEach(grp => {
@@ -3284,9 +3298,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const card = document.createElement("div");
         const isLive = ['IN_PLAY', 'PAUSED'].includes(m.status);
         const isFinished = ['FINISHED', 'AWARDED'].includes(m.status);
-        card.className = `today-match-card ${isLive ? 'is-live' : ''}`;
+        card.className = `google-match-card ${isLive ? 'is-live' : ''}`;
 
-        // Format match time / date
+        // Format date and time
+        const dateFormatted = formatGoogleMatchDate(m.utcDate);
         let matchTime = '';
         if (m.utcDate) {
           try {
@@ -3295,45 +3310,96 @@ document.addEventListener("DOMContentLoaded", () => {
           } catch (_) { matchTime = ''; }
         }
 
-        // Status badge & score
-        let statusHtml = '';
-        let scoreHtml = '';
+        // Status text (matching Google sports style)
+        let statusText = '';
+        let statusClass = '';
+        let homeScore = '-';
+        let awayScore = '-';
+        let eventsHome = '';
+        let eventsAway = '';
+
         if (isLive) {
-          statusHtml = `<span class="today-status-badge status-live">🔴 CANLI</span>`;
-          scoreHtml = `<span class="today-score-val" style="color:#dc2626;">${m.score?.fullTime?.home ?? 0} - ${m.score?.fullTime?.away ?? 0}</span>`;
+          statusText = '🔴 Canlı' + (m.minute ? ` ${m.minute}'` : '');
+          statusClass = 'is-live';
+          homeScore = m.score?.fullTime?.home ?? 0;
+          awayScore = m.score?.fullTime?.away ?? 0;
+          eventsHome = (m.score?.halfTime?.home !== null && m.score?.halfTime?.home !== undefined) ? `İlk yarı: ${m.score.halfTime.home}` : 'Canlı Veri';
+          eventsAway = (m.score?.halfTime?.away !== null && m.score?.halfTime?.away !== undefined) ? `İlk yarı: ${m.score.halfTime.away}` : 'Canlı Veri';
         } else if (isFinished) {
-          statusHtml = `<span class="today-status-badge status-finished">BİTTİ</span>`;
-          scoreHtml = `<span class="today-score-val">${m.score?.fullTime?.home ?? 0} - ${m.score?.fullTime?.away ?? 0}</span>`;
+          statusText = 'Maç sonu';
+          statusClass = 'is-finished';
+          homeScore = m.score?.fullTime?.home ?? 0;
+          awayScore = m.score?.fullTime?.away ?? 0;
+          eventsHome = (m.score?.halfTime?.home !== null && m.score?.halfTime?.home !== undefined) ? `İlk yarı: ${m.score.halfTime.home}` : '';
+          eventsAway = (m.score?.halfTime?.away !== null && m.score?.halfTime?.away !== undefined) ? `İlk yarı: ${m.score.halfTime.away}` : '';
         } else {
-          statusHtml = `<span class="today-status-badge status-upcoming">${matchTime || 'YAKINDA'}</span>`;
-          scoreHtml = `<span class="today-score-val" style="color:#64748b;font-size:13px;">VS</span>`;
+          statusText = matchTime || 'Yakında';
+          statusClass = 'is-upcoming';
+          eventsHome = `Başlama: ${matchTime || 'Bugün'}`;
+          eventsAway = 'Tahmin Analizi Hazır';
         }
 
         const homeName = m.homeTeam?.name || 'Ev Sahibi';
         const awayName = m.awayTeam?.name || 'Deplasman';
         const homeCrest = m.homeTeam?.crest || '';
         const awayCrest = m.awayTeam?.crest || '';
+        const leagueName = grp.competition?.name || 'Lig';
 
         card.innerHTML = `
-          <div class="today-team home-team">
-            <span class="today-team-name">${homeName}</span>
-            ${homeCrest ? `<img src="${homeCrest}" alt="${homeName}" class="today-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+          <!-- 1. Header Title -->
+          <div class="g-match-title">${homeName} - ${awayName}</div>
+
+          <!-- 2. Meta Line: League · Date / Day  --  Status -->
+          <div class="g-match-meta">
+            <span class="g-meta-league">${leagueName} · ${dateFormatted}</span>
+            <span class="g-meta-status ${statusClass}">${statusText}</span>
           </div>
-          <div class="today-score-box">
-            ${scoreHtml}
-            ${statusHtml}
+
+          <!-- 3. Scoreboard: Team Crests & Big Numbers -->
+          <div class="g-scoreboard">
+            <div class="g-team-col g-home-col">
+              <div class="g-team-crest-wrap">
+                ${homeCrest ? `<img src="${homeCrest}" alt="${homeName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+              </div>
+              <span class="g-team-name" title="${homeName}">${homeName}</span>
+            </div>
+
+            <div class="g-score-box">
+              <span class="g-score-val">${homeScore}</span>
+              <span class="g-score-dash">-</span>
+              <span class="g-score-val">${awayScore}</span>
+            </div>
+
+            <div class="g-team-col g-away-col">
+              <div class="g-team-crest-wrap">
+                ${awayCrest ? `<img src="${awayCrest}" alt="${awayName}" class="g-team-crest" onerror="this.style.visibility='hidden';">` : ''}
+              </div>
+              <span class="g-team-name" title="${awayName}">${awayName}</span>
+            </div>
           </div>
-          <div class="today-team away-team">
-            ${awayCrest ? `<img src="${awayCrest}" alt="${awayName}" class="today-team-crest" onerror="this.style.visibility='hidden';">` : ''}
-            <span class="today-team-name">${awayName}</span>
+
+          <!-- 4. Events / Half-time Row with Soccer Ball in Middle -->
+          <div class="g-events-row">
+            <span class="g-events-left">${eventsHome}</span>
+            <span class="g-events-ball"><i class="fa-solid fa-futbol"></i></span>
+            <span class="g-events-right">${eventsAway}</span>
           </div>
-          <button type="button" class="today-analyze-btn" title="Bu maçı analiz et">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Analiz Et
-          </button>
+
+          <!-- 5. Card Footer: Quick AI Analysis Action -->
+          <div class="g-card-footer">
+            <div class="g-footer-label">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color: #60a5fa;"></i>
+              <span>Yapay zeka & oran analizi</span>
+            </div>
+            <button type="button" class="g-analyze-btn" title="Bu maçı analiz et">
+              <span>Hemen Analiz Et</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
         `;
 
         // Handle "Analiz Et" click
-        const analyzeBtn = card.querySelector(".today-analyze-btn");
+        const analyzeBtn = card.querySelector(".g-analyze-btn");
         analyzeBtn.addEventListener("click", () => {
           handleAutoSelectMatch(m);
         });
