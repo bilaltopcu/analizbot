@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golanaliz-v79';
+const CACHE_NAME = 'golanaliz-v80';
 
 const ASSETS_TO_CACHE = [
   './',

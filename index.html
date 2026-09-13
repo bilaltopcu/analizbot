@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=4.5.5">
+  <link rel="stylesheet" href="style.css?v=4.6.0">
 </head>
 <body>
 
@@ -194,6 +194,59 @@
           <i class="fa-solid fa-calendar-plus"></i>
           <span class="calendar-btn-text">Haftaya</span>
         </button>
+      </div>
+
+      <!-- ═══ GÜNÜN AI HAZIR KUPONLARI (AI EXPRESS SLIPS) ═══ -->
+      <div class="ai-slips-container" id="aiSlipsContainer">
+        <div class="ai-slips-header">
+          <div class="ai-slips-title-box">
+            <div class="ai-slips-title-row">
+              <span class="ai-slips-engine-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> DIXON-COLES 6.0</span>
+              <h4 class="ai-slips-main-title">🎯 Günün AI Hazır Kuponları</h4>
+            </div>
+            <p class="ai-slips-subtitle">Seçili günün maçlarından optimize edilmiş yüksek olasılıklı 3 yapay zeka kombinesi</p>
+          </div>
+          <button type="button" class="ai-slips-toggle-btn" id="btnToggleAiSlips" title="Kuponları Gizle / Göster">
+            <i class="fa-solid fa-chevron-up" id="iconToggleAiSlips"></i>
+          </button>
+        </div>
+        <div class="ai-slips-grid" id="aiSlipsGrid">
+          <div class="ai-slips-loading">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Günün AI hazır kuponları hesaplanıyor...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ AI BAHİS RADARI (SMART FILTER BAR) ═══ -->
+      <div class="ai-radar-container" id="aiRadarContainer">
+        <div class="ai-radar-header">
+          <div class="radar-label"><i class="fa-solid fa-crosshairs"></i> AI Bahis Radarı:</div>
+          <span class="radar-hint">İstediğin bahis türüne göre maçları anında filtrele</span>
+        </div>
+        <div class="radar-pills-strip" id="radarPillsStrip">
+          <button type="button" class="radar-pill-btn active" data-radar="all">
+            <i class="fa-solid fa-border-all"></i> Tümü
+          </button>
+          <button type="button" class="radar-pill-btn" data-radar="over25">
+            <i class="fa-solid fa-fire-flame-curved"></i> 2.5 Gol Üstü
+          </button>
+          <button type="button" class="radar-pill-btn" data-radar="btts">
+            <i class="fa-solid fa-arrows-split-up-and-left"></i> KG Var
+          </button>
+          <button type="button" class="radar-pill-btn" data-radar="corners">
+            <i class="fa-solid fa-flag"></i> Korner Baskısı (9.5+)
+          </button>
+          <button type="button" class="radar-pill-btn" data-radar="cards">
+            <i class="fa-solid fa-clone"></i> Kart Gerilimi (4.5+)
+          </button>
+          <button type="button" class="radar-pill-btn" data-radar="favorites">
+            <i class="fa-solid fa-shield"></i> Ezici Favoriler
+          </button>
+          <button type="button" class="radar-pill-btn" data-radar="value">
+            <i class="fa-solid fa-bolt"></i> Değer Bahisleri (+EV)
+          </button>
+        </div>
       </div>
 
       <!-- Filter Tabs -->
@@ -842,7 +895,7 @@
   <script src="performance_data.js"></script>
   <script src="prediction_tracker.js"></script>
   <script src="auth.js"></script>
-  <script src="app.js?v=4.4.4"></script>
+  <script src="app.js?v=4.6.0"></script>
   <script src="pwa.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
