@@ -144,6 +144,8 @@ def run():
         at_orig = m.get('awayTeam')
         if not ht_orig or not at_orig:
             continue
+        if m.get('status') == 'SCHEDULED' or m.get('fthg') is None:
+            continue
 
         ht = canonical_teams.get(ht_orig, ht_orig)
         at = canonical_teams.get(at_orig, at_orig)

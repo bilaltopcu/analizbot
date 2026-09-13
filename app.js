@@ -3748,7 +3748,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const centerDate = parseCustomDate(selectedMatchDate);
     const pillDates = [];
-    for (let offset = -4; offset <= 4; offset++) {
+    // Genişletilmiş dinamik tarih şeridi: Gelecek haftayı doğrudan görünür kıl (-3 gün geçmiş, +11 gün gelecek)
+    for (let offset = -3; offset <= 11; offset++) {
       const pillD = new Date(centerDate.getFullYear(), centerDate.getMonth(), centerDate.getDate() + offset);
       pillDates.push(pillD);
     }
@@ -3843,6 +3844,17 @@ document.addEventListener("DOMContentLoaded", () => {
           loadMatchesForDate(selectedMatchDate);
         }
       }
+    });
+  }
+
+  const btnJumpNextWeek = document.getElementById("btnJumpNextWeek");
+  if (btnJumpNextWeek) {
+    btnJumpNextWeek.addEventListener("click", () => {
+      const d = parseCustomDate(selectedMatchDate);
+      d.setDate(d.getDate() + 7);
+      selectedMatchDate = formatDateDDMMYYYY(d);
+      renderDatePills();
+      loadMatchesForDate(selectedMatchDate);
     });
   }
 

@@ -38,12 +38,15 @@ const MAX_CACHE_SIZE = 300;
 
 // Matches by Date in-memory index
 let matchesByDateCache = null;
+let matchesByDateMtime = 0;
 function getMatchesByDate(dateStr) {
-  if (!matchesByDateCache) {
-    matchesByDateCache = new Map();
-    const jsonPath = path.join(__dirname, 'matches_2026_2027.json');
-    if (fs.existsSync(jsonPath)) {
-      try {
+  const jsonPath = path.join(__dirname, 'matches_2026_2027.json');
+  if (fs.existsSync(jsonPath)) {
+    try {
+      const stat = fs.statSync(jsonPath);
+      if (!matchesByDateCache || stat.mtimeMs !== matchesByDateMtime) {
+        matchesByDateCache = new Map();
+        matchesByDateMtime = stat.mtimeMs;
         const raw = fs.readFileSync(jsonPath, 'utf8');
         const allMatches = JSON.parse(raw);
         allMatches.forEach(m => {
@@ -55,10 +58,10 @@ function getMatchesByDate(dateStr) {
             matchesByDateCache.get(d).push(m);
           }
         });
-        console.log(`[Matches DB Indexed] Loaded ${matchesByDateCache.size} unique dates.`);
-      } catch (e) {
-        console.error('[Matches DB Index Error]', e.message);
+        console.log(`[Matches DB Indexed] Loaded ${matchesByDateCache.size} unique dates (${allMatches.length} matches).`);
       }
+    } catch (e) {
+      console.error('[Matches DB Index Error]', e.message);
     }
   }
   return matchesByDateCache ? (matchesByDateCache.get(dateStr) || []) : [];
@@ -135,12 +138,13 @@ function fetchFootballDataOrgForDate(apiKey, isoDateStr) {
             reject(new Error('JSON parse error: ' + e.message));
           }
         } else {
-          // If rate limited (429) or error, fallback to expired cache if available
+          // If rate limited (429) or error, fallback to expired cache or empty array (to let DB matches serve)
           if (cached && cached.data) {
             console.warn(`[Football-Data.org API] Status ${res.statusCode}, serving cached data for ${targetISO}`);
             return resolve(cached.data);
           }
-          reject(new Error(`Football-Data.org status ${res.statusCode}: ${data.slice(0, 100)}`));
+          console.warn(`[Football-Data.org API] Status ${res.statusCode} for ${targetISO}, resolving empty to fallback to DB`);
+          resolve({ matches: [] });
         }
       });
     });
@@ -148,12 +152,12 @@ function fetchFootballDataOrgForDate(apiKey, isoDateStr) {
     req.on('timeout', () => {
       req.destroy();
       if (cached && cached.data) return resolve(cached.data);
-      reject(new Error('Football-Data.org timeout'));
+      resolve({ matches: [] });
     });
 
     req.on('error', (err) => {
       if (cached && cached.data) return resolve(cached.data);
-      reject(err);
+      resolve({ matches: [] });
     });
 
     req.end();
