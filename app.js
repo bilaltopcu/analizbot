@@ -3122,6 +3122,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedMatchDate = ANCHOR_TODAY_DATE;
   let currentTodayFilter = "all";
   let todayMatchesData = [];
+  const aiSlipsContainer = document.getElementById("aiSlipsContainer");
+  const aiSlipsGrid = document.getElementById("aiSlipsGrid");
+  const btnLoadAiSlips = document.getElementById("btnLoadAiSlips");
+  const btnLoadAiSlipsText = document.getElementById("btnLoadAiSlipsText");
+  const matchQuickStatsCache = new Map();
+  let aiDailySlips = [];
   let cachedDbFullData = null;
   const clientDateMatchesCache = new Map();
 
@@ -4083,7 +4089,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      matchQuickStatsCache.clear();
       todayMatchesData = (rawMatches || []).map(m => normalizeMatchItem(m, targetDateStr));
+      if (aiSlipsGrid && !aiSlipsGrid.classList.contains("hidden")) {
+        generateAndRenderDailySlips(todayMatchesData);
+      }
       renderTodayMatches(todayMatchesData, currentTodayFilter);
       updateTodayMatchesBadge(todayMatchesData);
     } catch (err) {
@@ -4497,6 +4507,397 @@ document.addEventListener("DOMContentLoaded", () => {
 
       todayMatchesList.appendChild(cardEl);
     });
+  }
+
+
+  // =============================================
+  // AI Günün Hazır Kuponları Motoru (Dixon-Coles)
+  // =============================================
+  function evaluateMatchQuickStats(m) {
+    if (!m) return null;
+    const cacheKey = m.id || `${m.homeName}_${m.awayName}_${m.time || ''}`;
+    if (matchQuickStatsCache.has(cacheKey)) {
+      return matchQuickStatsCache.get(cacheKey);
+    }
+
+    let countryCode = m.countryCode;
+    if (!countryCode && m.competitionCode) countryCode = COMP_TO_COUNTRY[m.competitionCode] || 'TR';
+    if (!countryCode) countryCode = 'TR';
+
+    const resolvedHome = resolveTeamMatch(m.homeName, countryCode) || m.homeName;
+    const resolvedAway = resolveTeamMatch(m.awayName, countryCode) || m.awayName;
+
+    let homeProf = null;
+    let awayProf = null;
+    try {
+      if (typeof generateTeamProfile === 'function') {
+        homeProf = generateTeamProfile(resolvedHome, countryCode);
+        awayProf = generateTeamProfile(resolvedAway, countryCode);
+      }
+    } catch (_) {}
+
+    const h = homeProf?.stats || {};
+    const a = awayProf?.stats || {};
+
+    // 1. Gol İhtimalleri (2.5 Üst & KG Var)
+    let pOver25 = 52;
+    let pBTTS = 50;
+    const hO25 = h.over25Pct;
+    const aO25 = a.over25Pct;
+    if (hO25 !== null && hO25 !== undefined && aO25 !== null && aO25 !== undefined) {
+      pOver25 = Math.round((hO25 + aO25) / 2);
+    } else if (hO25 !== null && hO25 !== undefined) {
+      pOver25 = Math.round(hO25);
+    } else if (aO25 !== null && aO25 !== undefined) {
+      pOver25 = Math.round(aO25);
+    }
+
+    const hBtts = h.bttsPct;
+    const aBtts = a.bttsPct;
+    if (hBtts !== null && hBtts !== undefined && aBtts !== null && aBtts !== undefined) {
+      pBTTS = Math.round((hBtts + aBtts) / 2);
+    } else if (hBtts !== null && hBtts !== undefined) {
+      pBTTS = Math.round(hBtts);
+    } else if (aBtts !== null && aBtts !== undefined) {
+      pBTTS = Math.round(aBtts);
+    }
+
+    // 2. Korner & Kart Beklentisi
+    const hCorners = parseFloat(h.avgCorners) || 4.8;
+    const aCorners = parseFloat(a.avgCorners) || 4.5;
+    const expCorners = parseFloat((hCorners + aCorners).toFixed(1));
+
+    const hCards = parseFloat(h.avgYellowCards) || 2.0;
+    const aCards = parseFloat(a.avgYellowCards) || 2.1;
+    const expCards = parseFloat((hCards + aCards).toFixed(1));
+
+    // 3. Taraf Galibiyet İhtimali
+    let pHomeWin = 42;
+    let pAwayWin = 30;
+    let pDraw = 28;
+
+    const b365h = parseFloat(m.b365h || m.raw?.b365h || 0);
+    const b365d = parseFloat(m.b365d || m.raw?.b365d || 0);
+    const b365a = parseFloat(m.b365a || m.raw?.b365a || 0);
+
+    if (b365h > 1.05 && b365a > 1.05) {
+      const invH = 1 / b365h;
+      const invD = 1 / (b365d || 3.4);
+      const invA = 1 / b365a;
+      const sumInv = invH + invD + invA;
+      pHomeWin = Math.round((invH / sumInv) * 100);
+      pDraw = Math.round((invD / sumInv) * 100);
+      pAwayWin = 100 - pHomeWin - pDraw;
+    } else if (h.winPct !== null && h.winPct !== undefined && a.winPct !== null && a.winPct !== undefined) {
+      const diff = (h.winPct - a.winPct);
+      pHomeWin = Math.min(85, Math.max(15, Math.round(40 + diff * 0.45 + 5)));
+      pAwayWin = Math.min(85, Math.max(15, Math.round(30 - diff * 0.35)));
+      pDraw = Math.max(10, 100 - pHomeWin - pAwayWin);
+    }
+
+    // 4. Best Pick & Value Rating
+    let bestPick = null;
+    let valueScore = 50;
+
+    if (pHomeWin >= 65) {
+      const odds = b365h > 1.05 ? b365h : parseFloat(Math.max(1.30, Math.min(1.85, (100 / pHomeWin) * 0.94)).toFixed(2));
+      bestPick = {
+        category: 'taraf',
+        betTitle: `MS 1 (${resolvedHome.toUpperCase()})`,
+        shortTitle: 'MS 1',
+        pct: pHomeWin,
+        odds,
+        reason: `${resolvedHome} iç saha form avantajıyla net favori.`
+      };
+      valueScore = pHomeWin >= 72 ? 88 : 74;
+    } else if (pAwayWin >= 60) {
+      const odds = b365a > 1.05 ? b365a : parseFloat(Math.max(1.45, Math.min(2.10, (100 / pAwayWin) * 0.94)).toFixed(2));
+      bestPick = {
+        category: 'taraf',
+        betTitle: `MS 2 (${resolvedAway.toUpperCase()})`,
+        shortTitle: 'MS 2',
+        pct: pAwayWin,
+        odds,
+        reason: `${resolvedAway} deplasman performansı ile öne çıkıyor.`
+      };
+      valueScore = 80;
+    } else if (pOver25 >= 62) {
+      const odds = parseFloat(Math.max(1.52, Math.min(2.05, (100 / pOver25) * 0.94)).toFixed(2));
+      bestPick = {
+        category: 'gol',
+        betTitle: '2.5 GOL ÜSTÜ',
+        shortTitle: '2.5 ÜST',
+        pct: pOver25,
+        odds,
+        reason: 'Hücum istatistikleri ve gol beklentisi yüksek tempo işaret ediyor.'
+      };
+      valueScore = pOver25 >= 68 ? 85 : 72;
+    } else if (pBTTS >= 62) {
+      const odds = parseFloat(Math.max(1.58, Math.min(2.00, (100 / pBTTS) * 0.94)).toFixed(2));
+      bestPick = {
+        category: 'gol',
+        betTitle: 'KARŞILIKLI GOL VAR',
+        shortTitle: 'KG VAR',
+        pct: pBTTS,
+        odds,
+        reason: 'Her iki takımın da skor üretme ve gol yeme eğilimi yüksek.'
+      };
+      valueScore = 75;
+    } else if (expCorners >= 9.8) {
+      bestPick = {
+        category: 'korner',
+        betTitle: '9.5 KORNER ÜST',
+        shortTitle: '9.5 KORNER ÜST',
+        pct: 74,
+        odds: 1.76,
+        reason: `İki takımın toplam korner beklentisi ${expCorners} ile barajın üzerinde.`
+      };
+      valueScore = 78;
+    } else if (expCards >= 4.6) {
+      bestPick = {
+        category: 'kart',
+        betTitle: '4.5 SARI KART ÜST',
+        shortTitle: '4.5 KART ÜST',
+        pct: 72,
+        odds: 1.82,
+        reason: `Karşılaşmanın sert geçmesi bekleniyor (Beklenen kart: ${expCards}).`
+      };
+      valueScore = 76;
+    } else if (pHomeWin >= 50) {
+      bestPick = {
+        category: 'taraf',
+        betTitle: `ÇİFTE ŞANS 1-X`,
+        shortTitle: '1-X ÇŞ',
+        pct: Math.min(90, pHomeWin + pDraw),
+        odds: 1.34,
+        reason: `${resolvedHome} sahasında yenilgiye geçit vermeyecek dengede.`
+      };
+      valueScore = 65;
+    } else {
+      bestPick = {
+        category: 'gol',
+        betTitle: '1.5 GOL ÜSTÜ',
+        shortTitle: '1.5 ÜST',
+        pct: 78,
+        odds: 1.32,
+        reason: 'Karşılaşmada en az 2 gol çıkma ihtimali oldukça yüksek.'
+      };
+      valueScore = 62;
+    }
+
+    const res = {
+      match: m,
+      homeName: resolvedHome,
+      awayName: resolvedAway,
+      leagueName: m.leagueName || 'Lig',
+      countryCode,
+      time: m.time || '17:00',
+      pOver25,
+      pBTTS,
+      pHomeWin,
+      pAwayWin,
+      pDraw,
+      expCorners,
+      expCards,
+      bestPick,
+      valueScore
+    };
+
+    matchQuickStatsCache.set(cacheKey, res);
+    return res;
+  }
+
+  function generateAndRenderDailySlips(matches) {
+    if (!aiSlipsGrid) return;
+
+    if (!matches || matches.length === 0) {
+      aiSlipsGrid.innerHTML = `
+        <div class="ai-slips-loading" style="color:#94a3b8;">
+          <i class="fa-regular fa-calendar-xmark" style="font-size:20px;"></i>
+          <span>${selectedMatchDate} tarihinde hazır kupon oluşturmak için karşılaşma bulunamadı.</span>
+        </div>
+      `;
+      return;
+    }
+
+    const evaluations = matches
+      .map(m => evaluateMatchQuickStats(m))
+      .filter(ev => ev && ev.bestPick);
+
+    if (evaluations.length === 0) {
+      aiSlipsGrid.innerHTML = `
+        <div class="ai-slips-loading" style="color:#94a3b8;">
+          <span>Günün maçları için hazır kupon derlenemedi.</span>
+        </div>
+      `;
+      return;
+    }
+
+    // 1. Banko Kupon (2 Maç - Güven Odaklı)
+    const bankoCandidates = [...evaluations].sort((a, b) => b.bestPick.pct - a.bestPick.pct);
+    const bankoMatches = bankoCandidates.slice(0, Math.min(2, bankoCandidates.length));
+    const bankoTotalOdds = bankoMatches.reduce((acc, x) => acc * (x.bestPick.odds || 1.4), 1).toFixed(2);
+    const bankoAvgPct = Math.round(bankoMatches.reduce((acc, x) => acc + x.bestPick.pct, 0) / (bankoMatches.length || 1));
+
+    // 2. İdeal Kombine (3 Maç - Dengeli Değer)
+    const bankoIds = new Set(bankoMatches.map(x => x.match.id));
+    const idealCandidates = [...evaluations].filter(x => !bankoIds.has(x.match.id)).sort((a, b) => b.valueScore - a.valueScore);
+    let idealMatches = idealCandidates.slice(0, 3);
+    if (idealMatches.length < 2) {
+      idealMatches = evaluations.slice(0, Math.min(3, evaluations.length));
+    }
+    const idealTotalOdds = idealMatches.reduce((acc, x) => acc * (x.bestPick.odds || 1.6), 1).toFixed(2);
+    const idealAvgPct = Math.round(idealMatches.reduce((acc, x) => acc + x.bestPick.pct, 0) / (idealMatches.length || 1));
+
+    // 3. Sürpriz / Değer Kuponu (+EV - Yüksek Oran)
+    const surprizCandidates = [...evaluations].sort((a, b) => (b.bestPick.odds || 1) - (a.bestPick.odds || 1));
+    let surprizMatches = surprizCandidates.slice(0, Math.min(3, surprizCandidates.length));
+    const surprizTotalOdds = surprizMatches.reduce((acc, x) => acc * (x.bestPick.odds || 1.8), 1).toFixed(2);
+    const surprizAvgPct = Math.round(surprizMatches.reduce((acc, x) => acc + x.bestPick.pct, 0) / (surprizMatches.length || 1));
+
+    const slips = [
+      {
+        type: 'banko',
+        title: 'Günün Bankosu',
+        badgeClass: 'slip-badge-banko',
+        cardClass: 'slip-card-banko',
+        btnClass: 'btn-apply-banko',
+        icon: 'fa-solid fa-shield-halved',
+        totalOdds: bankoTotalOdds,
+        avgPct: bankoAvgPct,
+        matches: bankoMatches
+      },
+      {
+        type: 'ideal',
+        title: 'İdeal Kombine',
+        badgeClass: 'slip-badge-ideal',
+        cardClass: 'slip-card-ideal',
+        btnClass: 'btn-apply-ideal',
+        icon: 'fa-solid fa-bolt',
+        totalOdds: idealTotalOdds,
+        avgPct: idealAvgPct,
+        matches: idealMatches
+      },
+      {
+        type: 'surpriz',
+        title: 'Sürpriz / +EV',
+        badgeClass: 'slip-badge-surpriz',
+        cardClass: 'slip-card-surpriz',
+        btnClass: 'btn-apply-surpriz',
+        icon: 'fa-solid fa-fire',
+        totalOdds: surprizTotalOdds,
+        avgPct: surprizAvgPct,
+        matches: surprizMatches
+      }
+    ];
+
+    aiDailySlips = slips;
+
+    aiSlipsGrid.innerHTML = slips.map(slip => `
+      <div class="ai-slip-card ${slip.cardClass}" data-slip-type="${slip.type}">
+        <div>
+          <div class="slip-top-bar">
+            <span class="slip-badge ${slip.badgeClass}">
+              <i class="${slip.icon}"></i> ${slip.title}
+            </span>
+            <div class="slip-meta-stats">
+              <span class="slip-odds-pill" title="Kombine Toplam Oran">Oran: ${slip.totalOdds}</span>
+              <span class="slip-conf-pill" title="Ortalama Güven">Güven: %${slip.avgPct}</span>
+            </div>
+          </div>
+
+          <div class="slip-matches-list">
+            ${slip.matches.map(item => `
+              <div class="slip-match-row" data-match-id="${item.match.id}">
+                <div class="slip-match-top">
+                  <span class="slip-match-teams" title="${item.homeName} vs ${item.awayName}">
+                    ${item.homeName} - ${item.awayName}
+                  </span>
+                  <span class="slip-match-league">${item.leagueName}</span>
+                </div>
+                <div class="slip-match-bottom">
+                  <span class="slip-bet-tag"><i class="fa-solid fa-check"></i> ${item.bestPick.shortTitle || item.bestPick.betTitle}</span>
+                  <div class="slip-match-actions">
+                    <span class="slip-odd-val">@${item.bestPick.odds ? item.bestPick.odds.toFixed(2) : '1.60'}</span>
+                    <button type="button" class="btn-slip-analyze-match" data-match-id="${item.match.id}" title="Bu Karşılaşmayı Detaylı Analiz Et">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <button type="button" class="btn-apply-slip-to-coupon ${slip.btnClass}" data-slip-type="${slip.type}">
+          <i class="fa-solid fa-plus-circle"></i> Bu Kuponu Panoma Aktar
+        </button>
+      </div>
+    `).join('');
+
+    // Attach listeners
+    aiSlipsGrid.querySelectorAll(".btn-apply-slip-to-coupon").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const type = btn.dataset.slipType;
+        const slip = slips.find(s => s.type === type);
+        if (slip) {
+          applySlipToCoupon(slip, btn);
+        }
+      });
+    });
+
+    aiSlipsGrid.querySelectorAll(".btn-slip-analyze-match").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const matchId = btn.dataset.matchId;
+        const found = matches.find(m => m.id === matchId);
+        if (found) {
+          handleAutoSelectMatch(found);
+        }
+      });
+    });
+  }
+
+  function applySlipToCoupon(slip, btn) {
+    if (!slip || !slip.matches) return;
+
+    let addedCount = 0;
+    slip.matches.forEach(item => {
+      const betName = `${item.homeName} - ${item.awayName}: ${item.bestPick.betTitle}`;
+      const exists = couponItems_data.some(c => c.name === betName);
+      if (!exists) {
+        couponItems_data.push({
+          name: betName,
+          pct: item.bestPick.pct,
+          category: item.bestPick.category,
+          odds: item.bestPick.odds || 1.60
+        });
+        addedCount++;
+      }
+    });
+
+    renderCouponPanel();
+
+    if (btn) {
+      btn.classList.add("is-applied");
+      btn.innerHTML = `<i class="fa-solid fa-check"></i> ${addedCount > 0 ? addedCount + ' Maç Panoya Eklendi!' : 'Kuponda Mevcut'}`;
+      setTimeout(() => {
+        btn.classList.remove("is-applied");
+        btn.innerHTML = `<i class="fa-solid fa-plus-circle"></i> Bu Kuponu Panoma Aktar`;
+      }, 2500);
+    }
+
+    if (couponPanel) {
+      couponPanel.classList.remove("hidden");
+      if (couponFloatBtn) couponFloatBtn.classList.add("hidden");
+      if (couponBody) couponBody.style.display = "block";
+      couponBodyOpen = true;
+      const chevron = document.getElementById("couponChevron");
+      if (chevron) chevron.className = "fa-solid fa-chevron-up";
+    }
+
+    showFormBadgeToast(`🎯 ${slip.title} kuponunuza aktarıldı!`);
   }
 
   function openMatchDetailModal(m) {
@@ -4915,6 +5316,21 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTodayMatches(todayMatchesData, currentTodayFilter);
     });
   });
+
+  // AI Slips (Kuponlar) Load / Toggle Button Listener in AI Analiz view
+  if (btnLoadAiSlips && aiSlipsGrid) {
+    btnLoadAiSlips.addEventListener("click", () => {
+      const isHidden = aiSlipsGrid.classList.contains("hidden");
+      if (isHidden) {
+        aiSlipsGrid.classList.remove("hidden");
+        if (btnLoadAiSlipsText) btnLoadAiSlipsText.textContent = "Kuponları Gizle";
+        generateAndRenderDailySlips(todayMatchesData);
+      } else {
+        aiSlipsGrid.classList.add("hidden");
+        if (btnLoadAiSlipsText) btnLoadAiSlipsText.textContent = "Kuponları Göster";
+      }
+    });
+  }
 
   // Render date pills strip and initial match load
   renderDatePills();

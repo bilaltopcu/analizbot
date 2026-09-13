@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=4.6.1">
+  <link rel="stylesheet" href="style.css?v=4.6.2">
 </head>
 <body>
 
@@ -231,6 +231,28 @@
       </button>
       <span class="view-analysis-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Analiz Motoru v6.0</span>
     </div>
+
+    <!-- ═══ GÜNÜN AI HAZIR KUPONLARI (AI EXPRESS SLIPS) ═══ -->
+    <section class="ai-slips-container glass-panel" id="aiSlipsContainer" style="margin-bottom: 20px;">
+      <div class="ai-slips-header">
+        <div class="ai-slips-title-box">
+          <div class="ai-slips-title-row">
+            <span class="ai-slips-engine-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> DIXON-COLES 6.0</span>
+            <h3 class="ai-slips-main-title">🎯 Günün AI Hazır Kuponları</h3>
+          </div>
+          <p class="ai-slips-subtitle">Günün karşılaşmalarından optimize edilmiş 3 yapay zeka hazır kuponu (Banko, İdeal, Sürpriz)</p>
+        </div>
+        <button type="button" class="btn-ai-glow" id="btnLoadAiSlips">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="btnLoadAiSlipsText">Kuponları Göster</span>
+        </button>
+      </div>
+      <div class="ai-slips-grid hidden" id="aiSlipsGrid">
+        <div class="ai-slips-loading">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <span>Günün AI hazır kuponları hesaplanıyor...</span>
+        </div>
+      </div>
+    </section>
 
     <!-- Main Hero / Selection Card -->
     <section class="selection-card glass-panel" id="selectionCardSection">
@@ -842,7 +864,7 @@
   <script src="performance_data.js"></script>
   <script src="prediction_tracker.js"></script>
   <script src="auth.js"></script>
-  <script src="app.js?v=4.6.1"></script>
+  <script src="app.js?v=4.6.2"></script>
   <script src="pwa.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
