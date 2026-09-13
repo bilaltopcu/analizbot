@@ -4451,13 +4451,25 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="m-team-label" title="${cleanAway}">${cleanAway}</span>
           </div>
 
-          <!-- 5. Right Actions (Star) -->
+          <!-- 5. Right Actions (AI + Star) -->
           <div class="m-cell-actions">
+            <button type="button" class="m-badge-ai" title="Yapay Zeka (AI) Analizine Aktar">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span class="m-ai-text">AI</span>
+            </button>
             <button type="button" class="m-btn-star ${isFav ? 'favorited' : ''}" title="Favorilere Ekle">
               <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star"></i>
             </button>
           </div>
         `;
+
+        const aiBtn = row.querySelector(".m-badge-ai");
+        if (aiBtn) {
+          aiBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            handleAutoSelectMatch(m);
+          });
+        }
 
         const starBtn = row.querySelector(".m-btn-star");
         if (starBtn) {

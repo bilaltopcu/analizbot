@@ -6452,7 +6452,7 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
 
 .mackolik-match-row {
   display: grid;
-  grid-template-columns: 50px minmax(0, 1fr) 28px minmax(0, 1fr) 30px;
+  grid-template-columns: 50px minmax(0, 1fr) 28px minmax(0, 1fr) 50px;
   align-items: center;
   min-height: 40px;
   padding: 0 12px;
@@ -6572,13 +6572,13 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   font-weight: 700;
 }
 
-/* 5. Action Icons (Star) */
+/* 5. Action Icons (AI + Star) */
 .m-cell-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 7px;
-  width: 30px;
+  width: 50px;
 }
 
 .m-badge-ai {
@@ -6993,7 +6993,7 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
     font-size: 15px;
   }
   .mackolik-match-row {
-    grid-template-columns: 46px minmax(0, 1fr) 26px minmax(0, 1fr) 26px;
+    grid-template-columns: 46px minmax(0, 1fr) 26px minmax(0, 1fr) 46px;
     min-height: 39px;
     padding: 0 8px;
     cursor: default;
@@ -7021,8 +7021,8 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
     font-weight: 600;
   }
   .m-cell-actions {
-    width: 26px;
-    gap: 0;
+    width: 46px;
+    gap: 5px;
   }
   .m-badge-ai {
     width: 20px;
