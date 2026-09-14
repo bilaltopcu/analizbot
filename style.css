@@ -9751,3 +9751,1084 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
     display: none;
   }
 }
+
+/* ============================================================
+   🔆 KONTRAST & OKUNURLANLIK DÜZELTMELERİ v5.1
+   Koyu arka plan üzerinde görünmez/az okunan tüm metinler
+   ============================================================ */
+
+/* ── MATCH BANNER — beyaz gradient kaldırıldı ── */
+.match-banner {
+  background: linear-gradient(135deg, rgba(0,212,170,0.06) 0%, var(--bg-card) 50%, rgba(59,130,246,0.06) 100%) !important;
+}
+
+/* ── STAT SATIRLARI — beyaz gradient kaldırıldı ── */
+.stat-row {
+  background: var(--bg-glass) !important;
+}
+.stat-row:nth-child(even) {
+  background: var(--bg-subtle) !important;
+}
+
+/* ── STAT PROGRESS TRACK — gri arka plan koyu ── */
+.stat-progress-track,
+.stat-progress-container {
+  background: rgba(255,255,255,0.07) !important;
+}
+.probability-bar-track {
+  background: rgba(255,255,255,0.07) !important;
+}
+
+/* ── AI RESULT CARD — açık gradient kaldırıldı ── */
+.ai-result-card {
+  background: linear-gradient(135deg, rgba(0,212,170,0.08) 0%, rgba(59,130,246,0.06) 100%) !important;
+  border-color: rgba(0,212,170,0.3) !important;
+}
+
+/* ── MAIN PREDICTION DISPLAY — yarı saydam beyaz kaldırıldı ── */
+.main-prediction-display {
+  background: rgba(0,212,170,0.05) !important;
+  border-top-color: rgba(0,212,170,0.2) !important;
+  border-bottom-color: rgba(0,212,170,0.2) !important;
+}
+
+/* ── SCORE PREDICTION — beyaz arka plan + koyu metin ── */
+.score-prediction {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass-bright) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+.score-prediction strong {
+  color: var(--accent-green) !important;
+}
+
+/* ── BEST PICK PILL — koyu sarı bg + çok koyu metin ── */
+.best-pick-pill {
+  background: rgba(251,191,36,0.12) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(251,191,36,0.3) !important;
+}
+
+/* ── LEAGUE TAG — açık mavi gradient ── */
+.league-tag {
+  background: rgba(59,130,246,0.15) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59,130,246,0.25) !important;
+}
+
+/* ── VS TEXT ── */
+.vs-text {
+  color: var(--accent-green) !important;
+}
+
+/* ── DROPDOWN OPTION HOVER — açık gri kaldırıldı ── */
+.dropdown-option-item:hover {
+  background: rgba(0,212,170,0.08) !important;
+}
+.country-option-item.active,
+.dropdown-option-item.selected {
+  background: rgba(0,212,170,0.12) !important;
+  border-left-color: var(--accent-green) !important;
+}
+
+/* ── OPTION BADGE — açık gri bg ── */
+.option-badge {
+  background: var(--bg-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ── BET CARD — beyaz arka plan ── */
+.bet-card {
+  background: var(--bg-glass) !important;
+}
+
+/* ── KATEGORİ ETİKETLERİ — açık bg + koyu metin ── */
+.cat-gol {
+  background: rgba(244,63,94,0.12) !important;
+  color: #fb7185 !important;
+  border-color: rgba(251,113,133,0.2) !important;
+}
+.cat-kart {
+  background: rgba(245,158,11,0.12) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(251,191,36,0.2) !important;
+}
+.cat-korner {
+  background: rgba(139,92,246,0.12) !important;
+  color: #c4b5fd !important;
+  border-color: rgba(196,181,253,0.2) !important;
+}
+.cat-taraf {
+  background: rgba(16,185,129,0.12) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(110,231,183,0.2) !important;
+}
+.cat-iyms {
+  background: rgba(59,130,246,0.12) !important;
+  color: #93c5fd !important;
+  border-color: rgba(147,197,253,0.2) !important;
+}
+
+/* ── MARKET TABS BG ── */
+.market-tabs {
+  background: var(--bg-subtle) !important;
+}
+.tab-btn {
+  color: var(--text-muted) !important;
+}
+.tab-btn.active {
+  background: var(--accent-green) !important;
+  color: #0a1220 !important;
+}
+
+/* ── REKLAM PROMO CONTAINER — açık gradient ── */
+.ad-promo-container {
+  background: linear-gradient(135deg, rgba(0,212,170,0.05) 0%, rgba(59,130,246,0.04) 100%) !important;
+}
+.ad-promo-title {
+  color: var(--text-primary) !important;
+}
+.ad-promo-badge {
+  background: rgba(0,212,170,0.1) !important;
+  color: var(--accent-green) !important;
+  border-color: rgba(0,212,170,0.2) !important;
+}
+.ad-promo-desc {
+  color: var(--text-secondary) !important;
+}
+.ad-slot-native-strip {
+  background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(0,212,170,0.04)) !important;
+  border-color: rgba(59,130,246,0.2) !important;
+}
+.ad-slot-native-card {
+  background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(0,212,170,0.04)) !important;
+  border-color: rgba(16,185,129,0.2) !important;
+}
+
+/* ── SPONSOR BADGE ── */
+.sponsor-badge-pill {
+  background: rgba(59,130,246,0.1) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59,130,246,0.2) !important;
+}
+.sponsor-badge-pill:hover {
+  background: rgba(59,130,246,0.18) !important;
+  color: #bfdbfe !important;
+}
+
+/* ── EV TAG ── */
+.ev-tag {
+  background: rgba(16,185,129,0.1) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(110,231,183,0.25) !important;
+}
+
+/* ── AI STREAM TAG ── */
+.ai-stream-tag {
+  background: rgba(139,92,246,0.1) !important;
+  color: #c4b5fd !important;
+  border-color: rgba(167,139,250,0.25) !important;
+}
+
+/* ── GEMİNİ KART DETAYLARI — açık bg + koyu metin ── */
+.gemini-detail-card.tactical-card {
+  background: rgba(59,130,246,0.08) !important;
+  border: 1.5px solid rgba(59,130,246,0.25) !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+.gemini-detail-card.risk-card {
+  background: rgba(245,158,11,0.08) !important;
+  border: 1.5px solid rgba(245,158,11,0.25) !important;
+  border-left: 4px solid #f59e0b !important;
+}
+.detail-card-header.tactical-header {
+  color: #93c5fd !important;
+}
+.detail-card-header.tactical-header i {
+  color: #60a5fa !important;
+}
+.detail-card-header.risk-header {
+  color: #fde68a !important;
+}
+.detail-card-header.risk-header i {
+  color: #fbbf24 !important;
+}
+.detail-card-text {
+  color: var(--text-secondary) !important;
+}
+
+/* ── H2H BÖLÜMÜ ── */
+.h2h-match-row {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.h2h-match-row:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: rgba(0,212,170,0.2) !important;
+}
+.h2h-season {
+  color: var(--text-muted) !important;
+}
+.h2h-home-label {
+  color: #22d3ee !important;
+}
+.h2h-away-label {
+  color: #fbbf24 !important;
+}
+.h2h-stats-row {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.h2h-stat-val {
+  color: var(--text-primary) !important;
+}
+.h2h-stat-lbl {
+  color: var(--text-muted) !important;
+}
+.h2h-result-pill.h2h-home-win {
+  background: rgba(59,130,246,0.12) !important;
+  color: #93c5fd !important;
+}
+.h2h-result-pill.h2h-draw {
+  background: rgba(245,158,11,0.12) !important;
+  color: #fbbf24 !important;
+}
+.h2h-result-pill.h2h-away-win {
+  background: rgba(239,68,68,0.12) !important;
+  color: #fca5a5 !important;
+}
+
+/* ── SPLIT KARTI METINLER ── */
+.split-metric-val {
+  color: var(--text-primary) !important;
+}
+.split-metric-lbl {
+  color: var(--text-muted) !important;
+}
+.split-team-name {
+  color: var(--text-primary) !important;
+}
+.split-wdl.w {
+  background: rgba(16,185,129,0.12) !important;
+  color: #6ee7b7 !important;
+}
+.split-wdl.d {
+  background: rgba(245,158,11,0.12) !important;
+  color: #fbbf24 !important;
+}
+.split-wdl.l {
+  background: rgba(239,68,68,0.12) !important;
+  color: #fca5a5 !important;
+}
+
+/* ── POISSON BÖLÜMÜ ── */
+.poisson-section {
+  background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(139,92,246,0.05)) !important;
+  border-color: rgba(139,92,246,0.2) !important;
+}
+.poisson-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.poisson-score {
+  color: var(--text-primary) !important;
+}
+.poisson-pct {
+  color: #a78bfa !important;
+}
+.poisson-rank {
+  color: var(--text-muted) !important;
+}
+.poisson-bar-wrap {
+  background: rgba(255,255,255,0.06) !important;
+}
+.poisson-likely-label {
+  color: var(--text-secondary) !important;
+}
+.likely-score {
+  color: var(--text-primary) !important;
+}
+.likely-pct {
+  color: #a78bfa !important;
+}
+.rank-pill-0 {
+  background: rgba(59,130,246,0.1) !important;
+  border-color: rgba(59,130,246,0.25) !important;
+}
+.rank-pill-1, .rank-pill-2 {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+
+/* ── KUPON PANEL ITEM ── */
+.coupon-item {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+.coupon-item-label {
+  color: var(--text-secondary) !important;
+}
+.coupon-item-match {
+  color: var(--text-primary) !important;
+}
+.coupon-summary {
+  color: var(--text-secondary) !important;
+}
+.coupon-total-odds {
+  color: var(--accent-green) !important;
+}
+
+/* ── BEKLENEN METRİKLER TABLOSU ── */
+.expected-row {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.expected-row:nth-child(even) {
+  background: var(--bg-subtle) !important;
+}
+.expected-metric-name {
+  color: var(--text-secondary) !important;
+}
+.expected-home-val, .expected-away-val {
+  color: var(--text-primary) !important;
+}
+.expected-unit {
+  color: var(--text-muted) !important;
+}
+
+/* ── AI KUPON SLIP KARTLARI ── */
+.ai-slip-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.slip-type-label {
+  color: var(--text-muted) !important;
+}
+.slip-match-teams {
+  color: var(--text-primary) !important;
+}
+.slip-match-league {
+  color: var(--text-muted) !important;
+}
+.slip-bet-tag {
+  background: rgba(16,185,129,0.1) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(110,231,183,0.2) !important;
+}
+.slip-odd-val {
+  color: var(--accent-green) !important;
+}
+.btn-slip-analyze-match {
+  background: var(--bg-subtle) !important;
+  border-color: var(--border-glass-bright) !important;
+  color: #60a5fa !important;
+}
+.btn-slip-analyze-match:hover {
+  background: rgba(59,130,246,0.15) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59,130,246,0.35) !important;
+  transform: scale(1.08);
+}
+
+/* ── KUPA DAŞ BOARD ── */
+.cup-dashboard-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+.cup-dashboard-card h4 {
+  color: var(--text-secondary) !important;
+}
+.cup-dashboard-val {
+  color: var(--text-primary) !important;
+}
+
+/* ── MAÇLARIN BAHİSLERİM KAYDET BUTONU ── */
+.btn-save-bet {
+  background: rgba(59,130,246,0.1) !important;
+  border-color: rgba(59,130,246,0.25) !important;
+  color: #93c5fd !important;
+}
+.btn-save-bet:hover {
+  background: rgba(59,130,246,0.18) !important;
+}
+
+/* ── AI TAHMİN SECTION H3 ── */
+.ai-prediction-section h3 {
+  color: var(--text-primary) !important;
+}
+.ai-prediction-section p {
+  color: var(--text-secondary) !important;
+}
+
+/* ── TODAY MATCHES — loading metni ── */
+.today-loading-state p {
+  color: var(--text-muted) !important;
+}
+
+/* ── SECTION TITLE BOX ALT YAZI ── */
+.section-title-box p {
+  color: var(--text-muted) !important;
+}
+
+/* ── MYBETS / FAVORİTES BOŞ DURUM ── */
+.mybets-empty p, .mybets-empty span {
+  color: var(--text-muted) !important;
+}
+.favorites-empty p, .favorites-empty span {
+  color: var(--text-muted) !important;
+}
+
+/* ── FORM BADGE TOAST ── */
+.form-badge-toast {
+  background: rgba(10,18,32,0.96) !important;
+  border-color: var(--border-glass-bright) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── BUTON ETİKETLERİ (küçük metin) ── */
+.user-action-label,
+.pwa-header-label,
+.fullscreen-label,
+.calendar-btn-text {
+  color: inherit !important;
+}
+
+/* ── TODAY SECTION BODY — boş durum ── */
+.today-empty-state {
+  color: var(--text-muted) !important;
+  text-align: center;
+  padding: 40px 20px;
+}
+.today-empty-state i {
+  color: var(--text-muted);
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: 0.5;
+}
+
+/* ── MATCH DETAIL MODAL İÇERİK ── */
+#matchDetailModalContent h3,
+#matchDetailModalContent h4 {
+  color: var(--text-primary) !important;
+}
+#matchDetailModalContent p,
+#matchDetailModalContent span {
+  color: var(--text-secondary) !important;
+}
+#matchDetailModalContent strong {
+  color: var(--text-primary) !important;
+}
+#matchDetailModalContent .stat-row {
+  background: var(--bg-glass) !important;
+}
+
+/* ── FORM BADGE RENKLER ── */
+.form-badge.W, .form-badge.G {
+  background: linear-gradient(135deg, #065f46, #047857) !important;
+  color: #ffffff !important;
+}
+.form-badge.D, .form-badge.B {
+  background: linear-gradient(135deg, #78350f, #92400e) !important;
+  color: #ffffff !important;
+}
+.form-badge.L, .form-badge.M {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+  color: #ffffff !important;
+}
+
+/* ── TODAY FILTER TABS SAYACI ── */
+.today-filter-btn span {
+  color: inherit !important;
+}
+
+/* ── PERFORMANS MODAL SKORU ── */
+#perfModalWinRate {
+  color: #34d399 !important;
+  font-family: var(--font-heading) !important;
+}
+
+/* ── AYRINTILI İSTATİSTİK BAŞLIĞI ── */
+.stats-analysis-section h3 {
+  color: var(--text-primary) !important;
+}
+
+/* ── KUPON PANEL ITEM ── */
+.coupon-item {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+.coupon-item-label {
+  color: var(--text-secondary) !important;
+}
+.coupon-item-match {
+  color: var(--text-primary) !important;
+}
+.coupon-summary {
+  color: var(--text-secondary) !important;
+}
+.coupon-total-odds {
+  color: var(--accent-green) !important;
+}
+
+/* ── BEKLENEN METRİKLER TABLOSU ── */
+.expected-row {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.expected-row:nth-child(even) {
+  background: var(--bg-subtle) !important;
+}
+.expected-metric-name {
+  color: var(--text-secondary) !important;
+}
+.expected-home-val, .expected-away-val {
+  color: var(--text-primary) !important;
+}
+.expected-unit {
+  color: var(--text-muted) !important;
+}
+
+/* ── AI KUPON SLIP KARTLARI ── */
+.ai-slip-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.slip-type-label {
+  color: var(--text-muted) !important;
+}
+.slip-match-teams {
+  color: var(--text-primary) !important;
+}
+.slip-match-league {
+  color: var(--text-muted) !important;
+}
+.slip-bet-tag {
+  background: rgba(16,185,129,0.1) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(110,231,183,0.2) !important;
+}
+.slip-odd-val {
+  color: var(--accent-green) !important;
+}
+.btn-slip-analyze-match {
+  background: var(--bg-subtle) !important;
+  border-color: var(--border-glass-bright) !important;
+  color: #60a5fa !important;
+}
+.btn-slip-analyze-match:hover {
+  background: rgba(59,130,246,0.15) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59,130,246,0.35) !important;
+  transform: scale(1.08);
+}
+
+/* ── KUPA DAŞ BOARD ── */
+.cup-dashboard-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+.cup-dashboard-card h4 {
+  color: var(--text-secondary) !important;
+}
+.cup-dashboard-val {
+  color: var(--text-primary) !important;
+}
+
+/* ── MAÇLARIN BAHİSLERİM KAYDET BUTONU ── */
+.btn-save-bet {
+  background: rgba(59,130,246,0.1) !important;
+  border-color: rgba(59,130,246,0.25) !important;
+  color: #93c5fd !important;
+}
+.btn-save-bet:hover {
+  background: rgba(59,130,246,0.18) !important;
+}
+
+/* ── AI TAHMİN SECTION H3 ── */
+.ai-prediction-section h3 {
+  color: var(--text-primary) !important;
+}
+.ai-prediction-section p {
+  color: var(--text-secondary) !important;
+}
+
+/* ── TODAY MATCHES — loading metni ── */
+.today-loading-state p {
+  color: var(--text-muted) !important;
+}
+
+/* ── SECTION TITLE BOX ALT YAZI ── */
+.section-title-box p {
+  color: var(--text-muted) !important;
+}
+
+/* ── MYBETS / FAVORİTES BOŞ DURUM ── */
+.mybets-empty p, .mybets-empty span {
+  color: var(--text-muted) !important;
+}
+.favorites-empty p, .favorites-empty span {
+  color: var(--text-muted) !important;
+}
+
+/* ── FORM BADGE TOAST ── */
+.form-badge-toast {
+  background: rgba(10,18,32,0.96) !important;
+  border-color: var(--border-glass-bright) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── BUTON ETİKETLERİ (küçük metin) ── */
+.user-action-label,
+.pwa-header-label,
+.fullscreen-label,
+.calendar-btn-text {
+  color: inherit !important;
+}
+
+/* ── TODAY SECTION BODY — boş durum ── */
+.today-empty-state {
+  color: var(--text-muted) !important;
+  text-align: center;
+  padding: 40px 20px;
+}
+.today-empty-state i {
+  color: var(--text-muted);
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: 0.5;
+}
+
+/* ── MATCH DETAIL MODAL İÇERİK ── */
+#matchDetailModalContent h3,
+#matchDetailModalContent h4 {
+  color: var(--text-primary) !important;
+}
+#matchDetailModalContent p,
+#matchDetailModalContent span {
+  color: var(--text-secondary) !important;
+}
+#matchDetailModalContent strong {
+  color: var(--text-primary) !important;
+}
+#matchDetailModalContent .stat-row {
+  background: var(--bg-glass) !important;
+}
+
+/* ── FORM BADGE RENKLER ── */
+.form-badge.W, .form-badge.G {
+  background: linear-gradient(135deg, #065f46, #047857) !important;
+  color: #ffffff !important;
+}
+.form-badge.D, .form-badge.B {
+  background: linear-gradient(135deg, #78350f, #92400e) !important;
+  color: #ffffff !important;
+}
+.form-badge.L, .form-badge.M {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+  color: #ffffff !important;
+}
+
+/* ── TODAY FILTER TABS SAYACI ── */
+.today-filter-btn span {
+  color: inherit !important;
+}
+
+/* ── PERFORMANS MODAL SKORU ── */
+#perfModalWinRate {
+  color: #34d399 !important;
+  font-family: var(--font-heading) !important;
+}
+
+/* ── AYRINTILI İSTATİSTİK BAŞLIĞI ── */
+.stats-analysis-section h3 {
+  color: var(--text-primary) !important;
+}
+.stats-analysis-section p {
+  color: var(--text-muted) !important;
+}
+
+/* ── CUP FORMAT WRAPPER AÇIK BG DÜZELTMESİ ── */
+.cup-format-wrapper {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+
+/* ── BEKLENEN İSTATİSTİKLER TABLE HEADER ── */
+.expected-metrics-section h3 {
+  color: var(--text-primary) !important;
+}
+.expected-metrics-section p {
+  color: var(--text-muted) !important;
+}
+
+/* ── MACKOLIK MAÇ LİSTESİ (Today's Matches Table) ── */
+.mackolik-league-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-glass) !important;
+}
+.mackolik-league-header {
+  background: #162238 !important;
+  border-bottom: 1px solid var(--border-glass) !important;
+}
+.m-league-title {
+  color: var(--text-primary) !important;
+}
+.mackolik-match-row {
+  background: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+.mackolik-match-row:hover {
+  background: var(--bg-card-hover) !important;
+}
+.mackolik-match-row.is-live {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+.m-team-label {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+.m-cell-time {
+  color: var(--text-secondary) !important;
+}
+.m-vs-label {
+  color: var(--text-muted) !important;
+}
+.m-score-val.score-finished {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+
+/* ── BEKLENEN İSTATİSTİKLER KARTLARI (Expected Metrics Cards) ── */
+.exp-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-glass) !important;
+}
+.exp-card-label {
+  color: var(--text-secondary) !important;
+}
+.exp-hero-num {
+  color: var(--text-primary) !important;
+}
+.exp-hero-unit {
+  color: var(--text-muted) !important;
+}
+.exp-split-container {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.exp-split-labels {
+  color: var(--text-secondary) !important;
+}
+.exp-split-labels strong {
+  color: var(--text-primary) !important;
+}
+.exp-split-bar {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.exp-summary-pill {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  box-shadow: none !important;
+}
+.exp-pill-label, .exp-summary-pill span {
+  color: var(--text-primary) !important;
+}
+.exp-pill-goals {
+  background: var(--bg-glass) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+.exp-pill-corners {
+  background: var(--bg-glass) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+.exp-pill-cards {
+  background: var(--bg-glass) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+.exp-corner-row .cstat-name {
+  color: var(--text-secondary) !important;
+}
+.exp-corner-row .cstat-val {
+  color: var(--text-primary) !important;
+}
+
+/* ── PERFORMANS DENETİMİ & İSTATİSTİK MODALI (Performance Modal) ── */
+.perf-modal-container,
+.perf-ledger-section {
+  background: var(--bg-card) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+.perf-title-row h2 {
+  color: var(--text-primary) !important;
+}
+.perf-subtitle {
+  color: var(--text-muted) !important;
+}
+.perf-kpi-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.perf-kpi-card.highlight-card {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08)) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+.kpi-label {
+  color: var(--text-muted) !important;
+}
+.kpi-main-val {
+  color: #34d399 !important;
+}
+.kpi-val {
+  color: var(--text-primary) !important;
+}
+.kpi-subtext {
+  color: var(--text-muted) !important;
+}
+.perf-categories-section {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.perf-section-title {
+  color: var(--text-primary) !important;
+}
+.perf-cat-item {
+  background: var(--bg-card) !important;
+  border-color: var(--border-glass) !important;
+}
+.perf-cat-name {
+  color: var(--text-primary) !important;
+}
+.perf-cat-pct {
+  color: #34d399 !important;
+}
+.perf-bar-wrap {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.perf-ledger-desc {
+  color: var(--text-muted) !important;
+}
+.perf-tab-btn {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-secondary) !important;
+}
+.perf-tab-btn.active {
+  background: var(--accent-green) !important;
+  color: #0a1220 !important;
+  border-color: var(--accent-green) !important;
+}
+.perf-ledger-item {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.perf-ledger-item:hover {
+  background: var(--bg-card-hover) !important;
+}
+.perf-match-date {
+  color: var(--text-muted) !important;
+}
+.perf-match-teams {
+  color: var(--text-primary) !important;
+}
+.perf-match-score {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+.perf-pred-title {
+  color: var(--text-primary) !important;
+}
+.perf-pred-sub {
+  color: var(--text-muted) !important;
+}
+
+/* ── MAÇ DETAY MODALI (Match Detail Modal) ── */
+.modal-scoreboard {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.modal-team-name {
+  color: var(--text-primary) !important;
+}
+.modal-score-display {
+  color: var(--text-primary) !important;
+}
+.modal-score-vs {
+  color: var(--text-muted) !important;
+}
+.modal-ht-score {
+  color: var(--text-muted) !important;
+}
+.modal-league-info {
+  color: var(--text-secondary) !important;
+}
+.modal-match-date {
+  color: var(--text-muted) !important;
+}
+.niche-section-title {
+  color: var(--text-primary) !important;
+}
+.niche-stat-bars {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.val-left, .val-right {
+  color: var(--text-primary) !important;
+}
+.stat-bar-track {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.stat-label {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+.niche-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.niche-card-header h4 {
+  color: var(--text-secondary) !important;
+}
+.niche-highlight-val {
+  color: var(--text-primary) !important;
+}
+.niche-subtext {
+  color: var(--text-muted) !important;
+}
+.niche-meta-row {
+  color: var(--text-secondary) !important;
+  border-top-color: var(--border-glass) !important;
+}
+.trend-label {
+  color: var(--text-muted) !important;
+}
+.trend-team {
+  color: var(--text-secondary) !important;
+}
+.trend-num {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+.niche-odds-bar {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.odds-title {
+  color: var(--text-secondary) !important;
+}
+.odd-pill {
+  background: var(--bg-subtle) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-secondary) !important;
+}
+.odd-pill strong {
+  color: var(--accent-green) !important;
+}
+
+/* ── GÜNÜN AI HAZIR KUPONLARI (AI Express Slips) ── */
+.ai-slips-container {
+  background: var(--bg-card) !important;
+  border-color: var(--border-glass) !important;
+}
+.ai-slip-card {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.slip-card-banko {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-glass) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+.slip-card-ideal {
+  background: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, var(--bg-glass) 100%) !important;
+  border-color: rgba(14, 165, 233, 0.35) !important;
+}
+.slip-card-surpriz {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--bg-glass) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+.slip-match-row {
+  background: var(--bg-subtle) !important;
+  border-color: var(--border-glass) !important;
+}
+.slip-match-row:hover {
+  background: var(--bg-card-hover) !important;
+}
+.slip-match-teams {
+  color: var(--text-primary) !important;
+}
+.slip-match-league {
+  color: var(--text-muted) !important;
+}
+.slip-conf-pill {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-secondary) !important;
+}
+.slip-odds-pill {
+  background: rgba(0, 212, 170, 0.15) !important;
+  color: var(--accent-green) !important;
+  border: 1px solid rgba(0, 212, 170, 0.3) !important;
+}
+
+/* ── FAVORİLER & BAHİSLERİM MODALLARI (Favorites & MyBets) ── */
+.favorite-item {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.favorite-item:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: rgba(0, 212, 170, 0.25) !important;
+}
+.favorite-team-name {
+  color: var(--text-primary) !important;
+}
+.favorite-country {
+  color: var(--text-muted) !important;
+}
+.mybets-match-group {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+}
+.mybets-match-header {
+  background: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border-glass) !important;
+}
+.mybets-team-name {
+  color: var(--text-primary) !important;
+}
+.mybets-match-country {
+  color: var(--text-muted) !important;
+}
+.mybets-vs {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #93c5fd !important;
+}
+.mybets-bet-item {
+  background: var(--bg-subtle) !important;
+  border-color: var(--border-glass) !important;
+}
+.mybets-bet-item:hover {
+  background: var(--bg-card-hover) !important;
+}
+.mybets-bet-name {
+  color: var(--text-primary) !important;
+}
+.mybets-bet-pct {
+  color: #34d399 !important;
+}
+.btn-save-mybet {
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+  color: #93c5fd !important;
+}
+.btn-save-mybet:hover {
+  background: rgba(59, 130, 246, 0.2) !important;
+}
