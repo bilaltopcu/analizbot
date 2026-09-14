@@ -39,7 +39,7 @@
 
   
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css?v=5.1.0">
+  <link rel="stylesheet" href="style.css?v=5.2.0">
 </head>
 <body>
 
@@ -267,9 +267,9 @@
           <p>Ülke → Takımlar → Karşılaştır sırasını izle, AI tahminini al!</p>
         </div>
         <div class="guide-steps">
-          <div class="guide-step"><span class="step-num">1</span> Ülke</div>
-          <div class="guide-step"><span class="step-num">2</span> Takımlar</div>
-          <div class="guide-step"><span class="step-num">3</span> AI Analiz</div>
+          <div class="guide-step clickable-step" id="guideStepCountry" title="Ülke Seçimini Aç"><span class="step-num">1</span> Ülke</div>
+          <div class="guide-step" id="guideStepTeams"><span class="step-num">2</span> Takımlar</div>
+          <div class="guide-step" id="guideStepAnalyze"><span class="step-num">3</span> AI Analiz</div>
         </div>
       </div>
 
@@ -305,7 +305,7 @@
       <!-- Step 1: Country Dropdown (Hidden in Cup Mode) -->
       <div id="countryStepWrapper">
         <div class="step-pill-container text-center">
-          <span class="step-pill green-pill"><i class="fa-solid fa-earth-americas"></i> 1. ÜLKE / LİG SEÇİMİ</span>
+          <span class="step-pill green-pill clickable-pill" id="stepPillCountry" title="Ülke listesini açmak için tıklayın"><i class="fa-solid fa-earth-americas"></i> 1. ÜLKE / LİG SEÇİMİ</span>
         </div>
 
         <div class="country-selector-wrapper">
@@ -881,7 +881,7 @@
   <script src="performance_data.js"></script>
   <script src="prediction_tracker.js"></script>
   <script src="auth.js"></script>
-  <script src="app.js?v=4.6.2"></script>
+  <script src="app.js?v=5.2.0"></script>
   <script src="pwa.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

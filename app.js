@@ -535,16 +535,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. Render Country Dropdown Options (High Performance DocumentFragment)
   function initCountryDropdown() {
     if (!countryOptionsList) return;
+    if (typeof FOOTBALL_DATA === "undefined" || !Array.isArray(FOOTBALL_DATA.countries)) return;
     countryOptionsList.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
     FOOTBALL_DATA.countries.forEach(country => {
       const item = document.createElement("div");
-      item.className = "dropdown-option-item";
-      item.dataset.id = country.id;
+      item.className = "dropdown-option-item country-option-item";
+      item.dataset.id = country.id || country.code;
 
+      const flagSrc = country.flag || country.flagUrl || `flags/${String(country.id || country.code || "").toLowerCase()}.png`;
       item.innerHTML = `
-        <img src="${country.flag}" alt="${country.name}" class="option-logo" loading="lazy" onerror="this.onerror=null; this.src='flags/${country.id.toLowerCase()}.png';">
+        <img src="${flagSrc}" alt="${country.name}" class="option-flag" loading="lazy" onerror="this.onerror=null; this.src='flags/${String(country.id || country.code || '').toLowerCase()}.png';">
         <span class="option-name">${country.name}</span>
       `;
 
@@ -558,7 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
     countryOptionsList.appendChild(fragment);
 
     // Do not preselect a country so team selection stays hidden until user chooses a country
-    teamsSelectionWrapper.classList.add("hidden");
+    if (teamsSelectionWrapper) teamsSelectionWrapper.classList.add("hidden");
   }
 
   function selectCountryOption(country) {
@@ -589,24 +591,75 @@ document.addEventListener("DOMContentLoaded", () => {
     compareBtn.disabled = true;
   }
 
+  // Robust Country Dropdown Engine
+  function openCountryDropdown() {
+    if (!countryOptionsList || countryOptionsList.children.length === 0) {
+      initCountryDropdown();
+    }
+    if (homeDropdown) {
+      homeDropdown.classList.remove("open");
+      if (homeDropdownMenu) homeDropdownMenu.classList.add("hidden");
+      if (homeBoxEl) homeBoxEl.classList.remove("is-active-dropdown");
+    }
+    if (awayDropdown) {
+      awayDropdown.classList.remove("open");
+      if (awayDropdownMenu) awayDropdownMenu.classList.add("hidden");
+      if (awayBoxEl) awayBoxEl.classList.remove("is-active-dropdown");
+    }
+
+    if (countryDropdown) countryDropdown.classList.add("open");
+    if (countryDropdownMenu) countryDropdownMenu.classList.remove("hidden");
+    if (countryStepWrapper) countryStepWrapper.classList.add("is-active-dropdown");
+    const cWrapper = document.querySelector(".country-selector-wrapper");
+    if (cWrapper) cWrapper.classList.add("is-active-dropdown");
+
+    resetDropdownSearch("country");
+    setTimeout(() => {
+      if (countrySearchInput) countrySearchInput.focus();
+    }, 60);
+  }
+
+  function closeCountryDropdown() {
+    if (countryDropdown) countryDropdown.classList.remove("open");
+    if (countryDropdownMenu) countryDropdownMenu.classList.add("hidden");
+    if (countryStepWrapper) countryStepWrapper.classList.remove("is-active-dropdown");
+    const cWrapper = document.querySelector(".country-selector-wrapper");
+    if (cWrapper) cWrapper.classList.remove("is-active-dropdown");
+  }
+
+  function toggleCountryDropdown() {
+    if (countryDropdown && countryDropdown.classList.contains("open")) {
+      closeCountryDropdown();
+    } else {
+      openCountryDropdown();
+    }
+  }
+
   // Country Dropdown Event Listeners
   if (countryDropdownTrigger) {
     countryDropdownTrigger.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (homeDropdown) {
-        homeDropdown.classList.remove("open");
-        homeDropdownMenu.classList.add("hidden");
-      }
-      if (awayDropdown) {
-        awayDropdown.classList.remove("open");
-        awayDropdownMenu.classList.add("hidden");
-      }
+      toggleCountryDropdown();
+    });
+  }
 
-      countryDropdown.classList.toggle("open");
-      countryDropdownMenu.classList.toggle("hidden");
-      if (!countryDropdownMenu.classList.contains("hidden")) {
-        resetDropdownSearch("country");
-        countrySearchInput.focus();
+  // Also open when clicking on the green step pill
+  const stepPillCountry = document.getElementById("stepPillCountry");
+  if (stepPillCountry) {
+    stepPillCountry.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openCountryDropdown();
+    });
+  }
+
+  // Also open when clicking on guide step 1
+  const guideStepCountry = document.getElementById("guideStepCountry");
+  if (guideStepCountry) {
+    guideStepCountry.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openCountryDropdown();
+      if (countryDropdown) {
+        countryDropdown.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     });
   }
@@ -1081,9 +1134,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Close dropdowns when clicking outside
   document.addEventListener("click", (e) => {
-    if (countryDropdown && !countryDropdown.contains(e.target)) {
-      countryDropdown.classList.remove("open");
-      countryDropdownMenu.classList.add("hidden");
+    if (countryDropdown && !countryDropdown.contains(e.target) && (!countryStepWrapper || !countryStepWrapper.contains(e.target))) {
+      closeCountryDropdown();
       if (countryOptionsList) countryOptionsList.scrollTop = 0;
     }
     if (homeDropdown && !homeDropdown.contains(e.target)) {
@@ -3141,7 +3193,11 @@ document.addEventListener("DOMContentLoaded", () => {
     "DED": "NED",
     "PPL": "POR",
     "BSA": "BRA",
-    "CL": "ENG"
+    "CL": "",
+    "EL": "",
+    "ECL": "",
+    "EC": "",
+    "WC": ""
   };
 
   const TEAM_ALIASES = {
@@ -3647,7 +3703,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const country = (typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries)
       ? FOOTBALL_DATA.countries.find(c => c.code === countryCode)
       : null;
-    const candidateTeams = country ? country.teams : (typeof getAllTeamsUnified === 'function' ? getAllTeamsUnified().map(t => t.name) : []);
+    const candidateTeams = country
+      ? (country.teams || [])
+      : (typeof getAllTeamsUnified === 'function' ? getAllTeamsUnified().map(t => t.teamName || t.name) : []);
 
     for (const team of candidateTeams) {
       if (team.toLowerCase() === lowerApi) return team;
@@ -3768,7 +3826,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const pillBtn = document.createElement("button");
       pillBtn.type = "button";
-      pillBtn.className = `date-pill-btn ${isSelected ? "active" : ""}`;
+      pillBtn.className = `date-pill-btn ${isSelected ? "active" : ""} ${isToday ? "is-today" : "other-day"}`;
       pillBtn.setAttribute("data-date", pillDateStr);
 
       const weekdayText = TR_DAYS_SHORT[pillD.getDay()];
@@ -5245,51 +5303,63 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function findCountryByTeamName(teamName) {
+    if (!teamName || typeof FOOTBALL_DATA === "undefined" || !FOOTBALL_DATA.countries) return null;
+    const lower = teamName.toLowerCase();
+    for (const c of FOOTBALL_DATA.countries) {
+      if ((c.teams || []).some(t => t === teamName || t.toLowerCase() === lower)) return c;
+    }
+    return null;
+  }
+
   function handleAutoSelectMatch(match) {
     switchAppView("analysis", true);
 
-    let countryCode = match.countryCode;
+    let countryCode = match.countryCode || "";
     if (!countryCode && match.competitionCode) {
-      countryCode = COMP_TO_COUNTRY[match.competitionCode] || 'ENG';
+      countryCode = COMP_TO_COUNTRY[match.competitionCode] || "";
     }
     if (!countryCode && match.raw?.competition?.code) {
-      countryCode = COMP_TO_COUNTRY[match.raw.competition.code] || 'ENG';
+      countryCode = COMP_TO_COUNTRY[match.raw.competition.code] || "";
     }
-    if (!countryCode && match.leagueName && match.leagueName.includes('Türkiye')) {
-      countryCode = 'TR';
-    }
-    if (!countryCode) countryCode = 'TR';
-
-    let country = (typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries)
-      ? FOOTBALL_DATA.countries.find(c => c.code === countryCode)
-      : null;
-    if (!country && typeof FOOTBALL_DATA !== 'undefined' && FOOTBALL_DATA.countries) {
-      country = FOOTBALL_DATA.countries[0];
-    }
-    if (!country) return;
-
-    const resolvedHome = resolveTeamMatch(match.homeName, country.code);
-    const resolvedAway = resolveTeamMatch(match.awayName, country.code);
-
-    if (selectedMatchMode === 'cup' && btnModeLeague) {
-      btnModeLeague.click();
+    if (!countryCode && match.leagueName && /t[üu]rkiye/i.test(match.leagueName)) {
+      countryCode = "TR";
     }
 
-    selectCountryOption(country);
+    const resolvedHome = resolveTeamMatch(match.homeName, countryCode);
+    const resolvedAway = resolveTeamMatch(match.awayName, countryCode);
+    const homeCountry = findCountryByTeamName(resolvedHome);
+    const awayCountry = findCountryByTeamName(resolvedAway);
+    const isCrossCountry = !!(homeCountry && awayCountry && homeCountry.code !== awayCountry.code);
 
-    const homeLogoUrl = getTeamLogoUrl(resolvedHome, country.code);
-    const awayLogoUrl = getTeamLogoUrl(resolvedAway, country.code);
+    if (isCrossCountry) {
+      if (btnModeCup) btnModeCup.click();
+    } else {
+      if (selectedMatchMode === "cup" && btnModeLeague) btnModeLeague.click();
+      const country = homeCountry || awayCountry ||
+        ((typeof FOOTBALL_DATA !== "undefined" && FOOTBALL_DATA.countries)
+          ? FOOTBALL_DATA.countries.find(c => c.code === countryCode)
+          : null);
+      if (country) selectCountryOption(country);
+      else if (!country && typeof FOOTBALL_DATA !== "undefined" && FOOTBALL_DATA.countries?.[0]) {
+        selectCountryOption(FOOTBALL_DATA.countries[0]);
+      }
+    }
 
-    selectTeamOption('home', resolvedHome, homeLogoUrl);
-    selectTeamOption('away', resolvedAway, awayLogoUrl);
+    const pickCode = (isCrossCountry ? (homeCountry?.code || countryCode) : (homeCountry?.code || countryCode));
+    const homeLogoUrl = getTeamLogoUrl(resolvedHome, pickCode);
+    const awayLogoUrl = getTeamLogoUrl(resolvedAway, awayCountry?.code || pickCode);
+
+    selectTeamOption("home", resolvedHome, homeLogoUrl);
+    selectTeamOption("away", resolvedAway, awayLogoUrl);
 
     setTimeout(() => {
       if (compareBtn && !compareBtn.disabled) {
         compareBtn.click();
-        const resultsEl = document.getElementById('resultsSection');
+        const resultsEl = document.getElementById("resultsSection");
         if (resultsEl) {
-          resultsEl.classList.remove('hidden');
-          resultsEl.scrollIntoView({ behavior: 'smooth' });
+          resultsEl.classList.remove("hidden");
+          resultsEl.scrollIntoView({ behavior: "smooth" });
         }
       }
     }, 200);
