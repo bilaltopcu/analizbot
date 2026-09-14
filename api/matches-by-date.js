@@ -16,6 +16,138 @@ function getLocalMatches(dateStr) {
   return cachedDb.filter(m => (m.date || '').trim() === dateStr);
 }
 
+// CollectAPI Turkish League In-Memory Cache (10 minutes TTL)
+let collectApiTurkishMatchesCache = null;
+let collectApiTurkishMatchesTimestamp = 0;
+const COLLECT_API_CACHE_TTL = 10 * 60 * 1000;
+
+function fetchCollectApiLeague(token, leagueKey) {
+  return new Promise((resolve) => {
+    if (!token) return resolve([]);
+    const options = {
+      hostname: 'api.collectapi.com',
+      port: 443,
+      path: `/football/results?league=${encodeURIComponent(leagueKey)}`,
+      method: 'GET',
+      headers: {
+        'authorization': token,
+        'content-type': 'application/json',
+        'User-Agent': 'GolAnaliz-AI/1.0'
+      },
+      timeout: 7000
+    };
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const parsed = JSON.parse(data);
+            const items = Array.isArray(parsed) ? parsed : (parsed.result || []);
+            resolve(items);
+          } catch (_) { resolve([]); }
+        } else {
+          resolve([]);
+        }
+      });
+    });
+    req.on('timeout', () => { req.destroy(); resolve([]); });
+    req.on('error', () => { resolve([]); });
+    req.end();
+  });
+}
+
+async function fetchAllCollectApiTurkishMatches() {
+  const now = Date.now();
+  if (collectApiTurkishMatchesCache && (now - collectApiTurkishMatchesTimestamp < COLLECT_API_CACHE_TTL)) {
+    return collectApiTurkishMatchesCache;
+  }
+  const token = process.env.COLLECT_API_KEY || 'apikey 67KcmfCpyR6OJC8iW38y5y:0QzvnVbNgdbCXkQApQXS3O';
+  if (!token) return [];
+
+  try {
+    const superLigRaw = await fetchCollectApiLeague(token, 'super-lig');
+    // Pause 1200ms to respect CollectAPI 1 req/sec rate limit
+    await new Promise(r => setTimeout(r, 1200));
+    const tff1Raw = await fetchCollectApiLeague(token, 'tff-1-lig');
+
+    const formattedMatches = [];
+
+    const processItems = (items, leagueName, compCode) => {
+      if (!Array.isArray(items)) return;
+      items.forEach(m => {
+        if (!m || !m.home || !m.away) return;
+        let dFormatted = '';
+        let timeFormatted = '';
+        if (m.date) {
+          try {
+            const dt = new Date(m.date);
+            if (!isNaN(dt.getTime())) {
+              const day = String(dt.getDate()).padStart(2, '0');
+              const mon = String(dt.getMonth() + 1).padStart(2, '0');
+              const yr = dt.getFullYear();
+              dFormatted = `${day}/${mon}/${yr}`;
+              timeFormatted = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+            }
+          } catch (_) {}
+        }
+
+        let homeScore = '-';
+        let awayScore = '-';
+        let isFinished = false;
+        if (m.skor && m.skor.includes('-')) {
+          const parts = m.skor.split('-').map(s => s.trim());
+          if (parts[0] !== '' && parts[1] !== '' && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
+            homeScore = parseInt(parts[0], 10);
+            awayScore = parseInt(parts[1], 10);
+            isFinished = true;
+          }
+        }
+
+        formattedMatches.push({
+          id: `collect_${m.date || dFormatted}_${m.home}_${m.away}`,
+          utcDate: m.date || '',
+          date: dFormatted,
+          time: timeFormatted || '17:00',
+          homeTeam: { name: m.home },
+          awayTeam: { name: m.away },
+          home: m.home,
+          away: m.away,
+          country: 'TR',
+          countryCode: 'TR',
+          league_name: leagueName,
+          league_code: compCode,
+          competition: {
+            name: leagueName,
+            code: compCode
+          },
+          fthg: isFinished ? homeScore : null,
+          ftag: isFinished ? awayScore : null,
+          score: {
+            fullTime: {
+              home: homeScore,
+              away: awayScore
+            }
+          },
+          status: isFinished ? 'FINISHED' : 'SCHEDULED',
+          source: 'collectapi'
+        });
+      });
+    };
+
+    processItems(superLigRaw, 'Türkiye Süper Lig', 'T1');
+    processItems(tff1Raw, 'Türkiye 1. Lig', 'T2');
+
+    if (formattedMatches.length > 0) {
+      collectApiTurkishMatchesCache = formattedMatches;
+      collectApiTurkishMatchesTimestamp = Date.now();
+    }
+    return collectApiTurkishMatchesCache || [];
+  } catch (err) {
+    return collectApiTurkishMatchesCache || [];
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -95,12 +227,27 @@ module.exports = async (req, res) => {
     }
   } catch (_) {}
 
+  let collectMatches = [];
+  try {
+    const allCollect = await fetchAllCollectApiTurkishMatches();
+    collectMatches = (allCollect || []).filter(m => (m.date || '').trim() === dFormatted);
+  } catch (_) {}
+
   const mergedMatches = [...apiMatches];
   const apiPairs = new Set();
   apiMatches.forEach(m => {
     const h = (m.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const a = (m.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     if (h && a) apiPairs.add(`${h}_${a}`);
+  });
+
+  collectMatches.forEach(colM => {
+    const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!apiPairs.has(`${h}_${a}`)) {
+      mergedMatches.push(colM);
+      apiPairs.add(`${h}_${a}`);
+    }
   });
 
   dbMatches.forEach(dbM => {
@@ -112,9 +259,12 @@ module.exports = async (req, res) => {
   });
 
   let source = 'api';
-  if (apiMatches.length > 0 && dbMatches.length > 0) source = 'api+db';
-  else if (apiMatches.length === 0 && dbMatches.length > 0) source = 'db';
-  else if (apiMatches.length === 0 && dbMatches.length === 0) source = 'none';
+  const hasLive = (apiMatches.length > 0 || collectMatches.length > 0);
+  const hasDb = dbMatches.length > 0;
+  if (hasLive && hasDb) source = 'api+db';
+  else if (hasLive) source = 'api';
+  else if (hasDb) source = 'db';
+  else source = 'none';
 
   const payload = {
     success: true,
