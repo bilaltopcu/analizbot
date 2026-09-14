@@ -233,6 +233,29 @@ module.exports = async (req, res) => {
     collectMatches = (allCollect || []).filter(m => (m.date || '').trim() === dFormatted);
   } catch (_) {}
 
+  const SUPER_LIG_TEAMS = new Set([
+    'galatasaray', 'fenerbahce', 'besiktas', 'trabzonspor', 'basaksehir',
+    'samsunspor', 'eyupspor', 'kasimpasa', 'goztepe', 'rizespor', 'caykurrizespor',
+    'sivasspor', 'alanyaspor', 'antalyaspor', 'gaziantepfk', 'gaziantep', 'konyaspor',
+    'kayserispor', 'bodrumfk', 'bodrumspor', 'hatayspor', 'adanademirspor'
+  ]);
+
+  const validCollectMatches = [];
+  collectMatches.forEach(colM => {
+    const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    // If it claims to be Süper Lig, ensure both are actual Süper Lig teams
+    if (colM.league_code === 'T1' || (colM.league_name && colM.league_name.includes('Süper'))) {
+      const hValid = [...SUPER_LIG_TEAMS].some(t => h.includes(t) || t.includes(h));
+      const aValid = [...SUPER_LIG_TEAMS].some(t => a.includes(t) || t.includes(a));
+      if (!hValid || !aValid) {
+        // Corrupted cross-division entry from CollectAPI, discard
+        return;
+      }
+    }
+    validCollectMatches.push(colM);
+  });
+
   const mergedMatches = [...apiMatches];
   const apiPairs = new Set();
   apiMatches.forEach(m => {
@@ -241,7 +264,7 @@ module.exports = async (req, res) => {
     if (h && a) apiPairs.add(`${h}_${a}`);
   });
 
-  collectMatches.forEach(colM => {
+  validCollectMatches.forEach(colM => {
     const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     if (!apiPairs.has(`${h}_${a}`)) {
@@ -255,6 +278,7 @@ module.exports = async (req, res) => {
     const a = (dbM.away || dbM.awayTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     if (!apiPairs.has(`${h}_${a}`)) {
       mergedMatches.push(dbM);
+      apiPairs.add(`${h}_${a}`);
     }
   });
 

@@ -602,6 +602,27 @@ const server = http.createServer((req, res) => {
           }));
         }
 
+        const SUPER_LIG_TEAMS = new Set([
+          'galatasaray', 'fenerbahce', 'besiktas', 'trabzonspor', 'basaksehir',
+          'samsunspor', 'eyupspor', 'kasimpasa', 'goztepe', 'rizespor', 'caykurrizespor',
+          'sivasspor', 'alanyaspor', 'antalyaspor', 'gaziantepfk', 'gaziantep', 'konyaspor',
+          'kayserispor', 'bodrumfk', 'bodrumspor', 'hatayspor', 'adanademirspor'
+        ]);
+
+        const validCollectMatches = [];
+        collectDateMatches.forEach(colM => {
+          const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (colM.league_code === 'T1' || (colM.league_name && colM.league_name.includes('Süper'))) {
+            const hValid = [...SUPER_LIG_TEAMS].some(t => h.includes(t) || t.includes(h));
+            const aValid = [...SUPER_LIG_TEAMS].some(t => a.includes(t) || t.includes(a));
+            if (!hValid || !aValid) {
+              return;
+            }
+          }
+          validCollectMatches.push(colM);
+        });
+
         // Deduplication & merge: Keep API match if present, append CollectAPI matches, then append DB matches not covered
         const mergedMatches = [...apiMatches];
         const apiTeamPairs = new Set();
@@ -612,7 +633,7 @@ const server = http.createServer((req, res) => {
         });
 
         // Add CollectAPI matches (Süper Lig & TFF 1. Lig)
-        collectDateMatches.forEach(colM => {
+        validCollectMatches.forEach(colM => {
           const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
           const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
           if (!apiTeamPairs.has(`${h}_${a}`)) {
@@ -627,6 +648,7 @@ const server = http.createServer((req, res) => {
           const a = (dbM.away || dbM.awayTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
           if (!apiTeamPairs.has(`${h}_${a}`)) {
             mergedMatches.push(dbM);
+            apiTeamPairs.add(`${h}_${a}`);
           }
         });
 
