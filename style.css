@@ -4774,12 +4774,12 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    padding: 8px 12px !important;
+    padding: 6px 12px !important;
     border-radius: 12px !important;
     font-size: 11.5px !important;
-    background: #f8fafc !important;
-    color: #475569 !important;
-    border: 1px solid #e2e8f0 !important;
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid transparent !important;
     gap: 6px !important;
   }
 
@@ -10981,3 +10981,23 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   border-color: var(--border-glass) !important;
   color: var(--text-primary) !important;
 }
+
+/* ── 27 ÜLKE LİGİ & 2026-2027 SEZONU ROZETİ: Arka plan ile aynı renk ── */
+.season-badge,
+.live-badge.season-badge {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  color: var(--text-secondary) !important;
+}
+
+.season-badge i {
+  color: var(--accent-green) !important;
+}
+
+.season-badge span {
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+}
+
