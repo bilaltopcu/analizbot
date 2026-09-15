@@ -1,17 +1,10 @@
 """
 agent.py – Gemini ile GitHub arasında köprü kuran AI agent katmanı.
-
-Sorumluluklar:
-  1. GitHub reposunun dosya ağacını çek.
-  2. İlgili dosya içeriklerini oku.
-  3. Gemini'ye tüm bağlamı + kullanıcı komutunu ver.
-  4. Gemini'nin döndürdüğü JSON yanıtını parse et:
-       { "files": [{"path": "...", "content": "..."}], "commit_message": "..." }
-  5. Diff özetini döndür (bot.py onay sorar, sonra commit ister).
-  6. GitHub'a değişiklikleri commit'le.
+HTTP API ile doğrudan Gemini çağrısı yapar (AQ. key uyumlu).
 """
 from __future__ import annotations
 
+import base64
 import difflib
 import json
 import logging
@@ -19,7 +12,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-import google.generativeai as genai
+import httpx
 from github import Github, GithubException
 
 from config import (
@@ -35,13 +28,15 @@ from config import (
 
 log = logging.getLogger(__name__)
 
-# ── Gemini kurulumu ────────────────────────────────────────────────────────────
-genai.configure(api_key=GEMINI_API_KEY)
-_model = genai.GenerativeModel(GEMINI_MODEL)
-
 # ── GitHub kurulumu ────────────────────────────────────────────────────────────
 _gh   = Github(GITHUB_TOKEN)
 _repo = _gh.get_repo(GITHUB_REPO)
+
+# ── Gemini HTTP endpoint ───────────────────────────────────────────────────────
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    f"{GEMINI_MODEL}:generateContent"
+)
 
 
 # ── Veri sınıfları ─────────────────────────────────────────────────────────────
@@ -53,7 +48,6 @@ class FileChange:
 
     @property
     def diff_summary(self) -> str:
-        """Kısa birleşik diff metni döndür (max 60 satır)."""
         old_lines = self.old_content.splitlines(keepends=True)
         new_lines = self.new_content.splitlines(keepends=True)
         diff = list(
@@ -75,6 +69,7 @@ class AgentResult:
     commit_message: str = ""
     commit_hash: Optional[str] = None
     error: Optional[str] = None
+    debug_raw: Optional[str] = None  # Gemini ham yanıtı (debug için)
 
     @property
     def diff_text(self) -> str:
@@ -85,11 +80,9 @@ class AgentResult:
 # ── Yardımcı fonksiyonlar ──────────────────────────────────────────────────────
 
 def _build_file_tree(tree_items) -> str:
-    """GitHub tree öğelerinden metin ağacı oluştur."""
     lines: list[str] = []
     for item in tree_items:
         parts = item.path.split("/")
-        # SKIP_DIRS ile başlayan yolları atla
         if any(p in SKIP_DIRS for p in parts):
             continue
         lines.append(item.path)
@@ -97,14 +90,9 @@ def _build_file_tree(tree_items) -> str:
 
 
 def _fetch_context(user_prompt: str) -> tuple[str, dict[str, str]]:
-    """
-    Dosya ağacını ve alakalı dosya içeriklerini çek.
-    Döndürür: (tree_text, {path: content})
-    """
     git_tree = _repo.get_git_tree(GITHUB_BRANCH, recursive=True)
     tree_text = _build_file_tree(git_tree.tree)
 
-    # Sadece okunabilir uzantılı dosyaları al
     readable = [
         item for item in git_tree.tree
         if item.type == "blob"
@@ -112,7 +100,6 @@ def _fetch_context(user_prompt: str) -> tuple[str, dict[str, str]]:
         and not any(p in SKIP_DIRS for p in item.path.split("/"))
     ]
 
-    # Toplam karakter bütçesi – en büyük dosyaları öncelikle oku
     file_contents: dict[str, str] = {}
     budget = MAX_CONTEXT_CHARS
     for item in sorted(readable, key=lambda x: x.size or 0):
@@ -120,7 +107,6 @@ def _fetch_context(user_prompt: str) -> tuple[str, dict[str, str]]:
             break
         try:
             blob = _repo.get_git_blob(item.sha)
-            import base64
             raw = base64.b64decode(blob.content).decode("utf-8", errors="replace")
             snippet = raw[:budget]
             file_contents[item.path] = snippet
@@ -136,21 +122,17 @@ def _build_prompt(user_prompt: str, tree_text: str, file_contents: dict[str, str
         f"### {path}\n```\n{content}\n```"
         for path, content in file_contents.items()
     )
-    return f"""Sen bir otonom kod editörüsün. Sana aşağıdaki GitHub deposunun dosya ağacı ve içerikleri verildi.
-Kullanıcının doğal dil komutunu uygula ve YALNIZCA aşağıdaki JSON formatında cevap ver:
+    return f"""Sen bir otonom kod editörüsün. Sana GitHub deposunun dosya ağacı ve içerikleri verildi.
+Kullanıcının doğal dil komutunu uygula.
 
-{{
-  "files": [
-    {{"path": "değiştirilecek/dosya.py", "content": "<dosyanın yeni TAM içeriği>"}}
-  ],
-  "commit_message": "kısa, açıklayıcı commit mesajı"
-}}
+SADECE ve YALNIZCA aşağıdaki JSON formatında yanıt ver. Başka hiçbir şey yazma:
+
+{{"files": [{{"path": "dosya_yolu", "content": "dosyanın yeni tam içeriği"}}], "commit_message": "kısa commit mesajı"}}
 
 Kurallar:
-- Değiştirilmeyecek dosyaları "files" dizisine ekleme.
-- Her dosyanın tam ve çalışır içeriğini ver, kesmeden.
-- commit_message Türkçe veya İngilizce olabilir, 72 karakteri geçmesin.
-- Sadece JSON döndür, başka açıklama ekleme.
+- Değiştirilmeyecek dosyaları ekleme.
+- Tam dosya içeriğini ver.
+- JSON dışında HİÇBİR şey yazma, açıklama yapma.
 
 ## Dosya Ağacı
 {tree_text}
@@ -163,52 +145,91 @@ Kurallar:
 """
 
 
-def _parse_gemini_response(text: str) -> tuple[list[dict], str]:
-    """Gemini yanıtından JSON bloğunu çıkar ve parse et."""
-    # Markdown kod bloğu varsa içini al
-    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
-    json_str = match.group(1) if match else text.strip()
+async def _call_gemini(prompt: str) -> str:
+    """Gemini API'ye doğrudan HTTP ile istek at (AQ. key uyumlu)."""
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY,
+    }
+    body = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.1,
+            "maxOutputTokens": 8192,
+            "responseMimeType": "application/json",
+        },
+    }
+    async with httpx.AsyncClient(timeout=180) as client:
+        resp = await client.post(GEMINI_URL, headers=headers, json=body)
 
-    # Bazen ```json olmadan düz JSON gelir
+    if resp.status_code != 200:
+        raise ValueError(f"Gemini HTTP {resp.status_code}: {resp.text[:300]}")
+
+    data = resp.json()
+
     try:
-        data = json.loads(json_str)
-    except json.JSONDecodeError:
-        # İlk { ... } bloğunu yakala
-        brace_match = re.search(r"\{.*\}", json_str, re.DOTALL)
-        if not brace_match:
-            raise ValueError("Gemini geçerli JSON döndürmedi.")
-        data = json.loads(brace_match.group())
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError) as e:
+        log.error("Gemini yanıt yapısı beklenmedik: %s", json.dumps(data)[:400])
+        raise ValueError(f"Gemini yanıt yapısı beklenmedik: {json.dumps(data)[:300]}") from e
 
+
+def _parse_gemini_response(text: str) -> tuple[list[dict], str]:
+    """Gemini yanıtından JSON'u çıkar."""
+    # Markdown kod bloğunu temizle
+    cleaned = re.sub(r"```(?:json)?", "", text).replace("```", "").strip()
+
+    # İlk { bloğundan son } bloğuna kadar al
+    start = cleaned.find("{")
+    end   = cleaned.rfind("}") + 1
+    if start == -1 or end == 0:
+        raise ValueError(f"JSON bulunamadı. Ham yanıt:\n{text[:400]}")
+
+    json_str = cleaned[start:end]
+    data = json.loads(json_str)
     return data.get("files", []), data.get("commit_message", "chore: update files")
 
 
 # ── Ana agent fonksiyonları ────────────────────────────────────────────────────
 
 async def analyze(user_prompt: str) -> AgentResult:
-    """
-    Kullanıcı komutunu analiz et, değişiklikleri belirle, diff özetini hazırla.
-    Henüz commit YAPMAZ.
-    """
     result = AgentResult()
     try:
         log.info("Bağlam çekiliyor...")
         tree_text, file_contents = _fetch_context(user_prompt)
+        log.info("%d dosya içeriği yüklendi, ağaç %d satır",
+                 len(file_contents), tree_text.count("\n"))
 
-        log.info("Gemini'ye istek gönderiliyor...")
+        log.info("Gemini çağrılıyor... model=%s", GEMINI_MODEL)
         prompt = _build_prompt(user_prompt, tree_text, file_contents)
-        response = _model.generate_content(prompt)
-        raw = response.text
+        raw = await _call_gemini(prompt)
+
+        result.debug_raw = raw[:1000]
+        log.info("Gemini yanıtı (ilk 400 karakter):\n%s", raw[:400])
+
+        if not raw or not raw.strip():
+            result.error = "❌ Gemini boş yanıt döndürdü."
+            return result
 
         files_spec, commit_msg = _parse_gemini_response(raw)
         result.commit_message = commit_msg
+        log.info("Parse edildi: %d dosya değişikliği, commit: %s",
+                 len(files_spec), commit_msg)
 
         for spec in files_spec:
-            path = spec["path"]
-            new_content = spec["content"]
-            # Mevcut içeriği al (yeni dosyaysa boş string)
+            path        = spec.get("path", "").strip()
+            new_content = spec.get("content", "")
+            if not path or not new_content:
+                continue
             old_content = file_contents.get(path, "")
             result.changes.append(FileChange(path, old_content, new_content))
 
+    except json.JSONDecodeError as exc:
+        log.error("JSON parse hatası: %s", exc)
+        result.error = (
+            f"❌ Gemini geçersiz JSON döndürdü:\n`{exc}`\n\n"
+            f"Ham yanıt:\n```\n{result.debug_raw or 'yok'}\n```"
+        )
     except Exception as exc:
         log.exception("analyze() hatası")
         result.error = str(exc)
@@ -217,21 +238,16 @@ async def analyze(user_prompt: str) -> AgentResult:
 
 
 async def commit_changes(result: AgentResult) -> AgentResult:
-    """
-    AgentResult içindeki değişiklikleri GitHub'a commit et.
-    Multi-dosya değişikliği için Git Tree API kullanır.
-    """
+    """Değişiklikleri GitHub'a commit et (Git Tree API)."""
     if result.error or not result.changes:
         result.error = result.error or "Commit edilecek değişiklik yok."
         return result
 
     try:
-        # Mevcut HEAD commit'i al
         ref       = _repo.get_git_ref(f"heads/{GITHUB_BRANCH}")
         head_sha  = ref.object.sha
         base_tree = _repo.get_git_commit(head_sha).tree
 
-        # Her değiştirilmiş dosya için blob oluştur
         blobs = []
         for change in result.changes:
             blob = _repo.create_git_blob(change.new_content, "utf-8")
@@ -242,15 +258,12 @@ async def commit_changes(result: AgentResult) -> AgentResult:
                 "sha": blob.sha,
             })
 
-        # Yeni tree + commit oluştur
         new_tree   = _repo.create_git_tree(blobs, base_tree)
         new_commit = _repo.create_git_commit(
             message=result.commit_message,
             tree=new_tree,
             parents=[_repo.get_git_commit(head_sha)],
         )
-
-        # Branch ref'ini güncelle
         ref.edit(new_commit.sha)
         result.commit_hash = new_commit.sha[:7]
         log.info("Commit başarılı: %s", result.commit_hash)
