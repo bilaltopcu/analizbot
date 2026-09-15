@@ -1,0 +1,25 @@
+# Render.com Worker Servisi – Telegram AI Bot
+# Bu dosyayı projenin KÖK dizinine (analizbot/) değil,
+# tgbot/ alt klasörünü ayrı bir repo olarak push edeceksen kök'e koy.
+
+services:
+  - type: worker           # HTTP portu açmayan arka plan işi
+    name: tgai-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false        # Render dashboard'dan elle gir
+      - key: ALLOWED_CHAT_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        sync: false
+      - key: GITHUB_BRANCH
+        value: master
+      - key: AUTO_APPROVE
+        value: "false"
