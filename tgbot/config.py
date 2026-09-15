@@ -12,7 +12,7 @@ ALLOWED_CHAT_ID: int    = int(os.environ["ALLOWED_CHAT_ID"])
 
 # ── Gemini AI ─────────────────────────────────────────────────────────────────
 GEMINI_API_KEY: str = os.environ["GEMINI_API_KEY"]
-GEMINI_MODEL: str   = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL: str   = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
 # ── GitHub ────────────────────────────────────────────────────────────────────
 GITHUB_TOKEN: str  = os.environ["GITHUB_TOKEN"]
