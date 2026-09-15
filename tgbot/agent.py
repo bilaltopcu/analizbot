@@ -146,7 +146,11 @@ Kurallar:
 
 
 async def _call_gemini(prompt: str) -> str:
-    """Gemini API'ye doğrudan HTTP ile istek at (AQ. key uyumlu)."""
+    """Gemini API'ye doğrudan HTTP ile istek at.
+    503 / 429 hatalarında exponential backoff ile yeniden dener.
+    """
+    import asyncio
+
     headers = {
         "Content-Type": "application/json",
         "x-goog-api-key": GEMINI_API_KEY,
@@ -159,11 +163,27 @@ async def _call_gemini(prompt: str) -> str:
             "responseMimeType": "application/json",
         },
     }
-    async with httpx.AsyncClient(timeout=180) as client:
-        resp = await client.post(GEMINI_URL, headers=headers, json=body)
 
-    if resp.status_code != 200:
-        raise ValueError(f"Gemini HTTP {resp.status_code}: {resp.text[:300]}")
+    wait_times = [5, 15, 30, 60]   # saniye cinsinden bekleme süresi
+
+    async with httpx.AsyncClient(timeout=180) as client:
+        for attempt, wait in enumerate(wait_times, start=1):
+            resp = await client.post(GEMINI_URL, headers=headers, json=body)
+
+            if resp.status_code == 200:
+                break
+
+            # Yeniden denenebilir hatalar: 429 (rate limit) veya 503 (aşırı yük)
+            if resp.status_code in (429, 503) and attempt < len(wait_times):
+                log.warning(
+                    "Gemini %d hatası (deneme %d/%d). %ds bekleniyor...",
+                    resp.status_code, attempt, len(wait_times), wait,
+                )
+                await asyncio.sleep(wait)
+                continue
+
+            # Diğer hatalar veya son deneme
+            raise ValueError(f"Gemini HTTP {resp.status_code}: {resp.text[:400]}")
 
     data = resp.json()
 
