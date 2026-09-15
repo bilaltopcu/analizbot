@@ -227,81 +227,15 @@ module.exports = async (req, res) => {
     }
   } catch (_) {}
 
-  let collectMatches = [];
-  try {
-    const allCollect = await fetchAllCollectApiTurkishMatches();
-    collectMatches = (allCollect || []).filter(m => (m.date || '').trim() === dFormatted);
-  } catch (_) {}
+  const collectMatches = await fetchAllCollectApiTurkishMatches();
+  const collectForDate = collectMatches.filter(m => m.date === dFormatted);
 
-  const SUPER_LIG_TEAMS = new Set([
-    'galatasaray', 'fenerbahce', 'besiktas', 'trabzonspor', 'basaksehir',
-    'samsunspor', 'eyupspor', 'kasimpasa', 'goztepe', 'rizespor', 'caykurrizespor',
-    'sivasspor', 'alanyaspor', 'antalyaspor', 'gaziantepfk', 'gaziantep', 'konyaspor',
-    'kayserispor', 'bodrumfk', 'bodrumspor', 'hatayspor', 'adanademirspor'
-  ]);
+  const combined = [...dbMatches, ...apiMatches, ...collectForDate];
 
-  const validCollectMatches = [];
-  collectMatches.forEach(colM => {
-    const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    // If it claims to be Süper Lig, ensure both are actual Süper Lig teams
-    if (colM.league_code === 'T1' || (colM.league_name && colM.league_name.includes('Süper'))) {
-      const hValid = [...SUPER_LIG_TEAMS].some(t => h.includes(t) || t.includes(h));
-      const aValid = [...SUPER_LIG_TEAMS].some(t => a.includes(t) || t.includes(a));
-      if (!hValid || !aValid) {
-        // Corrupted cross-division entry from CollectAPI, discard
-        return;
-      }
-    }
-    validCollectMatches.push(colM);
-  });
-
-  const mergedMatches = [...apiMatches];
-  const apiPairs = new Set();
-  apiMatches.forEach(m => {
-    const h = (m.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const a = (m.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (h && a) apiPairs.add(`${h}_${a}`);
-  });
-
-  validCollectMatches.forEach(colM => {
-    const h = (colM.home || colM.homeTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const a = (colM.away || colM.awayTeam?.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (!apiPairs.has(`${h}_${a}`)) {
-      mergedMatches.push(colM);
-      apiPairs.add(`${h}_${a}`);
-    }
-  });
-
-  dbMatches.forEach(dbM => {
-    const h = (dbM.home || dbM.homeTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const a = (dbM.away || dbM.awayTeam || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (!apiPairs.has(`${h}_${a}`)) {
-      mergedMatches.push(dbM);
-      apiPairs.add(`${h}_${a}`);
-    }
-  });
-
-  let source = 'api';
-  const hasLive = (apiMatches.length > 0 || collectMatches.length > 0);
-  const hasDb = dbMatches.length > 0;
-  if (hasLive && hasDb) source = 'api+db';
-  else if (hasLive) source = 'api';
-  else if (hasDb) source = 'db';
-  else source = 'none';
-
-  const payload = {
-    success: true,
-    date: dFormatted,
-    source,
-    count: mergedMatches.length,
-    matches: mergedMatches
-  };
-
-  if (res.status && typeof res.status === 'function') {
-    return res.status(200).json(payload);
+  if (res.status) {
+    return res.status(200).json({ status: 'OK', date: dFormatted, matches: combined });
   } else {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-    return res.end(JSON.stringify(payload));
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ status: 'OK', date: dFormatted, matches: combined }));
   }
 };
