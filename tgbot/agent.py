@@ -264,35 +264,49 @@ async def commit_changes(result: AgentResult) -> AgentResult:
         return result
 
     try:
+        from github import InputGitTreeElement
+
         ref       = _repo.get_git_ref(f"heads/{GITHUB_BRANCH}")
         head_sha  = ref.object.sha
         base_tree = _repo.get_git_commit(head_sha).tree
 
-        blobs = []
+        # Her dosya için InputGitTreeElement oluştur
+        tree_elements = []
         for change in result.changes:
+            log.info("Blob oluşturuluyor: %s (%d karakter)", change.path, len(change.new_content))
             blob = _repo.create_git_blob(change.new_content, "utf-8")
-            blobs.append({
-                "path": change.path,
-                "mode": "100644",
-                "type": "blob",
-                "sha": blob.sha,
-            })
+            tree_elements.append(
+                InputGitTreeElement(
+                    path=change.path,
+                    mode="100644",
+                    type="blob",
+                    sha=blob.sha,
+                )
+            )
+            log.info("Blob tamam: %s → %s", change.path, blob.sha[:8])
 
-        new_tree   = _repo.create_git_tree(blobs, base_tree)
+        log.info("Git tree oluşturuluyor (%d eleman)...", len(tree_elements))
+        new_tree = _repo.create_git_tree(tree_elements, base_tree)
+
+        log.info("Commit oluşturuluyor: %s", result.commit_message)
         new_commit = _repo.create_git_commit(
             message=result.commit_message,
             tree=new_tree,
             parents=[_repo.get_git_commit(head_sha)],
         )
+
+        log.info("Branch güncelleniyor: %s → %s", GITHUB_BRANCH, new_commit.sha[:8])
         ref.edit(new_commit.sha)
         result.commit_hash = new_commit.sha[:7]
-        log.info("Commit başarılı: %s", result.commit_hash)
+        log.info("✅ Commit başarılı: %s", result.commit_hash)
 
     except GithubException as exc:
-        log.exception("GitHub commit hatası")
-        result.error = f"GitHub hatası: {exc.data}"
+        # exc.data bir dict olabilir — temiz mesaj çıkar
+        msg = exc.data if isinstance(exc.data, str) else exc.data.get("message", str(exc.data))
+        log.exception("GitHub commit hatası: %s", msg)
+        result.error = f"❌ GitHub API hatası:\n`{msg}`\nStatus: {exc.status}"
     except Exception as exc:
-        log.exception("commit_changes() hatası")
-        result.error = str(exc)
+        log.exception("commit_changes() beklenmeyen hata")
+        result.error = f"❌ Commit hatası: {exc}"
 
     return result
