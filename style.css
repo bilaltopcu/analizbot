@@ -3703,7 +3703,7 @@ body {
   font-family: var(--font-heading), 'Outfit', sans-serif;
   font-size: 12px;
   font-weight: 800;
-  color: #334155;
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -3721,11 +3721,11 @@ body {
   line-height: 1.3;
 }
 
-.exp-badge-emerald { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-.exp-badge-cyan { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
-.exp-badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-.exp-badge-crimson { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-.exp-badge-violet { background: #faf5ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+.exp-badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+.exp-badge-cyan { background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+.exp-badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+.exp-badge-crimson { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+.exp-badge-violet { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); }
 
 .exp-hero-metric {
   display: flex;
@@ -3739,14 +3739,14 @@ body {
   font-size: 36px;
   font-weight: 900;
   line-height: 1;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .exp-hero-unit {
   font-family: var(--font-heading), 'Outfit', sans-serif;
   font-size: 13px;
   font-weight: 800;
-  color: #334155;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -3755,7 +3755,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: #f8fafc;
+  background: var(--bg-card);
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-glass);
@@ -3784,7 +3784,7 @@ body {
 
 .exp-split-bar {
   height: 7px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 4px;
   overflow: hidden;
   display: flex;
@@ -3797,17 +3797,17 @@ body {
 }
 
 .exp-bar-away {
-  background: #cbd5e1;
+  background: rgba(255, 255, 255, 0.18);
   height: 100%;
   transition: width 0.4s ease;
 }
 
 .exp-bar-home.bar-cyan { background: linear-gradient(90deg, #0284c7, #0369a1); }
-.exp-bar-away.bar-cyan-light { background: #bae6fd; }
+.exp-bar-away.bar-cyan-light { background: rgba(56, 189, 248, 0.25); }
 .exp-bar-home.bar-amber { background: linear-gradient(90deg, #f59e0b, #d97706); }
-.exp-bar-away.bar-amber-light { background: #fde68a; }
+.exp-bar-away.bar-amber-light { background: rgba(251, 191, 36, 0.25); }
 .exp-bar-home.bar-violet { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
-.exp-bar-away.bar-violet-light { background: #ddd6fe; }
+.exp-bar-away.bar-violet-light { background: rgba(167, 139, 250, 0.25); }
 
 .exp-card-footer {
   font-size: 11.5px;
@@ -3832,7 +3832,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  background: #f8fafc;
+  background: var(--bg-card);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
@@ -3845,7 +3845,7 @@ body {
   align-items: center;
   font-size: 11px;
   padding: 3px 0;
-  border-bottom: 1px dashed rgba(226, 232, 240, 0.9);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
 }
 
 .exp-corner-row:last-child {
@@ -3862,7 +3862,7 @@ body {
 
 .exp-corner-row .cstat-name i {
   font-size: 10px;
-  color: #0284c7;
+  color: #38bdf8;
   width: 12px;
   text-align: center;
 }
@@ -3873,9 +3873,9 @@ body {
   font-feature-settings: "tnum";
 }
 
-.exp-corner-row .cstat-val.cstat-green { color: #047857; }
-.exp-corner-row .cstat-val.cstat-cyan { color: #0284c7; }
-.exp-corner-row .cstat-val.cstat-amber { color: #b45309; }
+.exp-corner-row .cstat-val.cstat-green { color: #34d399; }
+.exp-corner-row .cstat-val.cstat-cyan { color: #38bdf8; }
+.exp-corner-row .cstat-val.cstat-amber { color: #fbbf24; }
 .exp-corner-row .cstat-val.cstat-muted { color: var(--text-muted); }
 
 /* AI Result Card Expected Summary Strip (Ultra Belirgin Font & Yüksek Kontrast) */
@@ -3887,7 +3887,7 @@ body {
   align-items: stretch;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1.5px dashed #cbd5e1;
+  border-top: 1.5px dashed rgba(255, 255, 255, 0.1);
 }
 
 .exp-summary-pill {
@@ -3895,18 +3895,19 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #ffffff;
+  background: var(--bg-glass);
   padding: 10px 18px;
   border-radius: 14px;
-  border: 1.5px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  border: 1.5px solid var(--border-glass);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-width: 220px;
 }
 
 .exp-summary-pill:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.09);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  border-color: var(--border-glass-bright);
 }
 
 .exp-pill-content {
@@ -3925,7 +3926,7 @@ body {
   font-family: var(--font-heading), 'Outfit', sans-serif;
   font-size: 13.5px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   letter-spacing: 0.2px;
 }
 
@@ -3942,47 +3943,47 @@ body {
 
 /* Gol (Emerald Vurgusu) */
 .exp-pill-goals {
-  border-color: #86efac;
-  background: #ffffff;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: var(--bg-glass);
 }
 .exp-pill-goals .exp-pill-icon {
-  color: #059669;
+  color: #34d399;
 }
 .exp-pill-goals .exp-pill-val,
 .exp-pill-goals strong {
-  color: #065f46;
-  background: #dcfce7;
-  border: 1px solid #86efac;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.3);
 }
 
 /* Korner (Blue Vurgusu) */
 .exp-pill-corners {
-  border-color: #93c5fd;
-  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--bg-glass);
 }
 .exp-pill-corners .exp-pill-icon {
-  color: #0284c7;
+  color: #38bdf8;
 }
 .exp-pill-corners .exp-pill-val,
 .exp-pill-corners strong {
-  color: #1e40af;
-  background: #dbeafe;
-  border: 1px solid #93c5fd;
+  color: #38bdf8;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
 /* Kart (Amber Vurgusu) */
 .exp-pill-cards {
-  border-color: #fcd34d;
-  background: #ffffff;
+  border-color: rgba(245, 158, 11, 0.3);
+  background: var(--bg-glass);
 }
 .exp-pill-cards .exp-pill-icon {
-  color: #d97706;
+  color: #fbbf24;
 }
 .exp-pill-cards .exp-pill-val,
 .exp-pill-cards strong {
-  color: #92400e;
-  background: #fef3c7;
-  border: 1px solid #fcd34d;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 /* ==========================================================================
@@ -11009,4 +11010,44 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   color: var(--text-secondary) !important;
   font-weight: 600 !important;
 }
+
+/* ── BEKLENEN İSTATİSTİKLER GENEL KOYU TEMA KORUMASI ── */
+#expectedMetricsSection,
+#expectedTableContainer,
+.expected-metrics-section,
+.expected-table-container,
+.expected-row,
+.expected-cards-grid,
+.expected-card {
+  color: var(--text-primary) !important;
+}
+
+#expectedTableContainer .stat-row,
+#expectedTableContainer .expected-row,
+.expected-metrics-section .stat-row,
+.expected-metrics-section .expected-row {
+  background: var(--bg-glass) !important;
+  border-color: var(--border-glass) !important;
+  color: var(--text-primary) !important;
+}
+
+#expectedTableContainer .stat-row:nth-child(even),
+#expectedTableContainer .expected-row:nth-child(even),
+.expected-metrics-section .stat-row:nth-child(even),
+.expected-metrics-section .expected-row:nth-child(even) {
+  background: var(--bg-subtle) !important;
+}
+
+#expectedTableContainer .exp-stat-name,
+.expected-metrics-section .exp-stat-name {
+  color: var(--text-primary) !important;
+}
+
+#expectedTableContainer .exp-stat-val,
+.expected-metrics-section .exp-stat-val {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.12) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+}
+
 
