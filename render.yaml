@@ -9,3 +9,25 @@ services:
       - key: PORT
         value: 10000
     healthCheckPath: /ping
+
+  - type: worker
+    name: tgai-bot
+    runtime: python
+    rootDir: tgbot
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ALLOWED_CHAT_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: bilaltopcu/analizbot
+      - key: GITHUB_BRANCH
+        value: master
+      - key: AUTO_APPROVE
+        value: "false"
