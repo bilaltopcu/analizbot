@@ -940,11 +940,18 @@ function serveAsset(req, res, fileData) {
   }
 
   const acceptEncoding = req.headers['accept-encoding'] || '';
+  const isSw = req.url && (req.url.includes('sw.js') || req.url.includes('manifest.json'));
   const isDataOrCode = fileData.contentType.includes('html') ||
                        fileData.contentType.includes('javascript') ||
-                       fileData.contentType.includes('json');
+                       fileData.contentType.includes('json') ||
+                       fileData.contentType.includes('css');
 
-  const cacheControl = isDataOrCode ? 'no-cache, must-revalidate' : 'public, max-age=86400';
+  let cacheControl = 'public, max-age=86400';
+  if (isSw) {
+    cacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+  } else if (isDataOrCode) {
+    cacheControl = 'no-cache, must-revalidate, max-age=0';
+  }
 
   const headers = {
     'Content-Type': fileData.contentType,

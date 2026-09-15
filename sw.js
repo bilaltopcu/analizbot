@@ -1,4 +1,4 @@
-const CACHE_NAME = 'golanaliz-v102';
+const CACHE_NAME = 'golanaliz-v103';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -21,6 +21,12 @@ const ASSETS_TO_CACHE = [
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
+
+self.addEventListener('message', (event) => {
+  if (event.data && (event.data.type === 'SKIP_WAITING' || event.data === 'skipWaiting')) {
+    self.skipWaiting();
+  }
+});
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -61,7 +67,7 @@ self.addEventListener('fetch', (event) => {
   // 1. HTML Sayfa Açılışı (Navigation): Daima Önce İnternetten En Güncelini Çek!
   if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-cache' })
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
@@ -76,10 +82,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. CSS ve JS Dosyaları: Ağdan en son sürümü al, ağ yoksa önbellekten sun
+  // 2. CSS ve JS Dosyaları: Ağdan en son sürümü al (cache bypass), ağ yoksa önbellekten sun
   if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-cache' })
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
@@ -87,7 +93,7 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request, { ignoreSearch: true }))
     );
     return;
   }

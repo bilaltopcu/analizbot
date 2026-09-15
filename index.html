@@ -101,6 +101,11 @@
               <i class="fa-solid fa-right-from-bracket"></i>
             </button>
           </div>
+          <!-- Force Refresh / Update Header Button -->
+          <button type="button" class="btn-user-action" id="headerForceRefreshBtn" onclick="forceAppRefresh()" title="Uygulamayı Güncelle & Önbelleği Temizle" aria-label="Uygulamayı Güncelle">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span class="user-action-label">Güncelle</span>
+          </button>
           <!-- Fullscreen Toggle Header Button -->
           <button type="button" class="btn-fullscreen-header" id="fullscreenToggleBtn" title="Tam Ekrana Geç" aria-label="Tam Ekran">
             <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
@@ -884,6 +889,20 @@
   <script src="app.js?v=6.0.1"></script>
   <script src="pwa.js"></script>
   <script>
+    // Otomatik Sürüm Kontrolü ve Önbellek Temizleyici
+    (function() {
+      const APP_VERSION = 'v103';
+      const savedVersion = localStorage.getItem('golanaliz_app_ver');
+      if (savedVersion !== APP_VERSION) {
+        localStorage.setItem('golanaliz_app_ver', APP_VERSION);
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(name) { return caches.delete(name); }));
+          }).catch(function() {});
+        }
+      }
+    })();
+
     if ('serviceWorker' in navigator) {
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -894,10 +913,25 @@
       });
 
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./sw.js?v=103', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker registered successfully:', reg.scope);
             reg.update();
+
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              }
+            });
 
             // Uygulama arka plandan öne geldiğinde otomatik güncelleme kontrolü yap
             document.addEventListener('visibilitychange', () => {
@@ -909,6 +943,27 @@
           .catch(err => console.log('Service Worker registration failed:', err));
       });
     }
+
+    // Kullanıcı için Anında Önbellek Temizleme ve Zorla Yenileme
+    window.forceAppRefresh = function() {
+      const btn = document.getElementById('headerForceRefreshBtn');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+      if ('caches' in window) {
+        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+              regs.forEach(r => r.unregister());
+            });
+          }
+          localStorage.removeItem('golanaliz_app_ver');
+          window.location.href = window.location.origin + window.location.pathname + '?nocache=' + Date.now();
+        }).catch(() => {
+          window.location.reload(true);
+        });
+      } else {
+        window.location.reload(true);
+      }
+    };
   </script>
 
   <!-- Reklam Alanları Zamanlı Görünürlük Scripti -->
