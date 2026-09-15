@@ -22,7 +22,9 @@
 .risk-card,
 [class*="expected"],
 [class*="stat-box"],
-[class*="stat-card"] {
+[class*="stat-card"],
+[id*="expected"],
+[id*="expectedStats"] {
   background: rgba(15, 23, 42, 0.75) !important;
   background-color: rgba(15, 23, 42, 0.75) !important;
   color: #f8fafc !important;
@@ -36,8 +38,11 @@
 .expected-stat-card *,
 .expected-stats-box *,
 .stat-card *,
-.stats-container * {
-  background-color: transparent;
+.stats-container *,
+[class*="expected"] *,
+[id*="expected"] * {
+  background-color: transparent !important;
+  color: inherit;
 }
 
 .stat-value,
@@ -53,7 +58,12 @@
 .expected-stats table,
 .expected-stats tr,
 .expected-stats td,
-.expected-stats th {
+.expected-stats th,
+[class*="expected"] table,
+[class*="expected"] tr,
+[class*="expected"] td,
+[class*="expected"] th {
   background: transparent !important;
+  background-color: transparent !important;
   color: #f8fafc !important;
 }
