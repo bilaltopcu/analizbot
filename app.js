@@ -1527,12 +1527,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     container.innerHTML = rows.map((r, idx) => {
       const isEven = idx % 2 === 0;
-      const bg = isEven ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)' : 'linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%)';
-      const border = isEven ? '#e2e8f0' : '#c7dcfb';
+      const bg = isEven ? 'var(--bg-subtle)' : 'var(--bg-glass)';
+      const border = 'var(--border-glass)';
       return `
-      <div class="expected-row stat-row" style="display:flex; justify-content:space-between; align-items:center; background:${bg}; border:1.5px solid ${border}; border-radius:14px; padding:12px 18px; margin-bottom:${idx === rows.length - 1 ? '0' : '8px'}; box-shadow:0 2px 6px rgba(15,23,42,0.03); transition: transform 0.2s ease, border-color 0.2s ease;">
-        <span class="exp-stat-name" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13.5px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">${r.name}</span>
-        <span class="exp-stat-val" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:14px; font-weight:800; color:#1e56c0; background:#eef5ff; border:1.5px solid #bfdbfe; padding:4px 12px; border-radius:10px; white-space:nowrap; box-shadow:0 1px 3px rgba(30,86,192,0.08);">${r.val}</span>
+      <div class="expected-row stat-row" style="display:flex; justify-content:space-between; align-items:center; background:${bg}; border:1px solid ${border}; border-radius:14px; padding:12px 18px; margin-bottom:${idx === rows.length - 1 ? '0' : '8px'}; box-shadow:var(--shadow-sm); transition: transform 0.2s ease, border-color 0.2s ease;">
+        <span class="exp-stat-name" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13.5px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">${r.name}</span>
+        <span class="exp-stat-val" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:14px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); padding:4px 12px; border-radius:10px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.15);">${r.val}</span>
       </div>
       `;
     }).join("");
@@ -1628,7 +1628,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.innerHTML = `
         <div class="stat-label-bar">
           <span class="home-val">${m.homeDisplay}</span>
-          <span class="stat-title" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13px; font-weight:700; color:#0f172a;">${m.title}</span>
+          <span class="stat-title" style="font-family:var(--font-heading), 'Outfit', sans-serif; font-size:13px; font-weight:700; color:var(--text-primary);">${m.title}</span>
           <span class="away-val">${m.awayDisplay}</span>
         </div>
         <div class="stat-progress-container">
