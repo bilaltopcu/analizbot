@@ -486,7 +486,9 @@ function callAnthropicProxyApi(promptText, apiKey) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           try {
             const parsed = JSON.parse(data);
-            const textResponse = parsed?.content?.[0]?.text;
+            // Claude bazen thinking + text bloğu döner, text olanı bul
+            const textBlock = parsed?.content?.find(b => b.type === 'text');
+            const textResponse = textBlock?.text;
             if (textResponse) {
               const cleanText = textResponse.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
               const analysisData = JSON.parse(cleanText);

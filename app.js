@@ -55,7 +55,7 @@ function showAiToast(modelName, status) {
     borderColor = 'rgba(59, 130, 246, 0.5)';
   } else if (status === 'error') {
     icon = '⚠️';
-    text = 'DeepSeek API yanıt vermedi';
+    text = 'Claude AI yanıt vermedi';
     color = 'rgba(239, 68, 68, 0.15)';
     borderColor = 'rgba(239, 68, 68, 0.5)';
   }
