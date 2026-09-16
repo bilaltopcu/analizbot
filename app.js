@@ -2701,19 +2701,58 @@ document.addEventListener("DOMContentLoaded", () => {
       if (modelName) {
         if (modelName.toLowerCase().includes('claude')) displayName = 'Claude Sonnet AI';
         else if (modelName.includes('deepseek')) displayName = 'DeepSeek-V3 AI';
+        else if (modelName.includes('3.6')) displayName = 'Gemini 3.6 Flash AI';
         else if (modelName.includes('3.8')) displayName = 'Gemini 3.8 Flash AI';
         else if (modelName.includes('3.7')) displayName = 'Gemini 3.7 Flash AI';
         else if (modelName.includes('3.1')) displayName = 'Gemini 3.1 Flash Lite AI';
-        else if (modelName.includes('3.6')) displayName = 'Gemini 3.6 Flash AI';
         else displayName = `AI (${modelName})`;
       }
 
       if (aiModelBadge) {
-        aiModelBadge.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> ${displayName}`;
-        aiModelBadge.style.background = 'rgba(147, 51, 234, 0.25)';
+        aiModelBadge.innerHTML = `<i class="fa-solid fa-brain"></i> ${displayName} (Matematiksel Model)`;
+        aiModelBadge.style.background = displayName.includes('Claude') ? 'rgba(251, 146, 60, 0.25)' : 'rgba(147, 51, 234, 0.25)';
       }
       if (aiExplanationTitle) {
-        aiExplanationTitle.textContent = `${displayName} Derin Maç Analiz Raporu`;
+        aiExplanationTitle.textContent = `${displayName} Matematiksel & Taktiksel Analiz Raporu`;
+      }
+
+      // =============================================
+      // AI Matematiksel Tahmin Çıktılarını Arayüze Uygula
+      // =============================================
+      if (analysis && analysis.aiProbabilities) {
+        const p = analysis.aiProbabilities;
+
+        // 1. Kesin Skor Tahmini (Doğrudan AI'nın belirlediği skor)
+        if (p.predictedScore && aiScorePrediction) {
+          aiScorePrediction.innerHTML = `${p.predictedScore} <span style="font-size:11px;font-weight:700;color:var(--accent-gold);margin-left:4px;vertical-align:middle;">⚡ ${displayName.split(' ')[0]}</span>`;
+        }
+
+        // 2. Taktiksel Kartlardaki xG ve İstatistik Değerleri
+        if (aiTacticalGrid) {
+          const cards = aiTacticalGrid.querySelectorAll('.tactical-card');
+          if (cards[0] && p.xG_home !== undefined && p.xG_away !== undefined) {
+            const valEl = cards[0].querySelector('.tactical-card-val');
+            const descEl = cards[0].querySelector('.tactical-card-desc');
+            if (valEl) valEl.textContent = `Ev ${p.xG_home} - ${p.xG_away} Dep`;
+            if (descEl) descEl.innerHTML = `<i class="fa-solid fa-microchip"></i> ${displayName.split(' ')[0]} xG Hesaplaması`;
+          }
+          if (cards[1] && p.pHomeWin !== undefined) {
+            const valEl = cards[1].querySelector('.tactical-card-val');
+            const descEl = cards[1].querySelector('.tactical-card-desc');
+            if (valEl) valEl.innerHTML = `<span class="research-score-badge score-strong">%${p.pHomeWin} EV - %${p.pAwayWin} DEP</span>`;
+            if (descEl) descEl.textContent = `Beraberlik İhtimali: %${p.pDraw || 25}`;
+          }
+        }
+      }
+
+      // 3. AI Tarafından Belirlenen Nihai Bahis ve Güven Skoru
+      if (analysis && analysis.aiBestBet && analysis.aiBestBet.pick) {
+        const pick = analysis.aiBestBet.pick;
+        const conf = analysis.aiBestBet.confidence || bestPick.pct;
+        if (aiBetTitle) aiBetTitle.textContent = pick;
+        if (aiConfidenceValue) aiConfidenceValue.textContent = `%${conf}`;
+        if (aiBankoConfidence) aiBankoConfidence.textContent = `%${conf} GÜVEN (${displayName.split(' ')[0]})`;
+        if (aiMainProbVal) aiMainProbVal.textContent = `%${conf}`;
       }
 
       const mainText = analysis.bestBetRationale || analysis.matchAnalysisSummary || bestPick.reason;
@@ -2796,33 +2835,33 @@ document.addEventListener("DOMContentLoaded", () => {
         showAiToast(data.model, 'success');
         applyAiAnalysis(data.model, data.analysis, true);
       } else {
-        // DeepSeek başarısız — hata göster
-        showAiToast(null, 'error');
+        // Fallback to local engine
+        showAiToast(null, 'fallback');
         if (aiModelBadge) {
-          aiModelBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> DeepSeek Bağlantı Hatası`;
-          aiModelBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+          aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
+          aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
         }
         if (aiExplanationTitle) {
-          aiExplanationTitle.textContent = 'DeepSeek AI Bağlantı Hatası';
+          aiExplanationTitle.textContent = 'Engine 6.0 AI Analiz Raporu & Gerekçesi';
         }
         if (aiExplanationText) {
-          aiExplanationText.textContent = '⚠️ DeepSeek API yanıt vermedi. API anahtarınızı kontrol edin.';
+          aiExplanationText.textContent = bestPick.reason;
         }
       }
     })
     .catch(err => {
       if (err.name === 'AbortError') return;
-      console.error('[DeepSeek Frontend Fetch Error]', err);
-      showAiToast(null, 'error');
+      console.warn('[AI Frontend Fetch Fallback]', err);
+      showAiToast(null, 'fallback');
       if (aiModelBadge) {
-        aiModelBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> DeepSeek Bağlantı Hatası`;
-        aiModelBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+        aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
+        aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
       }
       if (aiExplanationTitle) {
-        aiExplanationTitle.textContent = 'DeepSeek AI Bağlantı Hatası';
+        aiExplanationTitle.textContent = 'Engine 6.0 AI Analiz Raporu & Gerekçesi';
       }
       if (aiExplanationText) {
-        aiExplanationText.textContent = `⚠️ Sunucu bağlantısı kurulamadı: ${err.message}`;
+        aiExplanationText.textContent = bestPick.reason;
       }
     });
 

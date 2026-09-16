@@ -369,21 +369,19 @@ function callSingleModel(model, promptText, apiKey, useThinkingZero) {
 }
 
 async function callGeminiApi(promptText, apiKey) {
-  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
   const modelCascade = [
     preferredModel,
-    'gemini-3.8-flash',
+    'gemini-3.6-flash',
     'gemini-3.1-flash-lite',
-    'gemini-3.7-flash',
-    'gemini-3.6-flash'
+    'gemini-3.8-flash',
+    'gemini-3.7-flash'
   ];
   const uniqueModels = [...new Set(modelCascade)];
 
   for (const m of uniqueModels) {
-    // Try first with thinkingBudget: 0 to eliminate thinking token latency
     let res = await callSingleModel(m, promptText, apiKey, true);
     if (!res.success && res.status === 400) {
-      // Model does not support thinkingBudget 0, retry immediately without it
       res = await callSingleModel(m, promptText, apiKey, false);
     }
     if (res.success && res.data) {
@@ -396,7 +394,7 @@ async function callGeminiApi(promptText, apiKey) {
 // DeepSeek AI (OpenAI-uyumlu) API Çağrısı
 function callDeepSeekApi(promptText, apiKey) {
   return new Promise((resolve) => {
-    const systemMsg = 'Sen uzman bir futbol analisti ve istatistikçisin. Yalnızca geçerli JSON formatında Türkçe yanıt üret.';
+    const systemMsg = 'Sen dünyanın en gelişmiş yapay zeka futbol analisti ve aktüeryal istatistikçisisin. Yalnızca geçerli JSON formatında Türkçe yanıt üret.';
     const postData = JSON.stringify({
       model: 'deepseek-chat',
       messages: [
@@ -404,7 +402,7 @@ function callDeepSeekApi(promptText, apiKey) {
         { role: 'user', content: promptText }
       ],
       temperature: 0.3,
-      max_tokens: 700,
+      max_tokens: 1000,
       response_format: { type: 'json_object' }
     });
 
@@ -418,7 +416,7 @@ function callDeepSeekApi(promptText, apiKey) {
         'Authorization': 'Bearer ' + apiKey,
         'Content-Length': Buffer.byteLength(postData)
       },
-      timeout: 8000
+      timeout: 10000
     };
 
     const req = https.request(options, (res) => {
@@ -460,8 +458,8 @@ function callAnthropicProxyApi(promptText, apiKey) {
 
     const postData = JSON.stringify({
       model: model,
-      max_tokens: 800,
-      system: 'Sen uzman bir futbol analisti ve istatistikçisin. Yalnızca geçerli JSON formatında Türkçe yanıt üret.',
+      max_tokens: 1200,
+      system: 'Sen dünyanın en gelişmiş yapay zeka futbol analisti ve aktüeryal istatistikçisisin. Verilen maç istatistiklerini derinlemesine inceleyerek kendi nihai olasılıklarını, xG değerlerini, kesin skorunu, en değerli bahis önerisini ve taktiksel raporu yalnızca geçerli JSON formatında Türkçe üret. Markdown veya açıklama ekleme.',
       messages: [{ role: 'user', content: promptText }]
     });
 
@@ -476,7 +474,7 @@ function callAnthropicProxyApi(promptText, apiKey) {
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(postData)
       },
-      timeout: 10000
+      timeout: 25000
     };
 
     const req = http.request(options, (res) => {
@@ -486,11 +484,14 @@ function callAnthropicProxyApi(promptText, apiKey) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           try {
             const parsed = JSON.parse(data);
-            // Claude bazen thinking + text bloğu döner, text olanı bul
             const textBlock = parsed?.content?.find(b => b.type === 'text');
             const textResponse = textBlock?.text;
             if (textResponse) {
-              const cleanText = textResponse.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+              const cleanText = textResponse
+                .replace(/^\s*```json\s*/i, '')
+                .replace(/^\s*```\s*/i, '')
+                .replace(/\s*```\s*$/i, '')
+                .trim();
               const analysisData = JSON.parse(cleanText);
               resolve({ success: true, model: model, data: analysisData });
             } else {
@@ -512,18 +513,28 @@ function callAnthropicProxyApi(promptText, apiKey) {
   });
 }
 
-// Ana AI Analiz Fonksiyonu: Claude (Antigravity proxy) önce, DeepSeek yedek
+// Akıllı AI Analiz Fonksiyonu: Claude Sonnet önce, kota/yoğunluk durumunda anında Gemini 3.6 Flash yedek
 async function callBestAvailableAI(promptText) {
   const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.DEEPSEEK_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
 
-  // Önce Antigravity yerel Claude proxy'i dene
+  // 1. Önce Claude Sonnet (Antigravity proxy) dene
   if (anthropicKey) {
     const result = await callAnthropicProxyApi(promptText, anthropicKey);
     if (result.success && result.data) {
-      console.log('[AI] Claude (Antigravity Proxy) analiz başarılı:', result.model);
+      console.log('[AI] Claude Sonnet analiz başarılı:', result.model);
       return { analysis: result.data, model: result.model };
     }
-    console.warn('[AI] Claude proxy başarısız. Hata:', result.error, 'Status:', result.status);
+    console.warn('[AI] Claude proxy yanıt vermedi (kota/yoğunluk). Kesintisiz Gemini 3.6 Flash yedek devreye giriyor...');
+  }
+
+  // 2. Claude kotası sınırlandığında kullanıcıyı bekletmeden anında çalışan Google Gemini 3.6 Flash
+  if (geminiKey) {
+    const result = await callGeminiApi(promptText, geminiKey);
+    if (result && result.analysis) {
+      console.log('[AI] Gemini yedek analiz başarılı:', result.model);
+      return result;
+    }
   }
 
   return null;
@@ -974,36 +985,54 @@ const server = http.createServer((req, res) => {
           }));
         }
 
-        const promptText = `Sen uzman bir futbol analisti, istatistikçi ve bahis araştırmacısısın. Aşağıdaki maç istatistiklerini ve Dixon-Coles Poisson simülasyon çıktılarını EN DERİNİNE KADAR araştırarak profesyonel bir taktiksel analiz, detaylı bahis gerekçelendirmesi ve risk değerlendirmesi üret.
+        const promptText = `Sen dünyanın en gelişmiş yapay zeka futbol analisti ve aktüeryal istatistikçisisin. Aşağıdaki maç istatistiklerini ve Dixon-Coles simülasyon çıktılarını inceleyerek, sadece taktiksel yorum yapmakla kalmayıp maçın TÜM MATEMATİKSEL TAHMİNLERİNİ (nihai 1-X-2 olasılıkları, beklenen goller xG, kesin maç skoru ve en değerli bahis) BİZZAT HESAPLA ve belirle.
 
 MAÇ BİLGİLERİ:
 - Ev Sahibi: ${payload.homeTeam || 'Ev Sahibi'}
 - Deplasman: ${payload.awayTeam || 'Deplasman'}
 - Ülke / Lig: ${payload.country || 'Genel'}
 
-Sayısal & İstatistiksel Veriler (Dixon-Coles Simulation Engine 6.0):
-- Beklenen Goller (xG): Ev ${payload.xG_home || 1.2} - Dep ${payload.xG_away || 1.0}
-- Olasılıklar: Ev Galibiyeti %${payload.pHomeWin || 40}, Beraberlik %${payload.pDraw || 30}, Dep Galibiyeti %${payload.pAwayWin || 30}
-- 2.5 Üst Olasılığı: %${payload.pOver25 || 50} | KG Var Olasılığı: %${payload.pBTTS || 50}
-- Ev Sahibi Gol (Attığı/Yediği): ${payload.homeGoalsScored || '1.5'} / ${payload.homeGoalsConceded || '1.0'}
-- Deplasman Gol (Attığı/Yediği): ${payload.awayGoalsScored || '1.2'} / ${payload.awayGoalsConceded || '1.3'}
+Temel İstatistikler & Ön Simülasyon Verileri:
+- Dixon-Coles xG Ön Verisi: Ev ${payload.xG_home || 1.2} - Dep ${payload.xG_away || 1.0}
+- Dixon-Coles 1-X-2 Olasılıkları: Ev %${payload.pHomeWin || 40}, Beraberlik %${payload.pDraw || 30}, Dep %${payload.pAwayWin || 30}
+- 2.5 Üst İhtimali: %${payload.pOver25 || 50} | KG Var İhtimali: %${payload.pBTTS || 50}
+- Ev Sahibi Gol Ortalamaları (Attığı/Yediği): ${payload.homeGoalsScored || '1.5'} / ${payload.homeGoalsConceded || '1.0'}
+- Deplasman Gol Ortalamaları (Attığı/Yediği): ${payload.awayGoalsScored || '1.2'} / ${payload.awayGoalsConceded || '1.3'}
 - Beklenen Korner: ${payload.expCorners || '9.5'} | Beklenen Sarı Kart: ${payload.expCards || '4.2'}
-- Clean Sheet Oranları: Ev %${payload.homeCleanSheet || '—'} / Dep %${payload.awayCleanSheet || '—'}
-- İlk Yarı Gol Oranları: Ev %${payload.homeHtGoalPct || '—'} / Dep %${payload.awayHtGoalPct || '—'}
+- Clean Sheet Yüzdeleri: Ev %${payload.homeCleanSheet || '—'} / Dep %${payload.awayCleanSheet || '—'}
+- İlk Yarı Gol Yüzdeleri: Ev %${payload.homeHtGoalPct || '—'} / Dep %${payload.awayHtGoalPct || '—'}
 - Faul Ortalamaları: Ev ${payload.homeFouls || '—'} / Dep ${payload.awayFouls || '—'}
-- İç Saha Galibiyet: %${payload.homeVenueWinPct || '—'} | Deplasman Galibiyet: %${payload.awayVenueWinPct || '—'}
-- Research Score: ${payload.researchScore || '—'}/100
-- Önerilen Bahis: ${payload.suggestedBet || 'KG Var'} (Güven: %${payload.confidence || 75})
+- İç/Dış Saha Galibiyet Oranları: Ev %${payload.homeVenueWinPct || '—'} / Dep %${payload.awayVenueWinPct || '—'}
 
-GÖREV:
-Her bahis önerisini en detayına kadar araştır. Destekleyen ve karşıt faktörleri ayrı ayrı listele. Aşağıdaki JSON formatında Türkçe yanıt döndür. Başka hiçbir açıklama metni ekleme.
-JSON Şeması:
+GÖREVİN:
+1. Ön verileri ve takımların hücum/savunma formunu harmanla.
+2. Kendi nihai 1-X-2 yüzdelerini hesapla (pHomeWin + pDraw + pAwayWin tam 100 olmalı).
+3. Kendi xG değerlerini ve 2.5 Üst / KG Var yüzdelerini belirle.
+4. Bu olasılıklarla mantıksal olarak tutarlı KESİN MAÇ SKORUNU (predictedScore, örn: "2 - 1") belirle.
+5. En yüksek kazanma beklentisine sahip nihai bahsi (pick) ve güven skorunu (confidence: 50-95) belirle.
+6. Taktiksel akış, gerekçe ve risk analizini detaylandır.
+
+Yalnızca aşağıdaki geçerli JSON formatında Türkçe yanıt üret. Markdown veya başka hiçbir metin ekleme:
 {
-  "tacticalScenario": "Maçın muhtemel taktiksel akışı, tempo, baskı yönü ve saha içi dinamikleri hakkında 3-4 cümlelik derinlemesine analiz.",
-  "bestBetRationale": "Seçilen bahsin istatistiksel ve taktiksel nedenleri, destekleyen 3-4 faktör ve neden bu bahsin değerli olduğu (2-3 cümle).",
-  "riskAssessment": "Maçın dikkat edilmesi gereken temel risk faktörleri, karşıt istatistikler ve sürpriz senaryoları (2 cümle).",
-  "confidenceScore": 85,
-  "matchAnalysisSummary": "Genel sonuç özeti, maçın gidişat tahmini ve alternatif senaryo."
+  "aiProbabilities": {
+    "pHomeWin": 50,
+    "pDraw": 25,
+    "pAwayWin": 25,
+    "pOver25": 60,
+    "pBTTS": 60,
+    "xG_home": 1.7,
+    "xG_away": 1.2,
+    "predictedScore": "2 - 1"
+  },
+  "aiBestBet": {
+    "pick": "KG Var",
+    "confidence": 80
+  },
+  "tacticalScenario": "Maçın muhtemel saha içi akışı, tempo ve pres hakkında 3 cümlelik derin taktiksel analiz.",
+  "bestBetRationale": "Belirlediğin bahsin ve skorun matematiksel/istatistiki gerekçeleri (2 cümle).",
+  "riskAssessment": "Dikkat edilmesi gereken temel risk faktörleri (2 cümle).",
+  "confidenceScore": 80,
+  "matchAnalysisSummary": "Genel sonuç özeti ve maç gidişat tahmini."
 }`;
 
         const aiResult = await callBestAvailableAI(promptText);
