@@ -43,6 +43,11 @@ function showAiToast(modelName, status) {
     text = 'Engine 6.0 yerel analiz kullanıldı';
     color = 'rgba(59, 130, 246, 0.15)';
     borderColor = 'rgba(59, 130, 246, 0.5)';
+  } else if (status === 'error') {
+    icon = '⚠️';
+    text = 'DeepSeek API yanıt vermedi';
+    color = 'rgba(239, 68, 68, 0.15)';
+    borderColor = 'rgba(239, 68, 68, 0.5)';
   }
 
   const toast = document.createElement('div');
@@ -2781,32 +2786,33 @@ document.addEventListener("DOMContentLoaded", () => {
         showAiToast(data.model, 'success');
         applyAiAnalysis(data.model, data.analysis, true);
       } else {
-        // Fallback to local engine
-        showAiToast(null, 'fallback');
+        // DeepSeek başarısız — hata göster
+        showAiToast(null, 'error');
         if (aiModelBadge) {
-          aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
-          aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
+          aiModelBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> DeepSeek Bağlantı Hatası`;
+          aiModelBadge.style.background = 'rgba(239, 68, 68, 0.2)';
         }
         if (aiExplanationTitle) {
-          aiExplanationTitle.textContent = 'Engine 6.0 AI Analiz Raporu & Gerekçesi';
+          aiExplanationTitle.textContent = 'DeepSeek AI Bağlantı Hatası';
         }
         if (aiExplanationText) {
-          aiExplanationText.textContent = bestPick.reason;
+          aiExplanationText.textContent = '⚠️ DeepSeek API yanıt vermedi. API anahtarınızı kontrol edin.';
         }
       }
     })
     .catch(err => {
       if (err.name === 'AbortError') return;
-      console.warn('[AI Frontend Fetch Fallback]', err);
-      showAiToast(null, 'fallback');
+      console.error('[DeepSeek Frontend Fetch Error]', err);
+      showAiToast(null, 'error');
       if (aiModelBadge) {
-        aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
+        aiModelBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> DeepSeek Bağlantı Hatası`;
+        aiModelBadge.style.background = 'rgba(239, 68, 68, 0.2)';
       }
       if (aiExplanationTitle) {
-        aiExplanationTitle.textContent = 'Engine 6.0 AI Analiz Raporu & Gerekçesi';
+        aiExplanationTitle.textContent = 'DeepSeek AI Bağlantı Hatası';
       }
       if (aiExplanationText) {
-        aiExplanationText.textContent = bestPick.reason;
+        aiExplanationText.textContent = `⚠️ Sunucu bağlantısı kurulamadı: ${err.message}`;
       }
     });
 

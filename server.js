@@ -452,29 +452,22 @@ function callDeepSeekApi(promptText, apiKey) {
   });
 }
 
-// Birleşik AI Analiz Fonksiyonu: DeepSeek önce, Gemini yedek
+// Sadece DeepSeek AI Analiz Fonksiyonu
 async function callBestAvailableAI(promptText) {
-  const provider = process.env.AI_PROVIDER || 'deepseek';
   const deepseekKey = process.env.DEEPSEEK_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
 
-  if ((provider === 'deepseek' || provider === 'auto') && deepseekKey) {
-    const result = await callDeepSeekApi(promptText, deepseekKey);
-    if (result.success && result.data) {
-      console.log('[AI] DeepSeek-Chat analiz başarılı.');
-      return { analysis: result.data, model: 'deepseek-chat' };
-    }
-    console.warn('[AI] DeepSeek başarısız, Gemini yedek devreye alınıyor...');
+  if (!deepseekKey) {
+    console.warn('[AI] DEEPSEEK_API_KEY tanımlı değil.');
+    return null;
   }
 
-  if (geminiKey) {
-    const result = await callGeminiApi(promptText, geminiKey);
-    if (result) {
-      console.log('[AI] Gemini yedek analiz başarılı:', result.model);
-      return result;
-    }
+  const result = await callDeepSeekApi(promptText, deepseekKey);
+  if (result.success && result.data) {
+    console.log('[AI] DeepSeek-Chat analiz başarılı.');
+    return { analysis: result.data, model: 'deepseek-chat' };
   }
 
+  console.error('[AI] DeepSeek başarısız. Hata:', result.error, 'Status:', result.status);
   return null;
 }
 
