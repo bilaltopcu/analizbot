@@ -2593,13 +2593,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const cacheKey = `${homeProfile.teamName}__${awayProfile.teamName}__${bestPick.title}`;
 
     function applyAiAnalysis(modelName, analysis, stream = true) {
-      let displayName = 'Gemini 3.8 Flash AI';
+      let displayName = 'DeepSeek AI';
       if (modelName) {
-        if (modelName.includes('3.8')) displayName = 'Gemini 3.8 Flash AI';
+        if (modelName.includes('deepseek')) displayName = 'DeepSeek-V3 AI';
+        else if (modelName.includes('3.8')) displayName = 'Gemini 3.8 Flash AI';
         else if (modelName.includes('3.7')) displayName = 'Gemini 3.7 Flash AI';
         else if (modelName.includes('3.1')) displayName = 'Gemini 3.1 Flash Lite AI';
         else if (modelName.includes('3.6')) displayName = 'Gemini 3.6 Flash AI';
-        else displayName = `Gemini AI (${modelName})`;
+        else displayName = `AI (${modelName})`;
       }
 
       if (aiModelBadge) {
@@ -2635,7 +2636,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show initial rationale with smooth streaming tag
     if (aiExplanationText) {
-      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> Gemini 3.8 Flash AI derinleştiriyor...</span>`;
+      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> DeepSeek-V3 AI derinleştiriyor...</span>`;
     }
 
     // Engine 6.0: Enhanced payload with all deep research fields

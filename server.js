@@ -393,6 +393,92 @@ async function callGeminiApi(promptText, apiKey) {
   return null;
 }
 
+// DeepSeek AI (OpenAI-uyumlu) API Çağrısı
+function callDeepSeekApi(promptText, apiKey) {
+  return new Promise((resolve) => {
+    const systemMsg = 'Sen uzman bir futbol analisti ve istatistikçisin. Yalnızca geçerli JSON formatında Türkçe yanıt üret.';
+    const postData = JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: promptText }
+      ],
+      temperature: 0.3,
+      max_tokens: 700,
+      response_format: { type: 'json_object' }
+    });
+
+    const options = {
+      hostname: 'api.deepseek.com',
+      port: 443,
+      path: '/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Length': Buffer.byteLength(postData)
+      },
+      timeout: 8000
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const parsed = JSON.parse(data);
+            const textResponse = parsed?.choices?.[0]?.message?.content;
+            if (textResponse) {
+              const cleanText = textResponse.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+              const analysisData = JSON.parse(cleanText);
+              resolve({ success: true, model: 'deepseek-chat', data: analysisData });
+            } else {
+              resolve({ success: false, error: 'Empty DeepSeek response', status: res.statusCode });
+            }
+          } catch (e) {
+            resolve({ success: false, error: 'DeepSeek JSON parse error: ' + e.message, status: res.statusCode });
+          }
+        } else {
+          resolve({ success: false, error: data.slice(0, 200), status: res.statusCode });
+        }
+      });
+    });
+
+    req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'DeepSeek timeout', status: 408 }); });
+    req.on('error', (e) => { resolve({ success: false, error: e.message, status: 500 }); });
+    req.write(postData);
+    req.end();
+  });
+}
+
+// Birleşik AI Analiz Fonksiyonu: DeepSeek önce, Gemini yedek
+async function callBestAvailableAI(promptText) {
+  const provider = process.env.AI_PROVIDER || 'deepseek';
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  if ((provider === 'deepseek' || provider === 'auto') && deepseekKey) {
+    const result = await callDeepSeekApi(promptText, deepseekKey);
+    if (result.success && result.data) {
+      console.log('[AI] DeepSeek-Chat analiz başarılı.');
+      return { analysis: result.data, model: 'deepseek-chat' };
+    }
+    console.warn('[AI] DeepSeek başarısız, Gemini yedek devreye alınıyor...');
+  }
+
+  if (geminiKey) {
+    const result = await callGeminiApi(promptText, geminiKey);
+    if (result) {
+      console.log('[AI] Gemini yedek analiz başarılı:', result.model);
+      return result;
+    }
+  }
+
+  return null;
+}
+
+
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',
@@ -791,7 +877,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Gemini Pro AI Deep Analysis Endpoint
+  // AI Deep Analysis Endpoint (DeepSeek önce, Gemini yedek)
   if (pathname === '/api/gemini-analyze') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -812,14 +898,15 @@ const server = http.createServer((req, res) => {
     req.on('end', async () => {
       try {
         const payload = JSON.parse(body || '{}');
-        const apiKey = process.env.GEMINI_API_KEY;
+        const deepseekKey = process.env.DEEPSEEK_API_KEY;
+        const geminiKey = process.env.GEMINI_API_KEY;
 
-        if (!apiKey) {
+        if (!deepseekKey && !geminiKey) {
           res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
           return res.end(JSON.stringify({
             success: false,
             fallback: true,
-            message: 'GEMINI_API_KEY çevre değişkeni bulunamadı. Yerel motor kullanılıyor.'
+            message: 'AI API anahtarı bulunamadı. Yerel motor kullanılıyor.'
           }));
         }
 
@@ -868,35 +955,35 @@ JSON Şeması:
   "matchAnalysisSummary": "Genel sonuç özeti, maçın gidişat tahmini ve alternatif senaryo."
 }`;
 
-        const geminiResult = await callGeminiApi(promptText, apiKey);
+        const aiResult = await callBestAvailableAI(promptText);
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
-        if (geminiResult && geminiResult.analysis) {
+        if (aiResult && aiResult.analysis) {
           if (aiAnalysisCache.size >= MAX_CACHE_SIZE) {
             const firstKey = aiAnalysisCache.keys().next().value;
             aiAnalysisCache.delete(firstKey);
           }
           aiAnalysisCache.set(cacheKey, {
-            model: geminiResult.model,
-            analysis: geminiResult.analysis
+            model: aiResult.model,
+            analysis: aiResult.analysis
           });
 
           res.end(JSON.stringify({
             success: true,
             fallback: false,
-            model: geminiResult.model,
-            analysis: geminiResult.analysis
+            model: aiResult.model,
+            analysis: aiResult.analysis
           }));
         } else {
           res.end(JSON.stringify({
             success: false,
             fallback: true,
-            message: 'Gemini API yanıt üretemedi, yerel motora geçildi.'
+            message: 'AI API yanıt üretemedi, yerel motora geçildi.'
           }));
         }
 
       } catch (err) {
-        console.error('[Gemini Route Error]', err);
+        console.error('[AI Route Error]', err);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
         res.end(JSON.stringify({ success: false, fallback: true, error: err.message }));
       }
