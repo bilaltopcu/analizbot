@@ -15,11 +15,16 @@ function showAiToast(modelName, status) {
       text = 'DeepSeek-V3 AI analiz yapıyor...';
       color = 'rgba(16, 185, 129, 0.15)';
       borderColor = 'rgba(16, 185, 129, 0.5)';
+    } else if (modelName && modelName.toLowerCase().includes('claude')) {
+      icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+      text = 'Claude Sonnet AI analiz yapıyor...';
+      color = 'rgba(251, 146, 60, 0.15)';
+      borderColor = 'rgba(251, 146, 60, 0.5)';
     } else {
       icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      text = 'Gemini AI analiz yapıyor...';
-      color = 'rgba(147, 51, 234, 0.15)';
-      borderColor = 'rgba(147, 51, 234, 0.5)';
+      text = 'Claude Sonnet AI analiz yapıyor...';
+      color = 'rgba(251, 146, 60, 0.15)';
+      borderColor = 'rgba(251, 146, 60, 0.5)';
     }
   } else if (status === 'success') {
     if (modelName && modelName.toLowerCase().includes('deepseek')) {
@@ -27,6 +32,11 @@ function showAiToast(modelName, status) {
       text = 'DeepSeek-V3 AI ile analiz tamamlandı';
       color = 'rgba(16, 185, 129, 0.18)';
       borderColor = 'rgba(16, 185, 129, 0.6)';
+    } else if (modelName && modelName.toLowerCase().includes('claude')) {
+      icon = '✅';
+      text = 'Claude Sonnet AI ile analiz tamamlandı';
+      color = 'rgba(251, 146, 60, 0.18)';
+      borderColor = 'rgba(251, 146, 60, 0.6)';
     } else if (modelName) {
       icon = '✅';
       text = `Gemini AI ile analiz tamamlandı`;
@@ -2687,9 +2697,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const cacheKey = `${homeProfile.teamName}__${awayProfile.teamName}__${bestPick.title}`;
 
     function applyAiAnalysis(modelName, analysis, stream = true) {
-      let displayName = 'DeepSeek AI';
+      let displayName = 'Claude Sonnet AI';
       if (modelName) {
-        if (modelName.includes('deepseek')) displayName = 'DeepSeek-V3 AI';
+        if (modelName.toLowerCase().includes('claude')) displayName = 'Claude Sonnet AI';
+        else if (modelName.includes('deepseek')) displayName = 'DeepSeek-V3 AI';
         else if (modelName.includes('3.8')) displayName = 'Gemini 3.8 Flash AI';
         else if (modelName.includes('3.7')) displayName = 'Gemini 3.7 Flash AI';
         else if (modelName.includes('3.1')) displayName = 'Gemini 3.1 Flash Lite AI';
@@ -2730,7 +2741,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show initial rationale with smooth streaming tag
     if (aiExplanationText) {
-      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> DeepSeek-V3 AI derinleştiriyor...</span>`;
+      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> Claude Sonnet AI derinleştiriyor...</span>`;
     }
 
     // Engine 6.0: Enhanced payload with all deep research fields
@@ -2770,8 +2781,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentAiAbortController = new AbortController();
 
     // AI loading toast göster
-    const provider = (typeof process !== 'undefined' && process.env && process.env.AI_PROVIDER) || 'deepseek';
-    showAiToast('deepseek', 'loading');
+    showAiToast('claude', 'loading');
 
     fetch('/api/gemini-analyze', {
       method: 'POST',

@@ -452,22 +452,78 @@ function callDeepSeekApi(promptText, apiKey) {
   });
 }
 
-// Sadece DeepSeek AI Analiz Fonksiyonu
+// Antigravity Yerel Claude Proxy API Çağrısı (http://127.0.0.1:8045)
+function callAnthropicProxyApi(promptText, apiKey) {
+  return new Promise((resolve) => {
+    const http = require('http');
+    const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6';
+
+    const postData = JSON.stringify({
+      model: model,
+      max_tokens: 800,
+      system: 'Sen uzman bir futbol analisti ve istatistikçisin. Yalnızca geçerli JSON formatında Türkçe yanıt üret.',
+      messages: [{ role: 'user', content: promptText }]
+    });
+
+    const options = {
+      hostname: '127.0.0.1',
+      port: 8045,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(postData)
+      },
+      timeout: 10000
+    };
+
+    const req = http.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const parsed = JSON.parse(data);
+            const textResponse = parsed?.content?.[0]?.text;
+            if (textResponse) {
+              const cleanText = textResponse.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+              const analysisData = JSON.parse(cleanText);
+              resolve({ success: true, model: model, data: analysisData });
+            } else {
+              resolve({ success: false, error: 'Boş Claude yanıtı', status: res.statusCode });
+            }
+          } catch (e) {
+            resolve({ success: false, error: 'Claude JSON parse hatası: ' + e.message, status: res.statusCode });
+          }
+        } else {
+          resolve({ success: false, error: data.slice(0, 200), status: res.statusCode });
+        }
+      });
+    });
+
+    req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'Claude proxy timeout', status: 408 }); });
+    req.on('error', (e) => { resolve({ success: false, error: e.message, status: 500 }); });
+    req.write(postData);
+    req.end();
+  });
+}
+
+// Ana AI Analiz Fonksiyonu: Claude (Antigravity proxy) önce, DeepSeek yedek
 async function callBestAvailableAI(promptText) {
-  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.DEEPSEEK_API_KEY;
 
-  if (!deepseekKey) {
-    console.warn('[AI] DEEPSEEK_API_KEY tanımlı değil.');
-    return null;
+  // Önce Antigravity yerel Claude proxy'i dene
+  if (anthropicKey) {
+    const result = await callAnthropicProxyApi(promptText, anthropicKey);
+    if (result.success && result.data) {
+      console.log('[AI] Claude (Antigravity Proxy) analiz başarılı:', result.model);
+      return { analysis: result.data, model: result.model };
+    }
+    console.warn('[AI] Claude proxy başarısız. Hata:', result.error, 'Status:', result.status);
   }
 
-  const result = await callDeepSeekApi(promptText, deepseekKey);
-  if (result.success && result.data) {
-    console.log('[AI] DeepSeek-Chat analiz başarılı.');
-    return { analysis: result.data, model: 'deepseek-chat' };
-  }
-
-  console.error('[AI] DeepSeek başarısız. Hata:', result.error, 'Status:', result.status);
   return null;
 }
 
