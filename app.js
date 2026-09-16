@@ -1,106 +1,10 @@
 // Application State & Control Engine
 
 // =============================================
-// AI Provider Toast Bildirimi
+// AI Bildirim Sistemi (Kullanıcı isteğiyle kapatıldı - sessiz mod)
 // =============================================
-function showAiToast(modelName, status) {
-  const container = document.getElementById('aiToastContainer');
-  if (!container) return;
-
-  let icon, text, color, borderColor;
-
-  if (status === 'loading') {
-    if (modelName && modelName.toLowerCase().includes('deepseek')) {
-      icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      text = 'DeepSeek-V3 AI analiz yapıyor...';
-      color = 'rgba(16, 185, 129, 0.15)';
-      borderColor = 'rgba(16, 185, 129, 0.5)';
-    } else if (modelName && modelName.toLowerCase().includes('claude')) {
-      icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      text = 'Claude Sonnet AI analiz yapıyor...';
-      color = 'rgba(251, 146, 60, 0.15)';
-      borderColor = 'rgba(251, 146, 60, 0.5)';
-    } else {
-      icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      text = 'Claude Sonnet AI analiz yapıyor...';
-      color = 'rgba(251, 146, 60, 0.15)';
-      borderColor = 'rgba(251, 146, 60, 0.5)';
-    }
-  } else if (status === 'success') {
-    if (modelName && modelName.toLowerCase().includes('deepseek')) {
-      icon = '✅';
-      text = 'DeepSeek-V3 AI ile analiz tamamlandı';
-      color = 'rgba(16, 185, 129, 0.18)';
-      borderColor = 'rgba(16, 185, 129, 0.6)';
-    } else if (modelName && modelName.toLowerCase().includes('claude')) {
-      icon = '✅';
-      text = 'Claude Sonnet AI ile analiz tamamlandı';
-      color = 'rgba(251, 146, 60, 0.18)';
-      borderColor = 'rgba(251, 146, 60, 0.6)';
-    } else if (modelName) {
-      icon = '✅';
-      text = `Gemini AI ile analiz tamamlandı`;
-      color = 'rgba(147, 51, 234, 0.18)';
-      borderColor = 'rgba(147, 51, 234, 0.6)';
-    } else {
-      icon = '🧮';
-      text = 'Engine 6.0 yerel analiz kullanıldı';
-      color = 'rgba(59, 130, 246, 0.15)';
-      borderColor = 'rgba(59, 130, 246, 0.5)';
-    }
-  } else if (status === 'fallback') {
-    icon = '🧮';
-    text = 'Engine 6.0 yerel analiz kullanıldı';
-    color = 'rgba(59, 130, 246, 0.15)';
-    borderColor = 'rgba(59, 130, 246, 0.5)';
-  } else if (status === 'error') {
-    icon = '⚠️';
-    text = 'Claude AI yanıt vermedi';
-    color = 'rgba(239, 68, 68, 0.15)';
-    borderColor = 'rgba(239, 68, 68, 0.5)';
-  }
-
-  const toast = document.createElement('div');
-  toast.style.cssText = `
-    background: ${color};
-    border: 1.5px solid ${borderColor};
-    color: #e2e8f0;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    white-space: nowrap;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.01em;
-  `;
-  toast.innerHTML = `${icon} <span>${text}</span>`;
-  container.appendChild(toast);
-
-  // Animate in
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateY(0)';
-    });
-  });
-
-  // Auto dismiss
-  const duration = status === 'loading' ? 8000 : 3500;
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(16px)';
-    setTimeout(() => toast.remove(), 350);
-  }, duration);
-
-  return toast;
+function showAiToast() {
+  // Bildirimler sessize alındı
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2780,7 +2684,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show initial rationale with smooth streaming tag
     if (aiExplanationText) {
-      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> Claude Sonnet AI derinleştiriyor...</span>`;
+      aiExplanationText.innerHTML = `${bestPick.reason} <span class="ai-stream-tag"><i class="fa-solid fa-circle-notch fa-spin"></i> AI derinleştiriyor...</span>`;
     }
 
     // Engine 6.0: Enhanced payload with all deep research fields
@@ -2819,9 +2723,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     currentAiAbortController = new AbortController();
 
-    // AI loading toast göster
-    showAiToast('claude', 'loading');
-
     fetch('/api/gemini-analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2832,11 +2733,9 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(data => {
       if (data && data.success && data.analysis) {
         clientAiAnalysisCache.set(cacheKey, { model: data.model, analysis: data.analysis });
-        showAiToast(data.model, 'success');
         applyAiAnalysis(data.model, data.analysis, true);
       } else {
         // Fallback to local engine
-        showAiToast(null, 'fallback');
         if (aiModelBadge) {
           aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
           aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
@@ -2852,7 +2751,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(err => {
       if (err.name === 'AbortError') return;
       console.warn('[AI Frontend Fetch Fallback]', err);
-      showAiToast(null, 'fallback');
       if (aiModelBadge) {
         aiModelBadge.innerHTML = `<i class="fa-solid fa-calculator"></i> Engine 6.0 (Yerel)`;
         aiModelBadge.style.background = 'rgba(59, 130, 246, 0.2)';
