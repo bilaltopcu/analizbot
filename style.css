@@ -1,44 +1,44 @@
 /* ==========================================================================
-   GOLANALIZ AI — Premium Dark Football Theme v5.0
-   Koyu, profesyonel, futbol stadyumu estetiği — Sıfır öğrenme eğrisi UX
+   GOLANALIZ AI — Premium Clean White Theme v6.1
+   Temiz, profesyonel, modern futbol analiz arayüzü
    ========================================================================== */
 
 :root {
-  /* ── KOYU TEMA ANA ARKAPLANLAR ── */
-  --bg-dark:        #0c1220;
-  --bg-page:        #0d1628;
-  --bg-card:        #131e35;
-  --bg-card-hover:  #182340;
-  --bg-glass:       #162038;
-  --bg-subtle:      #1a2845;
-  --bg-input:       #0f1a2e;
+  /* ── BEYAZ TEMA ANA ARKAPLANLAR ── */
+  --bg-dark:        #ffffff;
+  --bg-page:        #f5f7fa;
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #f9fafc;
+  --bg-glass:       #f0f3f8;
+  --bg-subtle:      #eaecf2;
+  --bg-input:       #f7f9fc;
 
   /* ── KENARLUKLAR ── */
-  --border-glass:        rgba(255,255,255,0.08);
-  --border-glass-bright: rgba(255,255,255,0.18);
-  --border-accent:       rgba(0, 212, 170, 0.3);
+  --border-glass:        #e4e7ef;
+  --border-glass-bright: #c8cdd9;
+  --border-accent:       rgba(30, 86, 192, 0.2);
 
-  /* ── VİBRANT VURGULAR ── */
-  --accent-primary:  #00d4aa;
-  --accent-secondary:#3b82f6;
-  --accent-muted:    #1e3560;
+  /* ── VURGULAR — Koyu mavi & futbol kırmızı ── */
+  --accent-primary:   #c0392b;
+  --accent-secondary: #1e56c0;
+  --accent-muted:     #e8edf8;
 
   /* Anlamsal durum renkleri */
-  --accent-blue:    #3b82f6;
-  --accent-cyan:    #06b6d4;
-  --accent-violet:  #8b5cf6;
-  --accent-emerald: #10b981;
-  --accent-green:   #00d4aa;
-  --accent-amber:   #f59e0b;
-  --accent-gold:    #fbbf24;
-  --accent-crimson: #ef4444;
-  --accent-live:    #ef4444;
+  --accent-blue:    #1e56c0;
+  --accent-cyan:    #0369a1;
+  --accent-violet:  #6d28d9;
+  --accent-emerald: #059669;
+  --accent-green:   #16a34a;
+  --accent-amber:   #d97706;
+  --accent-gold:    #b45309;
+  --accent-crimson: #c0392b;
+  --accent-live:    #dc2626;
 
   /* ── METİN ── */
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #64748b;
-  --text-inverse:   #0f172a;
+  --text-primary:   #111827;
+  --text-secondary: #4b5563;
+  --text-muted:     #9ca3af;
+  --text-inverse:   #ffffff;
 
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -49,11 +49,11 @@
   --radius-xl:   30px;
   --radius-full: 9999px;
 
-  --shadow-sm:   0 2px 12px rgba(0,0,0,0.35);
-  --shadow-md:   0 8px 32px rgba(0,0,0,0.45);
-  --shadow-lg:   0 20px 60px rgba(0,0,0,0.55);
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-glow: 0 0 24px rgba(0, 212, 170, 0.2);
+  --shadow-sm:   0 1px 6px rgba(0,0,0,0.06);
+  --shadow-md:   0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,0.12);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-glow: 0 0 20px rgba(30, 86, 192, 0.12);
 
   --transition-fast:   0.18s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.32s cubic-bezier(0.4, 0, 0.2, 1);
@@ -76,7 +76,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: linear-gradient(160deg, #080f1e 0%, #0d1628 40%, #0a1322 70%, #0c1830 100%);
+  background: #f5f7fa;
   color: var(--text-primary);
   min-height: 100%;
   min-height: 100vh;
@@ -90,40 +90,13 @@ body {
   touch-action: manipulation;
 }
 
-/* Decorative Background Glow Orbs - Stadium Atmosphere */
+/* Decorative Background Elements (devre dışı - beyaz temada yok) */
 .glow-orb {
-  position: absolute;
-  border-radius: 50%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.08;
-  transform: translateZ(0);
-  will-change: transform;
-  contain: strict;
+  display: none;
 }
 
-.orb-1 {
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(circle, #00d4aa 0%, rgba(0, 180, 140, 0.3) 40%, transparent 70%);
-  top: -350px;
-  left: -300px;
-}
-
-.orb-2 {
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, #3b82f6 0%, rgba(59, 130, 246, 0.25) 40%, transparent 70%);
-  top: 700px;
-  right: -300px;
-}
-
-.orb-3 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #fbbf24 0%, rgba(251, 191, 36, 0.2) 40%, transparent 70%);
-  bottom: 100px;
-  left: 25%;
+.orb-1, .orb-2, .orb-3 {
+  display: none;
 }
 
 /* Layout Container */
@@ -168,9 +141,9 @@ body {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+  background: linear-gradient(90deg, #c0392b, #1e56c0);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .glass-card {
@@ -183,10 +156,11 @@ body {
 }
 
 .glass-card:hover {
-  border-color: var(--accent-green);
-  box-shadow: var(--shadow-md), 0 0 0 1px rgba(0,212,170,0.15);
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-md), 0 0 0 1px rgba(30,86,192,0.1);
   transform: translateY(-2px);
 }
+
 
 /* Header */
 .app-header {
@@ -195,10 +169,10 @@ body {
   gap: 14px;
   margin-bottom: 24px;
   padding: 16px 20px;
-  background: linear-gradient(135deg, rgba(0,212,170,0.08) 0%, rgba(59,130,246,0.06) 50%, rgba(251,191,36,0.04) 100%);
+  background: #ffffff;
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(0,212,170,0.15);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
 }
@@ -208,9 +182,10 @@ body {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #00d4aa, #3b82f6, #fbbf24);
+  background: linear-gradient(90deg, #c0392b, #1e56c0, #059669);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
+
 
 .header-main-row {
   display: flex;
@@ -263,7 +238,7 @@ body {
 }
 
 .accent-text {
-  background: linear-gradient(135deg, #00d4aa, #06b6d4);
+  background: linear-gradient(135deg, #c0392b, #1e56c0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -305,16 +280,17 @@ body {
 }
 
 .live-badge {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
 }
 
 .source-badge {
-  background: rgba(245, 158, 11, 0.12);
-  color: var(--accent-amber);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
+
 
 /* Selection Section */
 .card-header h2 {
@@ -383,14 +359,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: #f0f3f8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e3a5f;
+  background: #c8cdd9;
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a4f80;
+  background: #9ca3af;
 }
 
 /* Custom Dropdown Component */
@@ -438,8 +414,8 @@ body {
 }
 
 .dropdown-trigger:hover, .custom-dropdown.open .dropdown-trigger {
-  border-color: var(--accent-green);
-  box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.12);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(30, 86, 192, 0.1);
   background: var(--bg-glass);
 }
 
@@ -493,18 +469,18 @@ body {
   color: var(--accent-green);
 }
 
-/* Dropdown Menu (Dark Floating Panel) */
+/* Dropdown Menu (Clean Floating Panel) */
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   width: 100%;
-  background: #0e1a30;
-  border: 1.5px solid var(--accent-green);
+  background: #ffffff;
+  border: 1.5px solid var(--accent-blue);
   border-radius: var(--radius-md);
   z-index: 1500 !important;
   padding: 10px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0,212,170,0.1);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(30,86,192,0.08);
   animation: fadeIn 0.25s ease-out;
 }
 
@@ -534,9 +510,9 @@ body {
 }
 
 .dropdown-search-input:focus {
-  border-color: var(--accent-green);
-  box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
-  background: var(--bg-glass);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(30, 86, 192, 0.08);
+  background: #ffffff;
 }
 
 .dropdown-options-list {
@@ -560,14 +536,15 @@ body {
 }
 
 .dropdown-option-item:hover {
-  background: rgba(0, 212, 170, 0.08);
+  background: #eef3ff;
 }
 
 .country-option-item.active,
 .dropdown-option-item.selected {
-  background: rgba(0, 212, 170, 0.12);
-  border-left: 3px solid var(--accent-green);
+  background: #eef3ff;
+  border-left: 3px solid var(--accent-blue);
 }
+
 
 .option-flag {
   width: 28px;
@@ -11043,11 +11020,358 @@ button, a, input, select, .dropdown-trigger, .dropdown-option-item, .tab-btn, .c
   color: var(--text-primary) !important;
 }
 
+
 #expectedTableContainer .exp-stat-val,
 .expected-metrics-section .exp-stat-val {
-  color: #38bdf8 !important;
-  background: rgba(56, 189, 248, 0.12) !important;
-  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  color: #1e56c0 !important;
+  background: #eef3ff !important;
+  border: 1px solid #c7d7fa !important;
 }
 
+/* ==========================================================================
+   BEYAZ TEMA — Genel Override Bloğu (White Theme Final Override)
+   Dosya genelindeki koyu renkli hard-coded değerlerin üzerine yazar
+   ========================================================================== */
 
+/* Tüm modal ve kart arkaplanları */
+.modal-container,
+.auth-modal,
+.favorites-modal,
+.match-detail-modal,
+.mybets-modal,
+.perf-modal,
+.pwa-modal,
+.modal-overlay .glass-panel {
+  background: #ffffff !important;
+  color: var(--text-primary) !important;
+}
+
+/* Form alanları */
+.auth-form input,
+.form-group input {
+  background: #f7f9fc;
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+}
+
+.auth-form input:focus,
+.form-group input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(30, 86, 192, 0.08);
+}
+
+/* Top nav switch tabs */
+.top-nav-switch-wrapper {
+  background: #ffffff;
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-sm);
+}
+
+.top-nav-tab {
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+}
+
+.top-nav-tab.active {
+  background: var(--accent-blue) !important;
+  color: #ffffff !important;
+}
+
+/* Today matches section */
+.today-matches-section,
+.today-section-header,
+.mackolik-date-bar {
+  background: transparent;
+}
+
+.today-refresh-btn,
+.date-nav-btn,
+.date-calendar-btn {
+  background: #ffffff;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+
+.today-refresh-btn:hover,
+.date-nav-btn:hover,
+.date-calendar-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* Date pills */
+.date-pill {
+  background: #f0f3f8;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+
+.date-pill.active {
+  background: var(--accent-blue);
+  color: #ffffff;
+  border-color: var(--accent-blue);
+}
+
+/* Filter tabs */
+.today-filter-btn {
+  background: #f0f3f8;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass);
+}
+
+.today-filter-btn.active {
+  background: var(--accent-blue);
+  color: #ffffff;
+  border-color: var(--accent-blue);
+}
+
+.today-filter-btn.filter-live.active {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Match rows and cards */
+.match-group-header {
+  background: #f5f7fa;
+  color: var(--text-primary);
+  border: 1px solid var(--border-glass);
+}
+
+.match-row-card,
+.match-card {
+  background: #ffffff;
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+}
+
+.match-row-card:hover,
+.match-card:hover {
+  border-color: #c7d7fa;
+  box-shadow: var(--shadow-md);
+}
+
+/* Coupon floating panel */
+.coupon-panel {
+  background: #ffffff !important;
+  border-color: #1e56c0 !important;
+}
+
+.coupon-float-btn {
+  background: var(--accent-blue) !important;
+}
+
+/* Auth tabs */
+.auth-tab.active {
+  background: var(--accent-blue) !important;
+  color: #ffffff !important;
+}
+
+/* Button submit */
+.btn-auth-submit {
+  background: linear-gradient(135deg, #1e56c0, #2563eb) !important;
+  color: #ffffff !important;
+}
+
+/* Tab buttons */
+.tab-btn.active {
+  background: var(--accent-blue) !important;
+}
+
+/* Adım pill */
+.step-pill {
+  background: #eef3ff;
+  color: var(--accent-blue);
+  border: 1px solid #c7d7fa;
+}
+
+.step-num {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+/* Guide banner */
+.guide-banner {
+  background: #f5f7fa;
+  border: 1px solid var(--border-glass);
+}
+
+.guide-step.active {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+/* VS badge */
+.vs-badge {
+  background: var(--accent-blue) !important;
+}
+
+/* Match mode buttons */
+.match-type-btn.active,
+.cup-pill-btn.active {
+  background: var(--accent-blue) !important;
+  color: #ffffff !important;
+}
+
+/* Footer */
+.app-footer {
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-glass);
+  padding-top: 18px;
+}
+
+/* AI badge */
+.ai-badge {
+  background: linear-gradient(135deg, #1e56c0, #0369a1) !important;
+}
+
+/* Bet card top accent */
+.bet-card::before {
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)) !important;
+}
+
+.bet-card:hover {
+  border-color: var(--accent-blue) !important;
+}
+
+/* Back button */
+.btn-back-to-matches {
+  background: #f0f3f8;
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+}
+
+.btn-back-to-matches:hover {
+  background: #eef3ff;
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* View analysis tag */
+.view-analysis-tag {
+  background: #eef3ff;
+  color: var(--accent-blue);
+  border: 1px solid #c7d7fa;
+}
+
+/* User action buttons */
+.btn-user-action {
+  background: #f0f3f8;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+
+.btn-user-action:hover {
+  background: #eef3ff;
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.btn-fullscreen-header {
+  background: #f0f3f8;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+
+.btn-pwa-header {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+/* Logout button */
+.btn-logout {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #c0392b;
+}
+
+/* User profile pill */
+.user-profile-pill {
+  background: #f0f3f8;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+
+/* Modal close button */
+.modal-close-btn {
+  background: #f0f3f8;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+
+.modal-close-btn:hover {
+  background: #fef2f2;
+  color: #c0392b;
+}
+
+/* AI slips */
+.ai-slips-engine-badge {
+  background: #eef3ff;
+  color: var(--accent-blue);
+  border: 1px solid #c7d7fa;
+}
+
+/* Pulse dot - canlı */
+.pulse-dot,
+.pulse-indicator {
+  background: #dc2626;
+}
+
+/* Live source tag */
+.live-source-tag {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Expected metric değerleri */
+#expectedTableContainer .exp-stat-val,
+.expected-metrics-section .exp-stat-val {
+  color: #1e56c0 !important;
+  background: #eef3ff !important;
+  border: 1px solid #c7d7fa !important;
+}
+
+/* Verified winrate badge */
+.verified-winrate-badge {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-color: #a7f3d0 !important;
+}
+
+/* Form badge toast */
+.form-badge-toast {
+  background: rgba(255, 255, 255, 0.97) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-glass) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Season badge */
+.season-badge {
+  background: #eef3ff !important;
+  color: var(--accent-blue) !important;
+  border-color: #c7d7fa !important;
+}
+
+/* Advert areas - clean white */
+.ad-promo-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef3ff 100%) !important;
+}
+
+.ad-promo-badge {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+/* My bets clear button */
+.btn-clear-all-bets {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #c0392b;
+}
+
+/* Perf modal win rate */
+#perfModalWinRate {
+  color: #059669 !important;
+}
