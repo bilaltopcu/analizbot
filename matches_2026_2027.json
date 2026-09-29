@@ -861418,5 +861418,30 @@
     "ay": 0,
     "hr": 0,
     "ar": 0
+  },
+  {
+    "country": "ESP",
+    "league_code": "SP2",
+    "league_name": "İspanya Segunda",
+    "season": "2026/2027",
+    "date": "28/09/2026",
+    "time": "19:30",
+    "homeTeam": "Leganes",
+    "awayTeam": "Castellon",
+    "fthg": 0,
+    "ftag": 2,
+    "ftr": "A",
+    "hthg": 0,
+    "htag": 1,
+    "hs": 15,
+    "as": 20,
+    "hst": 2,
+    "ast": 6,
+    "hc": 4,
+    "ac": 2,
+    "hy": 6,
+    "ay": 1,
+    "hr": 0,
+    "ar": 1
   }
 ]
