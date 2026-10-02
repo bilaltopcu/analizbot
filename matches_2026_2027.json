@@ -861743,5 +861743,30 @@
     "ay": 2,
     "hr": 0,
     "ar": 0
+  },
+  {
+    "country": "USA",
+    "league_code": "USA",
+    "league_name": "ABD MLS",
+    "season": "2026/2027",
+    "date": "01/10/2026",
+    "time": "00:30",
+    "homeTeam": "New York Red Bulls",
+    "awayTeam": "St. Louis City",
+    "fthg": 0,
+    "ftag": 3,
+    "ftr": "A",
+    "hthg": 0,
+    "htag": 0,
+    "hs": 0,
+    "as": 0,
+    "hst": 0,
+    "ast": 0,
+    "hc": 0,
+    "ac": 0,
+    "hy": 0,
+    "ay": 0,
+    "hr": 0,
+    "ar": 0
   }
 ]
